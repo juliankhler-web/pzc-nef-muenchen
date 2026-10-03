@@ -426,8 +426,12 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.1";
+const APP_VERSION="2.2";
 const CHANGELOG=[
+ {v:"2.2",d:"03.10.2026",items:[
+  "Suche nach Fachrichtungen: „Chirurgie“, „Handchirurgie“, „Augenarzt“, „Kardiologie“, „Neurologie“, „Zahnarzt“ … findet die passenden Codes",
+  "Finger- und Handverletzungen deutlich besser auffindbar („Finger“, „Finger gequetscht“, „Finger abgeschnitten“, „Finger gebrochen“)",
+  "Wenn mehrere Suchwörter zusammen nichts finden, zeigt die Suche Treffer für einzelne Wörter, die besten zuerst"]},
  {v:"2.1",d:"03.10.2026",items:[
   "Suche springt nicht mehr: Ergebnisse erscheinen direkt unter dem Suchfeld, die Seite bleibt beim Tippen ruhig"]},
  {v:"2.0",d:"03.10.2026",items:[
@@ -683,9 +687,47 @@ const SYN=[
  [[415],"Karussell; dreht sich alles; torkelt; kann nicht stehen"],
  [[341],"Herz stolpert; Herzklopfen; Puls unregelmäßig"],
  [[345],"Kopf Druck Blutdruck; RR über 200; Blutdruck sehr hoch"],
- [[363],"hat etwas getrunken; Reiniger getrunken; Chemikalie geschluckt; Batterie geschluckt"]
+ [[363],"hat etwas getrunken; Reiniger getrunken; Chemikalie geschluckt; Batterie geschluckt"],
+[[275],"Finger; Finger gequetscht; Finger eingeklemmt; Finger geschnitten; Finger Schnittwunde; Finger aufgeschnitten; Fingerverletzung; Daumen verletzt; Handchirurgie"],
+ [[276],"Finger abgeschnitten; Finger ab; Fingerkuppe abgetrennt; Fingerkuppe ab; Daumen abgetrennt; Handchirurgie; Replantation"],
+ [[277],"Handchirurgie; Replantation; Hand ab; Arm ab; Bein ab; Amputationsverletzung"],
+ [[272],"Finger gebrochen; Fingerbruch; Zeh gebrochen; Zehenbruch; Fingerfraktur; Daumen gebrochen"],
+ [[219],"Schnittwunde; Platzwunde; Schürfwunde; Prellung; kleine Wunde; Kratzer; Finger geschnitten; Wunde; Blutung gering; Bagatelle"],
+ [[223,224,275,263],"Wunde; Schnittwunde; Platzwunde; Riss"],
+ [[281],"Verbrennungszentrum; Brandverletzte; Verbrennung Finger; Verbrennung Hand"]
 ];
 const KW={}; SYN.forEach(([cs,t])=>cs.forEach(c=>{(KW[c]=KW[c]||[]).push(...t.split(";").map(x=>x.trim()).filter(Boolean))}));
+const byCodeEarly=c=>D.some(d=>d[0]===c);
+/* Fachrichtungen: Suche nach „Chirurgie“, „Augenarzt“, „Kardiologie“ … findet die passenden Codes */
+const DEPT=[
+ [R(211,288),"Chirurgie; Unfallchirurgie; Unfall"],
+ [[243],"Allgemeinchirurgie; Viszeralchirurgie; Bauchchirurgie; Chirurgie"],
+ [R(241,242),"Allgemeinchirurgie; Viszeralchirurgie; Bauchchirurgie"],
+ [R(221,224),"Neurochirurgie; Schädel; Kopf"],
+ [R(251,255),"Wirbelsäulenchirurgie; Neurochirurgie; Orthopädie; Wirbelsäule; Rücken"],
+ [R(261,274),"Orthopädie; Knochen; Unfallchirurgie"],
+ [R(275,277),"Hand; Handchirurgie; Chirurgie"],
+ [[225,721,729],"Augenheilkunde; Augenarzt; Ophthalmologie; Augenklinik; Auge"],
+ [R(291,299),"Gefäßchirurgie; Chirurgie; Gefäße"],
+ [R(311,319),"Pneumologie; Lungenarzt; Lunge"],
+ [R(331,349),"Kardiologie; Kardiologe; Herzklinik; Herzkatheter; Herz"],
+ [R(351,359),"Gastroenterologie; Magen-Darm-Arzt"],
+ [R(391,393),"Endokrinologie; Diabetologe; Stoffwechsel"],
+ [R(411,425),"Neurologie; Neurologe; Nervenarzt; Neuro"],
+ [R(431,435),"Psychiatrie; Psychiater; Psychologie"],
+ [R(511,519),"Kinderarzt; Kinderklinik; Pädiatrie; Kinder"],
+ [R(521,559),"Frauenarzt; Gynäkologie; Gynäkologe; Geburtshilfe; Frauenklinik"],
+ [R(711,719),"Urologie; Urologe"],
+ [R(731,739),"HNO; HNO-Arzt; Hals-Nasen-Ohren"],
+ [[749],"Kieferchirurgie; Zahnarzt; MKG; Mund-Kiefer-Gesicht; Zahn"],
+ [[701],"Dermatologie; Hautarzt; Haut"],
+ [R(321,329),"Innere Medizin; Internist"],
+ [[281],"Verbrennungszentrum; Brandverletzte; Chirurgie"],
+ [R(371,379),"Infektiologie; Infektion"],
+ [R(360,370),"Toxikologie; Giftnotruf; Vergiftung"]
+];
+DEPT.forEach(([cs,t])=>cs.forEach(c=>{if(byCodeEarly(c))(KW[c]=KW[c]||[]).push(...t.split(";").map(x=>x.trim()))}));
+
 const lev=(a,b)=>{const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]};
 const STOP=new Set(["der","die","das","ein","eine","einen","einem","mit","und","am","im","an","ist","hat","bei","von","zu","zum","zur","nach","auf","in","den","dem","des","sich","nicht","kein","keine","sehr","so","wie","patient","patientin","pat","hat","sind","mein","sein","ihr","sie","er","es"]);
@@ -714,10 +756,10 @@ function search(q){
   if(raw.length===1&&/^\d+$/.test(raw[0])) return IDX.filter(x=>String(x.d[0]).startsWith(raw[0])).map(x=>({d:x.d}));
   let toks=raw.filter(w=>!STOP.has(w)).map(w=>({raw:w,st:stem(w)}));
   if(!toks.length)toks=raw.map(w=>({raw:w,st:stem(w)}));
-  const run=fuzzy=>{
+  const run=(fuzzy,any)=>{
     const out=[];
     IDX.forEach(x=>{
-      let total=0;const termCov=x.terms.map(()=>({n:0,sc:0}));let ok=true;
+      let total=0,matched=0;const termCov=x.terms.map(()=>({n:0,sc:0}));let ok=true;
       for(const t of toks){
         let best=0;
         for(const w of x.name){const s=mscore(t,w);if(s)best=Math.max(best,Math.min(s,6))}
@@ -727,19 +769,19 @@ function search(q){
           if(tb){termCov[ti].n++;termCov[ti].sc+=tb;best=Math.max(best,tb)}
         });
         if(!best&&fuzzy&&t.st.length>=4)for(const w of x.name)if(Math.abs(w.st.length-t.st.length)<=2&&lev(w.st,t.st)<=(t.st.length>=7?2:1)){best=2;break}
-        if(!best){ok=false;break}
-        total+=best;
+        if(!best){if(any)continue;ok=false;break}
+        total+=best;matched++;
       }
-      if(!ok)return;
+      if(!ok||(any&&!matched))return;
       let hint=null,hb=-1;
       termCov.forEach((c,i)=>{const v=c.n*100+c.sc;if(c.n&&v>hb){hb=v;hint=x.terms[i].t}});
       const maxCov=Math.max(0,...termCov.map(c=>c.n));
       if(maxCov>1)total+=maxCov*4;
-      out.push({d:x.d,score:total,hint});
+      out.push({d:x.d,score:total+(any?matched*20:0),hint});
     });
     return out.sort((a,b)=>b.score-a.score||a.d[0]-b.d[0]);
   };
-  let r=run(false); if(!r.length)r=run(true); return r;
+  let r=run(false); if(!r.length)r=run(true); if(!r.length&&toks.length>1)r=run(false,true); return r;
 }
 
 /* ---- Rendering ---- */
