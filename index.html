@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1216">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PZC NEF">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>PZC NEF München</title>
+<style>
+:root{
+  --bg:#f3f4f6; --card:#fff; --ink:#111418; --mute:#5b6470; --line:#dfe3e8;
+  --d1:#d92d20; --d2:#f5b800; --d3:#2e9e44;
+  --accent:#0b5fff; --sayb:#fde8e8; --sayc:#7a1010; --tile:1; --nav:72px; --barbg:#111418; --barfg:#fff; --nbbg:#111418;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#07090c; --card:#12161b; --ink:#e8ebef; --mute:#8d97a5; --line:#262d36; --accent:#6a98ff; --sayb:#3a1414; --sayc:#ffd0d0; --tile:.82; --barbg:#1b222b; --barfg:#f2f4f7; --nbbg:#2a3441}
+}
+:root[data-theme="dark"]{--bg:#07090c; --card:#12161b; --ink:#e8ebef; --mute:#8d97a5; --line:#262d36; --accent:#6a98ff; --sayb:#3a1414; --sayc:#ffd0d0; --tile:.82; --barbg:#1b222b; --barfg:#f2f4f7; --nbbg:#2a3441}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+body{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+.wrap{max-width:720px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
+body.hasnav .wrap{padding-top:calc(var(--nav) + env(safe-area-inset-top) + 12px)}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.top h1{margin:0}
+.theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:80;background:var(--card);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 12px 8px;display:flex;gap:8px}
+.nb{flex:1;border:0;border-radius:14px;font-size:20px;font-weight:800;background:var(--nbbg);color:#fff;min-height:56px}
+.nb.sm{flex:0 0 76px;background:var(--bg);color:var(--ink);border:2px solid var(--line);font-size:17px}
+h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:4px 0 12px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.step{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:12px;margin-right:6px}
+
+/* Alter */
+.age{display:flex;gap:10px;align-items:center}
+.age input{width:190px;font-size:30px;font-weight:700;padding:8px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);text-align:center;letter-spacing:.04em}
+.age input:focus{outline:none;border-color:var(--accent)}
+.age .out{flex:1;font-size:14px;color:var(--mute)}
+.age .out b{display:block;font-size:30px;color:var(--ink);line-height:1}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:12px 16px;min-height:44px;border-radius:999px;font-size:14px;font-weight:600}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Suche */
+.search{width:100%;font-size:18px;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.search:focus{outline:none;border-color:var(--accent)}
+
+/* Schnellwahl */
+.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.q{filter:brightness(var(--tile));border:0;border-radius:14px;padding:14px 12px;text-align:left;color:#fff;font-weight:700;font-size:16px;display:flex;flex-direction:column;gap:2px;min-height:68px}
+.q small{font-weight:600;opacity:.9;font-size:13px}
+.q.r{background:var(--d1)} .q.b{background:#1d4ed8} .q.p{background:#7c3aed} .q.o{background:#c2410c} .q.t{background:#0f766e}.q.g{background:#4d7c0f}
+
+/* Kategorien */
+.cats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.cat{background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:14px;padding:14px 12px;text-align:left;color:var(--ink);font-size:16px;font-weight:700;min-height:64px}
+.cat small{display:block;font-weight:500;color:var(--mute);font-size:12px;margin-top:2px}
+
+/* Liste */
+.back{border:0;background:none;color:var(--accent);font-size:16px;font-weight:700;padding:8px 0}
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 12px;text-align:left;color:var(--ink);font-size:18px;width:100%}
+.item .n{font:700 17px ui-monospace,Menlo,monospace;min-width:44px;color:var(--mute)}
+.item .t{flex:1}
+.dots{display:flex;gap:3px}
+.dot{width:12px;height:12px;border-radius:3px}
+.d1{background:var(--d1)}.d2{background:var(--d2)}.d3{background:var(--d3)}
+.sub{font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;margin:12px 4px 2px}
+.empty{color:var(--mute);padding:20px;text-align:center}
+
+/* Bottom Sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:45}
+.scrim.open{display:block}
+:root{--bar:calc(76px + env(safe-area-inset-bottom))}
+.sheet{max-height:calc(100vh - var(--bar) - var(--nav) - env(safe-area-inset-top) - 12px);overflow-y:auto;position:fixed;left:0;right:0;bottom:var(--bar);background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px 18px;z-index:50;max-width:720px;margin:0 auto;transform:translateY(105%);transition:transform .2s;box-shadow:0 -10px 40px rgba(0,0,0,.3)}
+.sheet.open{transform:none}
+.sheet h2{margin:0 0 2px;font-size:20px}
+.sheet .cd{color:var(--mute);font-size:14px;margin-bottom:14px}
+.urg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.u{border:3px solid transparent;border-radius:16px;padding:12px 6px;color:#fff;font-weight:800;font-size:34px;text-align:center}
+.u small{display:block;font-size:11px;font-weight:700;opacity:.95;line-height:1.2;margin-top:2px}
+.u.d1{background:var(--d1)}.u.d2{background:var(--d2);color:#1a1a1a}.u.d3{background:var(--d3)}
+.u.off{opacity:.2;pointer-events:none;filter:grayscale(1)}
+.u.sel{border-color:var(--ink);box-shadow:0 0 0 3px var(--card),0 0 0 6px var(--ink)}
+.sb{margin-top:14px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:14px}
+.sb b{display:block;margin-bottom:2px}
+
+/* Ergebnisleiste */
+.result{position:fixed;left:0;right:0;bottom:0;z-index:70;min-height:var(--bar);border-top:1px solid var(--line);background:var(--barbg);color:var(--barfg);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px}
+.result .code{flex:1;max-width:720px}
+.result .code small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.result .code span{font:800 30px ui-monospace,Menlo,monospace;letter-spacing:.02em}
+.result .code span i{font-style:normal;opacity:.35;padding:0 4px}
+.copy{border:0;background:var(--accent);color:#fff;font-weight:800;font-size:16px;padding:14px 20px;border-radius:14px}
+.note{font-size:12px;color:var(--mute);margin:18px 4px}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:16px 12px;border-radius:12px;font-weight:700;font-size:15px}
+.tab.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* Sheet Aktionen */
+.acts{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:14px}
+.btn{border:0;border-radius:14px;padding:18px 10px;font-weight:800;font-size:16px;color:#fff;background:var(--accent)}
+.btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.35}
+
+/* SK1 Panel */
+.panel{position:fixed;inset:calc(var(--nav) + env(safe-area-inset-top)) 0 0 0;background:var(--bg);z-index:60;overflow-y:auto;display:none;padding-bottom:120px}
+.panel.open{display:block}
+.ph{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:10px}
+.ph .pz{flex:1;font:800 20px ui-monospace,Menlo,monospace}
+.ph .pz small{display:block;font:600 11px -apple-system,system-ui,sans-serif;color:var(--mute);letter-spacing:.05em;text-transform:uppercase}
+.flow{display:flex;flex-direction:column;gap:12px;max-width:720px;margin:0 auto;padding:12px 16px}
+.blk{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.blk h3{margin:0 0 10px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);display:flex;gap:8px;align-items:center}
+.blk h3 .step{margin:0}
+.say{background:var(--sayb);color:var(--sayc);border-radius:10px;padding:10px 12px;font-weight:700;margin-bottom:8px}
+.fld{margin:12px 0 0}
+.fld>label{display:block;font-weight:700;font-size:15px;margin-bottom:6px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:14px 16px;min-height:50px;font-size:17px;font-weight:600}
+.opt.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt small{opacity:.7;font-weight:700;margin-right:4px}
+.inp{width:100%;font-size:16px;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);font-family:inherit}
+.inp:focus{outline:none;border-color:var(--accent)}
+textarea.inp{min-height:84px;resize:vertical}
+.chk{display:flex;gap:10px;align-items:center;padding:6px 0;font-weight:600}
+.chk i{width:22px;height:22px;border-radius:6px;background:#2e9e44;color:#fff;display:grid;place-items:center;font-style:normal;font-size:14px}
+.sx{display:flex;gap:8px}.sxb{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font-size:20px;font-weight:800}.sxb small{display:block;font-size:11px;font-weight:600;color:var(--mute)}.sxb.on{background:var(--accent);border-color:var(--accent);color:#fff}.sxb.on small{color:#fff;opacity:.85}
+.warn{font-size:12px;color:var(--mute);margin-top:8px}
+
+/* Archiv */
+.arc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px}
+.arc .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.arc .pzc{font:800 20px ui-monospace,Menlo,monospace}
+.arc .dt{font-size:13px;color:var(--mute);text-align:right}
+.arc .ti{font-size:14px;margin:2px 0}
+.arc .det{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:14px;display:none}
+.arc.open .det{display:block}
+.arc .det div{padding:2px 0}.arc .det b{color:var(--mute);font-weight:700}
+.arc .row{display:flex;gap:8px;margin-top:8px}
+.mini{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:700;font-size:13px}
+.mini.del{color:var(--d1)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="nav hidden" id="nav">
+  <button class="nb" id="nBack">‹ Zurück</button>
+  <button class="nb sm" id="nHome">⌂ Start</button>
+  <button class="nb sm hidden" id="nFwd">›</button>
+</div>
+<div class="wrap">
+  <div class="top"><h1>PZC · NEF München</h1><button class="theme" id="themeBtn">◐ Auto</button></div>
+  <div class="tabs">
+    <button class="tab on" id="tabMain">PZC finden</button>
+    <button class="tab" id="tabArc">Archiv <span id="arcCount"></span></button>
+  </div>
+
+  <div id="arcView" class="hidden">
+    <div class="list" id="arcList"></div>
+    <div class="chips"><button class="mini" id="arcExport">Alles kopieren</button><button class="mini del" id="arcClear">Archiv leeren</button></div>
+    <p class="note">Gespeichert nur auf diesem Gerät (Browser). Keine Patientennamen eintragen. Daten gehen verloren, wenn der Browser-Speicher gelöscht wird.</p>
+  </div>
+
+  <div id="mainView">
+
+  <div class="lbl">Geschlecht (steht vor dem PZC)</div>
+  <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
+  <!-- 1 PZC -->
+  <div class="lbl"><span><span class="step">1</span>PZC · Was ist los?</span></div>
+  <input class="search" id="q" type="search" placeholder="Suche: Name oder Code (z. B. STEMI, 332, Krampf)" autocomplete="off">
+
+  <div id="home" style="margin-top:12px">
+    <div class="lbl">Häufig</div>
+    <div class="quick" id="quick"></div>
+    <div class="lbl" style="margin-top:18px">Alle Kategorien</div>
+    <div class="cats" id="cats"></div>
+  </div>
+
+  <div id="listView" class="hidden" style="margin-top:8px">
+    <div class="list" id="list"></div>
+  </div>
+
+  <p class="note">Codes laut RZV-München-Tafel. Dringlichkeits-Felder (1/2/3) vor Einsatz gegen die Original-Tafel prüfen. Eingabehilfe, kein Ersatz für IVENA.</p>
+  </div>
+</div>
+
+<!-- SK1 Panel -->
+<div class="panel" id="panel">
+  <div class="ph">
+    <div class="pz"><small>PZC</small><span id="pPzc"></span></div>
+    <button class="btn" id="pSave" style="padding:12px 16px">Speichern</button>
+  </div>
+  <div class="flow" id="flow"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet">
+  <h2 id="sTitle"></h2>
+  <div class="cd" id="sCode"></div>
+  <div class="lbl">Geschlecht</div>
+  <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
+  <!-- 2 Alter -->
+  <div class="lbl"><span><span class="step">2</span>Alter · Geburtsjahr oder -datum</span></div>
+  <div class="age">
+    <input id="year" inputmode="decimal" maxlength="10" placeholder="1975" autocomplete="off">
+    <div class="out"><b id="ageOut">––</b><span id="ageNote">Alter für den PZC</span></div>
+  </div>
+  <div class="chips" id="ageChips" style="margin-bottom:16px"></div>
+  <!-- 3 Dringlichkeit -->
+  <div class="lbl"><span><span class="step">3</span>Behandlungsdringlichkeit</span></div>
+  <div class="urg">
+    <button class="u d1" data-u="1">1<small>Notfall / sofort<br>Schockraum, Stroke, PCI</small></button>
+    <button class="u d2" data-u="2">2<small>Stationär wahrsch.<br>kein sofortiger Bedarf</small></button>
+    <button class="u d3" data-u="3">3<small>Ambulant<br>&lt; 24 h</small></button>
+  </div>
+  <div class="sb hidden" id="sb"></div>
+  <div class="acts">
+    <button class="btn" id="goSK" disabled>SK 1 anmelden ›</button>
+    <button class="btn sec" id="saveOnly" disabled>Nur speichern</button>
+  </div>
+</div>
+
+<div class="result">
+  <div class="code"><small>PZC (Code / Alter / Dringlichkeit)</small>
+    <span id="rOut"><span id="rS">_</span> <span id="rC">___</span><i>/</i><span id="rA">__</span><i>/</i><span id="rU">_</span></span></div>
+  <button class="copy" id="copy">Kopieren</button>
+</div>
+
+<script>
+/* [Code, Bezeichnung, erlaubte Dringlichkeiten] */
+const D = [
+[131,"Reanimation laufend / intermittierend","1"],[132,"Reanimation ROSC","1"],[133,"Reanimation Trauma laufend/intermittierend","1"],[134,"Reanimation Hypothermie","1"],
+[140,"vvECMO Zuverlegung","12"],[141,"vvECMO Abholung","12"],[142,"vaECMO Zuverlegung","12"],[143,"vaECMO Abholung","12"],[144,"eCPR Zuverlegung","1"],[145,"eCPR Abholung","1"],
+[211,"Polytrauma mit SHT","1"],[212,"Polytrauma ohne SHT","1"],[213,"Schockraumindikation nach Unfallhergang","1"],[214,"Mehrfachverletzung sonstige","12"],[215,"Mehrfachverletzung mit Augen","12"],[219,"oberflächliche Verletzungen (bel. Lokalisation)","3"],
+[221,"SHT offen","12"],[222,"SHT geschlossen","123"],[223,"Gesichtsverletzung","123"],[224,"Kopfverletzung","123"],[225,"Augenverletzung","123"],
+[231,"Thorax penetrierend","12"],[232,"Thorax geschlossen / stumpf","123"],[233,"Pneumothorax traumatisch","123"],
+[241,"Abdomen penetrierend","12"],[242,"Abdomen geschlossen/stumpf","12"],[243,"Akutes Abdomen (nicht Trauma)","123"],
+[251,"Verl. der Wirbelsäule mit neurol. Ausfällen","12"],[252,"Verl. der Wirbelsäule ohne neurol. Ausfälle","123"],[253,"Rückenschmerzen, akut mit neurol. Symptomatik","123"],[254,"Rückenschmerzen nicht traumatisch ohne neurol. Ausfälle","123"],[255,"Lähmung / Querschnitt akut (nicht Stroke)","123"],
+[261,"Becken offen","12"],[262,"Becken geschlossen","123"],[263,"Urogenitaltrauma (isoliert)","123"],
+[271,"Extremitäten offen","12"],[272,"Extremitäten geschlossen","123"],[273,"Hüft- / Schenkelhalsfraktur","123"],[274,"Verl. d. Extrem. mit Gefäß-/Nervenverl.","12"],
+[275,"Handverletzung","123"],[276,"Fingeramputation","123"],[277,"Hand- / Extremitäten Amputation","12"],
+[281,"Verbrennung / Verbrühung","123"],[282,"Verätzung","123"],[283,"Hochspannungstrauma","123"],
+[284,"Barotrauma/Tauchunfall/Dekompressionskrankheit","12"],[285,"Strahlentrauma","12"],[286,"Hitzeerschöpfung / Hitzschlag","123"],[287,"Unterkühlung / Erfrierung","123"],[288,"(Beinahe-) Ertrinken / Badeunfall","12"],
+[291,"Aortenaneurysma","1"],[292,"Extremitätenischämie (akut)","12"],[293,"Aorta ascendens Dissektion (bestätigt)","1"],[299,"Gefäßchirurgischer Notfall, sonstiger","12"],
+[311,"Atemnot (unklar) / Atembeschwerden / ARI","123"],[312,"Obstruktion (Asthma / COPD)","123"],[313,"Hämoptoe / Hämoptysen","123"],[314,"(Bolus-) Aspiration","123"],[315,"Bronchitis / Pneumonie","123"],[316,"Hyperventilation","23"],[317,"Lungenödem (nicht kardial)","123"],[318,"Spontanpneumothorax","123"],[319,"Pneumologischer Notfall, sonstiger","123"],
+[321,"Anaphylaxie / Unverträglichkeitsreaktion","123"],[322,"Synkope / Kollaps","123"],[323,"Hypotonie","123"],[324,"Thrombose","123"],[325,"Unklares Fieber","123"],[326,"Exsikkose","123"],[329,"Internistischer Notfall, sonstiger","123"],
+[331,"Unklarer Brust- / Thoraxschmerz","12"],[332,"STEMI / „OMI“","1"],[333,"NSTEMI, instabile AP","12"],
+[341,"Arrhythmie","123"],[342,"Bradykardie","123"],[343,"Tachykardie","123"],[344,"Elektrounfall (Schwachstrom)","123"],[345,"Hypertensiver Notfall / Krise","123"],[346,"Kardiogener Schock","12"],[347,"Herzinsuffizienz","123"],[348,"Lungenembolie","123"],[349,"Kardiologischer Notfall, sonstiger","123"],
+[351,"GI-Blutung","123"],[353,"Bauchschmerzen","123"],[354,"Gastroenteritis","123"],[359,"Gastroenterologischer Notfall, sonstiger","123"],
+[360,"Rauchgas / Reizgas (nicht CO)","123"],[361,"Alkohol","123"],[362,"Drogen / Rauschgift","123"],[363,"sonstige Intoxikation","123"],[364,"Lebensmittel","123"],[365,"Medikamente","123"],[366,"Pflanzenschutzmittel","123"],[367,"tierische Gifte","123"],[368,"Giftpflanzen","123"],[369,"Inhalative Intoxikation, sonstige","123"],[370,"Kohlenmonoxid-Vergiftung","123"],
+[371,"Meningitis / Enzephalitis","123"],[372,"TBC","123"],[373,"Sepsis (Infekt. + qSOFA mind. 2)","123"],[374,"Septischer Schock","123"],[375,"hochkontagiöse Erkrankung (Sonderiso)","123"],[376,"Covid-19 – SARS-CoV-2 (bestätigt) – zur Quarantäne aktuelle Infektionskrankheit (bestätigt)","123"],[377,"Covid-19 – SARS-CoV-2 (nicht bestätigt) – aktuelle Infektionskrankheit (nicht bestätigt)","123"],[378,"SARS-CoV-2 zur Quarantäne – aktuelle Infektionskrankheit zur Quarantäne","123"],[379,"Infektiologischer Notfall, sonstiger","123"],
+[391,"Akuter endokrinologischer Notfall","123"],[392,"Hyperglykämie","123"],[393,"Hypoglykämie","123"],
+[411,"Anhaltender epileptischer Anfall","12"],[412,"epileptischer Anfall (stattgehabt)","123"],[413,"Kopf- / Gesichtsschmerz (bei SK1 NC!)","123"],[414,"Vigilanzminderung / Koma (ohne Trauma)","123"],[415,"Schwindel","23"],[419,"Neurologischer Notfall, sonstiger","123"],
+[421,"Schlaganfall / Blutung < 24h oder unklar","12"],[423,"Schlaganfall / Blutung > 24h","123"],[425,"diagnostizierter cerebraler Gefäßverschluss zur Thrombektomie","1"],
+[431,"Suizid, angedroht","23"],[432,"Einweisung, psychiatrische","23"],[433,"Einweisung (nach BayPsychKHG)","23"],[434,"Einweisung (nach BayPsychKHG), mit Fixierung","23"],[435,"Akute Verwirrtheit / Delir","123"],
+[511,"pädiatrisch – Atemnot","123"],[512,"schwerer Husten (Pseudokrupp)","123"],[513,"pädiatrisch – Fieberkrampf","123"],[519,"pädiatrischer Notfall, sonstiger","123"],
+[521,"< 16 SSW","12"],[522,"16+0 SSW bis 21+6 SSW","12"],[523,"22+0 SSW bis 28+6 SSW","12"],[524,"29+0 SSW bis 31+6 SSW","12"],[525,"32+0 SSW bis 35+6 SSW und jede Wachstumsstörung des Feten","12"],[526,"ab 36+0 SSW","12"],[527,"ab 36+0 SSW bei Diabetes","12"],[528,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge","12"],[529,"Drillinge ab 33+0 SSW","12"],
+[530,"akute fetale Gefährdung, Erstversorgung ggf. in ungeeigneter Klinik","1"],
+[531,"< 16 SSW","12"],[532,"16+0 SSW bis 21+6 SSW","12"],[533,"22+0 SSW bis 28+6 SSW","12"],[534,"29+0 SSW bis 31+6 SSW","12"],[535,"32+0 SSW bis 35+6 SSW und jede Wachstumsstörung des Feten","12"],[536,"ab 36+0 SSW","12"],[537,"ab 36+0 SSW bei Diabetes","12"],[538,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge","12"],[539,"Drillinge ab 33+0 SSW","12"],
+[540,"akute fetale Gefährdung, Erstversorgung ggf. in ungeeigneter Klinik","1"],
+[541,"< 16 SSW","123"],[542,"16+0 SSW bis 21+6 SSW","123"],[543,"22+0 SSW bis 28+6 SSW","123"],[544,"29+0 SSW bis 31+6 SSW","123"],[545,"32+0 SSW bis 35+6 SSW und jede Wachstumsstörung des Feten","123"],[546,"ab 36+0 SSW","123"],[547,"ab 36+0 SSW bei Diabetes","123"],[548,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge","123"],[549,"Drillinge ab 33+0 SSW","123"],
+[551,"vaginale Blutung","123"],[552,"Unterbauchschmerzen","123"],[553,"Sexualdelikt","123"],[559,"gynäkologischer Notfall, sonstiger","123"],
+[601,"Transport zu definierten Leistungen","23"],[602,"Transport zu geplanter Dialyse","23"],[603,"Transport zu geplantem Herzkatheter","23"],[604,"Transport zu geplantem CT","23"],[605,"Transport zu geplantem MRT","23"],
+[701,"Haut- und Geschlechtskrankheiten","23"],
+[711,"Nieren- / Harnleiterkolik","123"],[712,"Hodenschmerz","123"],[713,"Harnverhalt (akut)","123"],[714,"Hämaturie","123"],[715,"Katheterwechsel (transurethral)","23"],[716,"Katheterwechsel (suprapubisch)","23"],[717,"Katheterverlust / -verstopfung","23"],[718,"Harnwegsinfekt","123"],[719,"urologischer Notfall, sonstiger","123"],
+[721,"akute Augenerkrankung","123"],[729,"Augennotfall, sonstiger","123"],
+[731,"Nasenbluten (Epistaxis) unstillbar","123"],[732,"(Nach-) Blutung, HNO, akut","123"],[733,"Tracheostoma – Komplikation","123"],[739,"HNO Notfall, sonstiger","123"],
+[749,"Mund-Kiefer-Gesicht-Notfall, sonstiger","123"],
+[751,"geriatrische Einweisung","23"],
+[779,"sonstige Notfallsituationen","123"]
+];
+
+/* Kategorien – eigene Gruppierung nach NEF-Alltag */
+const inR=(a,b)=>c=>c>=a&&c<=b;
+const CATS=[
+ {id:"rea",  n:"Reanimation / ECMO", s:"131–145", c:"#e05a5a", f:inR(131,145)},
+ {id:"trauma",n:"Trauma / Unfall",   s:"211–288", c:"#9acd32", f:inR(211,288)},
+ {id:"herz", n:"Herz / Brustschmerz / Gefäß", s:"291–349", c:"#3b6fd4", f:c=>inR(291,299)(c)||inR(331,349)(c)},
+ {id:"atm",  n:"Atmung",             s:"311–319", c:"#3b6fd4", f:inR(311,319)},
+ {id:"neuro",n:"Neuro / Stroke",     s:"411–425", c:"#f5c400", f:inR(411,425)},
+ {id:"inn",  n:"Innere / Abdomen / Stoffwechsel", s:"321–329 · 351–359 · 391–393", c:"#3b6fd4", f:c=>inR(321,329)(c)||inR(351,359)(c)||inR(391,393)(c)},
+ {id:"intox",n:"Intoxikation / CO",  s:"360–370", c:"#3b6fd4", f:inR(360,370)},
+ {id:"inf",  n:"Infektion / Sepsis", s:"371–379", c:"#3b6fd4", f:inR(371,379)},
+ {id:"psy",  n:"Psychiatrie",        s:"431–435", c:"#f5c400", f:inR(431,435)},
+ {id:"kind", n:"Kinder",             s:"511–519", c:"#f4a6c0", f:inR(511,519)},
+ {id:"geb",  n:"Schwangerschaft / Geburt / Gyn", s:"521–559", c:"#f59e0b", f:inR(521,559)},
+ {id:"sonst",n:"Urologie, Augen, HNO, Sonstiges", s:"601–779", c:"#8b5cf6", f:c=>c>=601}
+];
+const SUB={521:"Präklinische Geburt",531:"Einsetzende Geburt",541:"Notfall in der Schwangerschaft",551:"Gynäkologisch",
+ 140:"ECMO",131:"Reanimation",601:"Sonstige Einsätze / Transporte",701:"Haut",711:"Urologie",721:"Augen",731:"HNO",749:"Mund-Kiefer-Gesicht",751:"Geriatrie",779:"Unbestimmt"};
+
+const QUICK=[
+ [332,"STEMI","r"],[421,"Schlaganfall","t"],[131,"Reanimation","r"],[211,"Polytrauma + SHT","r"],
+ [311,"Atemnot","b"],[373,"Sepsis","b"],[322,"Synkope / Kollaps","g"],[351,"GI-Blutung","b"],
+ [281,"Verbrennung","o"],[411,"Krampfanfall anhaltend","t"],[362,"Drogen / Rausch","p"],[321,"Anaphylaxie","b"]
+];
+
+/* Sonderbett-Hinweise (Zusatzdaten laut Anforderungsblatt) */
+/* Feldtypen: s = eine Antwort, m = mehrere, t = Freitext. Antwort-Chips sind Vorschläge (eigene Ergänzung), Feldnamen laut Anforderungsblatt 08/2024 */
+const JN=["Ja","Nein"];
+const LEADS=["I","II","III","aVR","aVL","aVF","V1","V2","V3","V4","V5","V6"];
+const GRP={"Vorderwand":["V1","V2","V3","V4"],"Seitenwand":["I","aVL","V5","V6"],"Hinterwand":["II","III","aVF"]};
+const SBD={
+ imc:{n:"IMC / Intensivbett",f:[["Besonderheiten","t"]]},
+ sepsis:{n:"Sepsis",f:[["Vermutete Infektquelle","s",["Lunge","Harnwege","Abdomen","Haut / Weichteile","ZVK / Katheter","ZNS","Unklar"]],["Besonderheiten","t"]]},
+ chest:{n:"Chest Pain",f:[["ST-Hebung in","l"],["ST-Senkung in","l"],["Weitere EKG-Veränderung","s",["Schenkelblock neu","Schrittmacher","Arrhythmie","Kein Befund","Unklar"]],["Besonderheiten","t"]]},
+ gi:{n:"GI-Blutung akut",f:[["Kaffeesatzerbrechen","s",JN],["Frischbluterbrechen","s",JN],["Teerstuhl","s",JN],["Frischblutabgang","s",JN],["Blutverdünner","s",["Nein","ASS","Clopidogrel","Marcumar","NOAK","Mehrere"]],["Besonderheiten","t"]]},
+ stroke:{n:"Stroke Unit",f:[["Zeitlicher Beginn (onset)","t","z. B. 14:20 (LKW) oder unbekannt"],["Paresen","s",["Nein","Arm","Bein","Arm + Bein","Fazial"]],["Sprachstörung","s",JN],["Sehstörung","s",JN],["Besonderheiten","t"]]},
+ schock:{n:"Schockraum Chirurgisch",f:[["Unfallhergang / Mechanismus","s",["Verkehrsunfall PKW","Motorrad","Fahrrad / E-Scooter","Fußgänger","Sturz aus Höhe","Sturz ebenerdig","Stich / Schnitt","Schuss","Einklemmung"]],["Betroffene Körperregion","m",["Kopf","HWS / WS","Thorax","Abdomen","Becken","Arm","Bein"]],["Blutverdünner","s",["Nein","Ja","Unbekannt"]],["Besonderheiten","t"]]},
+ rea:{n:"REANIMATION / Cardiac Arrest Zentrum / eCPR",f:[["eCPR geeignet (PZC 144!)","s",JN],["Initialer Rhythmus","s",["VF / pVT","Asystolie","PEA","Unbekannt"]],["Besonderheiten","t"]]},
+ verbr:{n:"Verbrennung / Verbrühung",f:[["Unfallhergang","s",["Feuer / Flamme","Verbrühung","Explosion","Strom","Chemisch"]],["Inhalationstrauma","s",["Ja","Nein","Verdacht"]],["Verbrannte Körperoberfläche (KOF)","t","% KOF"],["Besonderheiten","t"]]},
+ kreis:{n:"Kreißsaal",f:[["SSW","t","z. B. 38+2"],["Wehenabstand","t","z. B. 3 min"],["Blasensprung","s",JN],["KH-Voranmeldung vorhanden","s",JN],["Besonderheiten","t"]]}
+};
+const sbKey=c=>{
+ if(inR(131,134)(c)||inR(142,145)(c)) return "rea";
+ if(inR(331,333)(c)) return "chest";
+ if([421,423,425].includes(c)) return "stroke";
+ if(c===373||c===374) return "sepsis";
+ if(c===351) return "gi";
+ if(inR(211,213)(c)) return "schock";
+ if(c===281) return "verbr";
+ if(inR(521,549)(c)) return "kreis";
+ return null;
+};
+const IV=[
+ ["Schockraum","s",JN],
+ ["A – Atemweg","s",["1 Frei","2 Gefährdet","3 Gesichert","4 Ungesichert"]],
+ ["B – Atmung","s",["1 Unbeeinträchtigt","2 Beeinträchtigt","3 nicht-invasiv beatmet","4 invasiv beatmet"]],
+ ["C – Kreislauf","s",["1 Stabil","2 Stabil nach Therapie","3 Katecholamine","4 Instabil unter Therapie"]],
+ ["D – Neurologie","s",["1 Wach","2 Getrübt","3 Bewusstlos","4 Sediert oder Narkotisiert"]],
+ ["Herzkatheter","s",JN],
+ ["Anlass","t","kurz, z. B. Brustschmerz seit 1 h"],
+ ["Geschlecht","s",["M","W"]],
+ ["Schwanger","s",JN],
+ ["Einsatznummer","t","Fzg.-Nummer"],
+ ["Bemerkung","t","zur freien Verfügung"],
+ ["Transportmittel","s",["KTW","RTW","NAW","ITW","RTH","ITH"]],
+ ["Funkrufname","t"]
+];
+const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
+
+const $=id=>document.getElementById(id);
+const state={sex:null,age:null,code:null,urg:null,cat:null};
+const NOW=new Date().getFullYear();
+
+/* ---- Alter ---- */
+function setAge(a,note){
+  state.age=a;
+  $("ageOut").textContent=a==null?"––":String(a).padStart(2,"0");
+  $("ageNote").textContent=note||"Alter für den PZC";
+  document.querySelectorAll("#ageChips .chip").forEach(c=>c.classList.toggle("on",c.dataset.a!==undefined&&+c.dataset.a===a&&!$("year").value));
+  render();
+}
+$("year").addEventListener("input",e=>{
+  const v=e.target.value.replace(/[^\d.]/g,"").slice(0,10); e.target.value=v;
+  let m;
+  if(/^\d{4}$/.test(v)){            // nur Geburtsjahr
+    const y=+v, a=NOW-y;
+    if(y>NOW||a>99) setAge(null,"Jahr prüfen");
+    else setAge(a, a===0?"Säugling / 0–11 Monate → 00":`≈ ${a} Jahre (Geburtsjahr ${y})`);
+  } else if((m=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))){   // volles Datum TT.MM.JJJJ
+    const [d,mo,y]=[+m[1],+m[2],+m[3]], b=new Date(y,mo-1,d), t=new Date();
+    if(b>t||mo<1||mo>12||d<1||d>31||t.getFullYear()-y>99) setAge(null,"Datum prüfen");
+    else{let a=t.getFullYear()-y; if(t<new Date(t.getFullYear(),mo-1,d))a--;
+      setAge(a,a===0?"Säugling / 0–11 Monate → 00":`${a} Jahre (geb. ${m[1]}.${m[2]}.${y})`)}
+  } else setAge(null,"Jahr (1954) oder Datum (TT.MM.JJJJ)");
+});
+[["Säugling",0],["Kleinkind 3",3],["Kind 8",8],["Teen 15",15]].forEach(([t,a])=>{
+  const b=document.createElement("button");b.className="chip";b.textContent=t;b.dataset.a=a;
+  b.onclick=()=>{$("year").value="";setAge(a,a===0?"Säugling 0–11 Monate → 00":"Schätzwert (Notfall)")};
+  $("ageChips").appendChild(b);
+});
+const unk=document.createElement("button");unk.className="chip";unk.textContent="Alter unbekannt → schätzen";
+unk.onclick=()=>{$("year").focus()};
+$("ageChips").appendChild(unk);
+
+/* ---- Rendering ---- */
+const byCode=Object.fromEntries(D.map(d=>[d[0],d]));
+function dots(l){return `<span class="dots">${[1,2,3].map(n=>l.includes(n)?`<i class="dot d${n}"></i>`:`<i class="dot" style="background:var(--line)"></i>`).join("")}</span>`}
+function itemHTML(d){return `<button class="item" data-c="${d[0]}"><span class="n">${d[0]}</span><span class="t">${d[1]}</span>${dots(d[2])}</button>`}
+
+function renderHome(){
+  $("quick").innerHTML=QUICK.map(([c,t,k])=>`<button class="q ${k}" data-c="${c}">${t}<small>${c} · ${byCode[c][1]}</small></button>`).join("");
+  $("cats").innerHTML=CATS.map(c=>`<button class="cat" style="--c:${c.c}" data-cat="${c.id}">${c.n}<small>${c.s}</small></button>`).join("");
+}
+function showList(items,withSub){
+  if(!items.length){$("list").innerHTML='<div class="empty">Nichts gefunden</div>'}
+  else{let h="";
+    items.forEach(d=>{ if(withSub&&SUB[d[0]]) h+=`<div class="sub">${SUB[d[0]]}</div>`; h+=itemHTML(d)});
+    $("list").innerHTML=h;}
+  push({v:"list"});
+}
+
+/* ---- Navigation: Zurück / Vor / Start, auch per Wischen ---- */
+let cur={v:"home"}, stack=[], fwd=[], histOK=true;
+function apply(){
+  const v=cur.v, arc=v==="arc";
+  $("mainView").classList.toggle("hidden",arc);$("arcView").classList.toggle("hidden",!arc);
+  $("tabMain").classList.toggle("on",!arc);$("tabArc").classList.toggle("on",arc);
+  const base=[...stack,cur].reverse().find(x=>x.v==="list"||x.v==="home").v;
+  $("home").classList.toggle("hidden",base==="list");$("listView").classList.toggle("hidden",base!=="list");
+  $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
+  $("panel").classList.toggle("open",v==="panel");
+  $("nav").classList.toggle("hidden",v==="home");document.body.classList.toggle("hasnav",v!=="home");
+  $("nFwd").classList.toggle("hidden",!fwd.length);
+  if(arc)renderArc();
+  if(v==="list"||v==="home"||v==="arc")window.scrollTo(0,0);
+}
+function hpush(){if(!histOK)return;try{history.pushState({},"")}catch(_){histOK=false}}
+function push(s){
+  if(s.v===cur.v){cur=s;apply();return}
+  stack.push(cur);fwd=[];cur=s;hpush();apply();
+}
+function back(){if(!stack.length)return;fwd.push(cur);cur=stack.pop();apply()}
+function forward(){if(!fwd.length)return;stack.push(cur);cur=fwd.pop();hpush();apply()}
+function goBack(){if(!stack.length)return;if(histOK)history.back();else back()}
+function goHome(){if(cur.v==="home")return;$("q").value="";push({v:"home"})}
+try{history.replaceState({},"")}catch(_){histOK=false}
+addEventListener("popstate",back);
+$("nBack").onclick=goBack;$("nHome").onclick=goHome;$("nFwd").onclick=forward;
+let tx=null,ty=0,tt=0;
+document.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;tt=Date.now()},{passive:true});
+document.addEventListener("touchend",e=>{
+  if(tx==null)return;const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty;tx=null;
+  if(e.target.closest&&e.target.closest("input,textarea"))return;
+  if(Math.abs(dx)>80&&Math.abs(dy)<60&&Date.now()-tt<600){dx>0?goBack():forward()}
+},{passive:true});
+
+/* ---- Theme ---- */
+const THEMES=[["auto","◐ Auto"],["dark","🌙 Dunkel"],["light","☀ Hell"]];
+let themeI=0;
+try{const t=localStorage.getItem("pzc_theme");themeI=Math.max(0,THEMES.findIndex(x=>x[0]===t))}catch(_){}
+function applyTheme(){const [k,l]=THEMES[themeI];
+  if(k==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.dataset.theme=k;
+  $("themeBtn").textContent=l;try{localStorage.setItem("pzc_theme",k)}catch(_){}}
+$("themeBtn").onclick=()=>{themeI=(themeI+1)%THEMES.length;applyTheme()};
+applyTheme();
+function render(){
+  const a=state.age, c=state.code, u=state.urg;
+  $("rS").textContent=state.sex??"_";
+  $("rC").textContent=c??"___";
+  $("rA").textContent=a==null?"__":String(a).padStart(2,"0");
+  $("rU").textContent=u??"_";
+  if(typeof updActs==="function")updActs();
+}
+
+/* ---- Events ---- */
+document.addEventListener("click",e=>{
+  const cat=e.target.closest("[data-cat]"); if(cat){
+    const k=CATS.find(x=>x.id===cat.dataset.cat); state.cat=k;
+    showList(D.filter(d=>k.f(d[0])),true); window.scrollTo(0,0); return}
+  const it=e.target.closest("[data-c]"); if(it){openSheet(+it.dataset.c)}
+});
+$("q").addEventListener("input",e=>{
+  const v=e.target.value.trim().toLowerCase();
+  if(!v){if(cur.v==="list")goBack();return}
+  const hits=D.filter(d=>String(d[0]).startsWith(v)||d[1].toLowerCase().includes(v));
+  showList(hits,false);
+});
+
+function openSheet(c){
+  const d=byCode[c]; state.code=c; state.urg=d[2].length===1?+d[2]:null;
+  $("sTitle").textContent=d[1]; $("sCode").textContent="Code "+c;
+  document.querySelectorAll(".u").forEach(b=>{
+    const n=b.dataset.u; b.classList.toggle("off",!d[2].includes(n)); b.classList.toggle("sel",state.urg==+n);
+  });
+  const k=sbKey(c);
+  $("sb").classList.toggle("hidden",!k);
+  if(k)$("sb").innerHTML=`<b>Vorschlag Sonderbett: ${SBD[k].n}</b>${SBD[k].f.map(f=>f[0]).join(" · ")}`;
+  updActs();
+  render();push({v:"sheet"});
+}
+const updActs=()=>{const ok=!!(state.sex&&state.code&&state.urg&&state.age!=null);$("goSK").disabled=!ok;$("saveOnly").disabled=!ok;
+  $("goSK").textContent=!state.sex?"Erst Geschlecht wählen":state.age==null?"Erst Alter eingeben":"SK 1 anmelden ›"};
+document.querySelectorAll(".u").forEach(b=>b.onclick=()=>{
+  state.urg=+b.dataset.u; document.querySelectorAll(".u").forEach(x=>x.classList.toggle("sel",x===b)); render(); updActs();
+});
+
+/* ---- Archiv (localStorage) ---- */
+const KEY="pzc_archiv_v1";
+const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(_){return []}};
+const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a));return true}catch(_){return false}};
+const pzcStr=(c,a,u)=>`${state.sex} ${c}/${String(a).padStart(2,"0")}/${u}`;
+const fmt=ts=>{const d=new Date(ts);return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"})+" · "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr"};
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+function saveEntry(extra){
+  const a=load();
+  const e={id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
+  a.unshift(e); store(a); renderArc(); return e;
+}
+function entryText(e){
+  let t=`${fmt(e.ts)}\nPZC ${e.pzc} – ${e.title}`;
+  if(e.sb) t+=`\nSonderbett: ${e.sb}`;
+  (e.answers||[]).forEach(([k,v])=>t+=`\n${k}: ${v}`);
+  if(e.note) t+=`\nNotiz: ${e.note}`;
+  return t;
+}
+function renderArc(){
+  const a=load(); $("arcCount").textContent=a.length?`(${a.length})`:"";
+  $("arcList").innerHTML=a.length?a.map(e=>`<div class="arc" data-id="${e.id}">
+    <div class="top"><span class="pzc">${esc(e.pzc)}</span><span class="dt">${fmt(e.ts)}</span></div>
+    <div class="ti">${esc(e.title)}${e.sb?` · <b>${esc(e.sb)}</b>`:""}</div>
+    ${e.note?`<div class="ti" style="color:var(--mute)">📝 ${esc(e.note)}</div>`:""}
+    <div class="det">${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
+      <div class="row"><button class="mini" data-act="copy">Kopieren</button><button class="mini del" data-act="del">Löschen</button></div></div>
+  </div>`).join(""):'<div class="empty">Noch keine Einträge</div>';
+}
+$("arcList").addEventListener("click",e=>{
+  const card=e.target.closest(".arc"); if(!card)return;
+  const act=e.target.closest("[data-act]")?.dataset.act, id=+card.dataset.id;
+  if(act==="del"){if(confirm("Eintrag löschen?")){store(load().filter(x=>x.id!==id));renderArc()}return}
+  if(act==="copy"){const x=load().find(x=>x.id===id);navigator.clipboard?.writeText(entryText(x));e.target.textContent="✓ kopiert";return}
+  card.classList.toggle("open");
+});
+$("arcExport").onclick=()=>{navigator.clipboard?.writeText(load().map(entryText).join("\n\n———\n\n"));$("arcExport").textContent="✓ kopiert"};
+$("arcClear").onclick=()=>{if(confirm("Gesamtes Archiv löschen?")){store([]);renderArc()}};
+$("tabMain").onclick=goHome;$("tabArc").onclick=()=>push({v:"arc"});
+$("saveOnly").onclick=()=>{saveEntry({});goBack();$("saveOnly").textContent="✓ gespeichert";setTimeout(()=>$("saveOnly").textContent="Nur speichern",1500)};
+
+/* ---- SK 1 Panel ---- */
+let sk={}; // Antworten
+function fieldHTML(sec,f,i){
+  const [l,t,o]=f, id=`${sec}_${i}`;
+  if(t==="t") return `<div class="fld"><label>${l}</label><input class="inp" data-k="${id}" data-l="${esc(l)}" placeholder="${esc(o||"")}"></div>`;
+  if(t==="l"){ const g=Object.keys(GRP).map(n=>`<button class="chip" data-grp="${n}" data-k="${id}" data-l="${esc(l)}">${n}</button>`).join("");
+    return `<div class="fld"><label>${l}</label><div class="chips" style="margin:0 0 8px">${g}</div><div class="opts">${LEADS.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="1" data-v="${v}">${v}</button>`).join("")}</div></div>`}
+  return `<div class="fld"><label>${l}</label><div class="opts">${o.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="${t==="m"?1:0}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div></div>`;
+}
+function openPanel(){
+  sk={}; const k0=sbKey(state.code);
+  $("pPzc").textContent=pzcStr(state.code,state.age,state.urg);
+  const sbOpts=Object.entries(SBD).map(([k,v])=>`<button class="opt ${k===k0?"on":""}" data-sbk="${k}">${v.n}</button>`).join("");
+  $("flow").innerHTML=`
+  <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
+    <div class="say">TMO: SK_1_Bett_M · Status „0"</div>
+    <div class="warn" style="margin:0">Bei Funkausfall ausschließlich über Notruf „112".</div></div>
+  <div class="blk"><h3><span class="step">2</span>Nennung Sonderbett</h3>
+    <div class="opts" id="sbOpts">${sbOpts}</div>
+    <div class="warn">Vorauswahl nach PZC – bei Bedarf ändern.</div></div>
+  <div class="blk"><h3><span class="step">3</span>PZC durchgeben</h3>
+    <div class="say" style="font:800 28px ui-monospace,Menlo,monospace">${pzcStr(state.code,state.age,state.urg)}</div>
+    <div class="warn" style="margin:0">${esc(byCode[state.code][1])}</div></div>
+  <div class="blk" id="zus"></div>
+  <div class="blk"><h3><span class="step">5</span>IVENA-Abfrage</h3>${IV.map((f,i)=>fieldHTML("iv",f,i)).join("")}</div>
+  <div class="blk"><h3><span class="step">6</span>Übermittlung an Leitstelle</h3>
+    <div class="chk"><i>✓</i>Transportziel</div><div class="chk"><i>✓</i>Auftragsnummer</div><div class="chk"><i>✓</i>Name (Patient)</div>
+    <div class="warn">Patientenname wird nicht gespeichert.</div></div>
+  <div class="blk"><h3>📝 Notiz</h3>
+    <div class="opts" style="margin-bottom:8px">${NOTE_CHIPS.map(c=>`<button class="chip" data-nc="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+    <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
+  <button class="btn" id="pSave2" style="padding:18px">Speichern ins Archiv</button>`;
+  renderZus(k0);
+  const gs=$("flow").querySelector(`.opt[data-l="Geschlecht"][data-v="${state.sex}"]`); if(gs)gs.click();
+  $("panel").scrollTop=0; push({v:"panel"});
+}
+function renderZus(k){
+  sk.sb=k;
+  Object.keys(sk).filter(x=>x.startsWith("zus_")).forEach(x=>delete sk[x]);
+  $("zus").innerHTML=k?`<h3><span class="step">4</span>Zusatzdaten · ${SBD[k].n}</h3>${SBD[k].f.map((f,i)=>fieldHTML("zus",f,i)).join("")}`
+   :`<h3><span class="step">4</span>Zusatzdaten</h3><div class="warn" style="margin:0">Kein Sonderbett gewählt.</div>`;
+}
+$("flow").addEventListener("click",e=>{
+  const sbk=e.target.closest("[data-sbk]"); if(sbk){
+    const on=sbk.classList.contains("on");
+    document.querySelectorAll("[data-sbk]").forEach(x=>x.classList.remove("on"));
+    if(!on)sbk.classList.add("on"); renderZus(on?null:sbk.dataset.sbk); return}
+  const gp=e.target.closest("[data-grp]"); if(gp){
+    const box=gp.closest(".fld").querySelector(".opts"), want=GRP[gp.dataset.grp];
+    const btns=[...box.querySelectorAll(".opt")], allOn=want.every(v=>btns.find(b=>b.dataset.v===v).classList.contains("on"));
+    btns.forEach(b=>{if(want.includes(b.dataset.v))b.classList.toggle("on",!allOn)});
+    const sel=btns.filter(b=>b.classList.contains("on")).map(b=>b.dataset.v);
+    if(sel.length)sk[gp.dataset.k]={l:gp.dataset.l,v:sel.join(", ")};else delete sk[gp.dataset.k]; return}
+  const nc=e.target.closest("[data-nc]"); if(nc){const n=$("note");n.value+=(n.value&&!n.value.endsWith("\n")?", ":"")+nc.dataset.nc;return}
+  const o=e.target.closest(".opt[data-k]"); if(o){
+    const k=o.dataset.k, v=o.dataset.v;
+    if(o.dataset.m==="1"){o.classList.toggle("on");
+      const sel=[...o.parentNode.querySelectorAll(".on")].map(x=>x.dataset.v);
+      if(sel.length)sk[k]={l:o.dataset.l,v:sel.join(", ")};else delete sk[k]}
+    else{const was=o.classList.contains("on");o.parentNode.querySelectorAll(".opt").forEach(x=>x.classList.remove("on"));
+      if(was)delete sk[k];else{o.classList.add("on");sk[k]={l:o.dataset.l,v}}}
+  }
+});
+$("flow").addEventListener("input",e=>{const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
+function savePanel(){
+  const answers=Object.keys(sk).filter(k=>k!=="sb"&&sk[k].v).map(k=>[sk[k].l,sk[k].v]);
+  const note=$("note").value.trim();
+  saveEntry({sb:sk.sb?SBD[sk.sb].n:"",answers,note});
+  stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();
+}
+document.querySelectorAll(".sxb").forEach(b=>b.onclick=()=>{
+  state.sex=state.sex===b.dataset.sx?null:b.dataset.sx;
+  document.querySelectorAll(".sxb").forEach(x=>x.classList.toggle("on",x.dataset.sx===state.sex));render();});
+$("goSK").onclick=openPanel;
+$("pSave").onclick=savePanel;
+document.addEventListener("click",e=>{if(e.target.id==="pSave2")savePanel()});
+renderArc();
+$("scrim").onclick=goBack;
+
+$("copy").onclick=async()=>{
+  if(!state.sex||!state.code||state.age==null||!state.urg){$("copy").textContent="Unvollständig";setTimeout(()=>$("copy").textContent="Kopieren",1200);return}
+  const t=pzcStr(state.code,state.age,state.urg);
+  try{await navigator.clipboard.writeText(t)}catch(_){}
+  $("copy").textContent="✓ "+t;setTimeout(()=>$("copy").textContent="Kopieren",1500);
+};
+
+renderHome();render();
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
