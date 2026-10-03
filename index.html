@@ -426,8 +426,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.8";
+const APP_VERSION="1.9";
 const CHANGELOG=[
+ {v:"1.9",d:"03.10.2026",items:[
+  "Foto unscharf trotz scharfer Vorschau behoben: nach dem Antippen kurz „Ruhig halten“, dann werden mehrere Bilder aufgenommen und das schärfste genommen; wenn das Handy es kann, wird zusätzlich ein echtes Kamera-Standbild in höherer Auflösung geprüft"]},
  {v:"1.8",d:"03.10.2026",items:[
   "Name (Nachname, Vorname) kann gleich am Anfang von Hand eingetragen werden – ohne Foto; wird mit Foto-Scan, Zusammenfassung und Funkalphabet abgeglichen"]},
  {v:"1.7",d:"03.10.2026",items:[
@@ -1334,10 +1336,31 @@ $("camVid").addEventListener("click",camFocus);
 $("camX").onclick=closeCam;
 $("camPick").onclick=()=>{closeCam();$("scanPick").click()};
 $("camTorch").onclick=async()=>{const tr=camStream&&camStream.getVideoTracks()[0];if(!tr)return;camTorchOn=!camTorchOn;try{await tr.applyConstraints({advanced:[{torch:camTorchOn}]})}catch(_){camTorchOn=!camTorchOn}};
-$("camShot").onclick=()=>{
-  const v=$("camVid");if(!v.videoWidth)return;
-  const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
-  closeCam();scanCard(c);
+let camBusy=false;
+const camSleep=ms=>new Promise(r=>setTimeout(r,ms));
+$("camShot").onclick=async()=>{
+  const v=$("camVid");if(!v.videoWidth||camBusy)return;camBusy=true;
+  const lab=$("camSharp");lab.className="camsharp mid";lab.textContent="Ruhig halten …";
+  try{
+    await camSleep(500); // Wackeln vom Antippen abklingen lassen
+    // Serie von Bildern, das schärfste gewinnt
+    const frames=[];
+    for(let i=0;i<8;i++){
+      const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+      frames.push({c,s:sharpness(c)});await camSleep(100);
+    }
+    let best=frames.reduce((a,b)=>b.s>a.s?b:a);
+    // echtes Standbild der Kamera (höhere Auflösung, eigener Fokus), falls das Gerät es kann
+    try{
+      if(window.ImageCapture&&camStream){
+        const ic=new ImageCapture(camStream.getVideoTracks()[0]);
+        const bm=await createImageBitmap(await ic.takePhoto());
+        const pc=bmpToCanvas(bm),ps=sharpness(pc);
+        if(ps>=best.s*.7)best={c:pc,s:ps};
+      }
+    }catch(_){}
+    closeCam();scanCard(best.c);
+  }finally{camBusy=false}
 };
 $("scanPick").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
 
