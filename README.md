@@ -1,6 +1,6 @@
 # PZC NEF München
 
-Eingabehilfe für NEF-Fahrer: PZC-Code finden (Geschlecht · Code / Alter / Dringlichkeit), SK-1-Anmeldung Schritt für Schritt, Notizen und Archiv mit Datum/Uhrzeit.
+Eingabehilfe für NEF-Fahrer: PZC-Code finden (Geschlecht · Code / Alter / BD), BD1-Anmeldung Schritt für Schritt, Notizen und Archiv mit Datum/Uhrzeit.
 
 - Reine HTML-App, keine Server, keine Abhängigkeiten
 - Dunkelmodus (Auto/Dunkel/Hell), Wischen für Zurück/Vor, Start-Button

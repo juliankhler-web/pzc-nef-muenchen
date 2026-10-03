@@ -311,7 +311,7 @@ textarea.inp{min-height:84px;resize:vertical}
   </div>
   <div class="sb hidden" id="sb"></div>
   <div class="acts">
-    <button class="btn" id="goSK" disabled>SK 1 anmelden ›</button>
+    <button class="btn" id="goSK" disabled>BD1-Anmeldung ›</button>
     <button class="btn sec" id="saveOnly" disabled>Nur speichern</button>
   </div>
 </div>
@@ -586,8 +586,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.6";
+const APP_VERSION="2.7";
 const CHANGELOG=[
+ {v:"2.7",d:"03.10.2026",items:[
+  "Der Button heißt jetzt „BD1-Anmeldung“ statt „SK 1 anmelden“. Der Funkspruch „TMO: SK_1_Bett_M“ bleibt, wie er auf dem Sonderbett-Blatt steht."]},
  {v:"2.6",d:"03.10.2026",items:[
   "SK-1-Anmeldung gekürzt: Die Felder „Transportmittel“ und „Funkrufname“ sowie der Block „Übermittlung an Leitstelle“ sind entfernt"]},
  {v:"2.5",d:"03.10.2026",items:[
@@ -1280,7 +1282,7 @@ function openSheet(c){
   render();push({v:"sheet"});
 }
 const updActs=()=>{const ok=!!(state.sex&&state.code&&state.urg&&state.age!=null);$("goSK").disabled=!ok;$("saveOnly").disabled=!ok;
-  $("goSK").textContent=!state.sex?"Erst Geschlecht wählen":state.age==null?"Erst Alter eingeben":"SK 1 anmelden ›"};
+  $("goSK").textContent=!state.sex?"Erst Geschlecht wählen":state.age==null?"Erst Alter eingeben":"BD1-Anmeldung ›"};
 document.querySelectorAll(".u").forEach(b=>b.onclick=()=>{
   state.urg=+b.dataset.u; document.querySelectorAll(".u").forEach(x=>x.classList.toggle("sel",x===b)); render(); updActs();
 });
