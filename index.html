@@ -197,6 +197,9 @@ textarea.inp{min-height:84px;resize:vertical}
 .cambar #camShot{width:84px;height:84px;min-width:84px;border-radius:50%;background:#fff;border:6px solid rgba(255,255,255,.5);padding:0}
 .camtorch{border:0;border-radius:12px;background:rgba(0,0,0,.65);color:#fff;font-size:22px;padding:8px 14px}
 .warnbox{margin:8px 0;padding:10px 12px;border-radius:12px;background:#fde8e8;color:#7a1010;font-weight:700;font-size:14px}
+.namerow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
+.namerow input{width:100%;font-size:18px;padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit;font-weight:600}
+.namerow input:focus{outline:none;border-color:var(--accent)}
 .hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
 .sugg{margin:10px 0 0}
 .hidden{display:none!important}
@@ -224,6 +227,8 @@ textarea.inp{min-height:84px;resize:vertical}
   <div id="mainView">
 
   <button class="scanhero" id="scanHome"><b>📷 FOTO: Versichertenkarte oder Ausweis</b><small>Name &amp; Geburtsdatum werden gelesen – alles bleibt auf diesem Gerät</small><small>Tipp: Karte flach hinlegen, gutes Licht, Spiegelungen vermeiden, Text füllt das Bild</small></button>
+  <div class="lbl" style="margin-top:2px">oder Name von Hand eintragen</div>
+  <div class="namerow"><input id="hNach" placeholder="Nachname" autocomplete="off" autocapitalize="words"><input id="hVor" placeholder="Vorname" autocomplete="off" autocapitalize="words"></div>
   <div class="scanres hidden" id="scanRes"></div>
   <div class="lbl">Geschlecht (steht vor dem PZC)</div>
   <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
@@ -421,8 +426,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.7";
+const APP_VERSION="1.8";
 const CHANGELOG=[
+ {v:"1.8",d:"03.10.2026",items:[
+  "Name (Nachname, Vorname) kann gleich am Anfang von Hand eingetragen werden – ohne Foto; wird mit Foto-Scan, Zusammenfassung und Funkalphabet abgeglichen"]},
  {v:"1.7",d:"03.10.2026",items:[
   "Eigene Live-Kamera zum Fotografieren von Karte/Ausweis: Rahmen, Dauer-Autofokus, Antippen = scharfstellen, Licht-Button und Schärfeanzeige (grün = scharf)",
   "Warnung, wenn das Foto unscharf ist; Vorschaubild im Prüffenster jetzt in voller Schärfe",
@@ -1066,8 +1073,8 @@ function openSummary(){
 }
 $("sumFlow").addEventListener("input",e=>{
   const id=e.target.id;
-  if(id==="fNach"){state.nachname=e.target.value;renderSpell()}
-  else if(id==="fVor"){state.vorname=e.target.value;renderSpell()}
+  if(id==="fNach"){state.nachname=e.target.value;renderSpell();syncNames()}
+  else if(id==="fVor"){state.vorname=e.target.value;renderSpell();syncNames()}
   else if(id==="fPatNr")state.patNr=e.target.value;
   else if(id==="fNefNr"){state.nefNr=e.target.value;try{localStorage.setItem("pzc_nef",state.nefNr)}catch(_){}}
 });
@@ -1334,7 +1341,15 @@ $("camShot").onclick=()=>{
 };
 $("scanPick").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
 
+function syncNames(){
+  const a=$("hNach"),b=$("hVor");
+  if(document.activeElement!==a)a.value=state.nachname;
+  if(document.activeElement!==b)b.value=state.vorname;
+}
+$("hNach").addEventListener("input",e=>{state.nachname=e.target.value;refreshScanRes()});
+$("hVor").addEventListener("input",e=>{state.vorname=e.target.value;refreshScanRes()});
 function refreshScanRes(){
+  syncNames();
   const el=$("scanRes"),n=[state.vorname,state.nachname].filter(Boolean).join(" ");
   if(!n&&state.age==null){el.classList.add("hidden");return}
   el.classList.remove("hidden");
