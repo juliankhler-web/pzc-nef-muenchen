@@ -401,8 +401,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.5";
+const APP_VERSION="1.6";
 const CHANGELOG=[
+ {v:"1.6",d:"03.10.2026",items:[
+  "Neuer Button „Nach Update suchen“ (oben auf „Version“ tippen) – lädt bei einer neuen Version sofort die aktuelle App, Archiv und Einstellungen bleiben erhalten"]},
  {v:"1.5",d:"03.10.2026",items:[
   "Foto-Auslesen deutlich verbessert: erkennt quer gehaltene Karten, probiert mehrere Bildaufbereitungen, besser bei Glanz und Hintergrundmuster",
   "Vorschaubild im Prüffenster; falsch erkannte Felder lassen sich durch Antippen der erkannten Zeilen korrigieren",
@@ -1264,7 +1266,44 @@ $("scanFile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scan
 function showModal(html){$("modal").innerHTML=html+'<button class="btn" style="width:100%;margin-top:16px" id="mOk">OK</button>';$("mscrim").classList.add("open");$("mOk").onclick=()=>$("mscrim").classList.remove("open")}
 const verList=l=>l.map(c=>`<h3>Version ${c.v} <span style="color:var(--mute);font-weight:500">· ${c.d}</span></h3><ul>${c.items.map(i=>`<li>${i}</li>`).join("")}</ul>`).join("");
 $("verBtn").textContent="Version "+APP_VERSION;
-$("verBtn").onclick=()=>showModal(`<h2>Änderungen</h2><div class="vv">Installiert: Version ${APP_VERSION}</div>`+verList(CHANGELOG));
+const vnum=v=>v.split(".").map(Number);
+const vNewer=(a,b)=>{const x=vnum(a),y=vnum(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0}return false};
+function openVersion(){
+  openModal(`<h2>Version ${APP_VERSION}</h2><div class="vv">Installiert auf diesem Gerät</div>
+    <div id="updState"></div>
+    <button class="btn" id="updBtn" style="width:100%;margin:10px 0 4px">🔄 Nach Update suchen</button>
+    <div class="sh">Änderungen</div>${verList(CHANGELOG)}
+    <button class="btn sec" id="verClose" style="width:100%;margin-top:16px">Schließen</button>`);
+  $("verClose").onclick=closeModal;
+  $("updBtn").onclick=checkUpdate;
+}
+async function checkUpdate(){
+  const st=$("updState"),btn=$("updBtn");
+  btn.disabled=true;st.innerHTML='<div class="warn">Suche läuft …</div>';
+  try{
+    const r=await fetch("index.html?u="+Date.now(),{cache:"no-store"});
+    if(!r.ok)throw 0;
+    const m=(await r.text()).match(/APP_VERSION="([^"]+)"/);
+    if(!m)throw 0;
+    if(vNewer(m[1],APP_VERSION)){
+      st.innerHTML=`<div class="say" style="background:var(--sayb)">🆕 Neue Version ${esc(m[1])} verfügbar</div>`;
+      btn.disabled=false;btn.textContent="Jetzt aktualisieren";
+      btn.onclick=async()=>{
+        btn.disabled=true;btn.textContent="Wird aktualisiert …";
+        try{const regs=await navigator.serviceWorker?.getRegistrations();if(regs)await Promise.all(regs.map(x=>x.unregister()));}catch(_){}
+        try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(_){}
+        location.reload();
+      };
+    }else{
+      st.innerHTML=`<div class="say" style="background:var(--sayb)">✓ Du hast die neueste Version (${APP_VERSION})</div>`;
+      btn.disabled=false;
+    }
+  }catch(_){
+    st.innerHTML='<div class="warn" style="color:var(--d1)">Keine Verbindung – Update-Suche braucht Internet. Deine Daten bleiben erhalten.</div>';
+    btn.disabled=false;
+  }
+}
+$("verBtn").onclick=openVersion;
 (function(){
   let seen=null;try{seen=localStorage.getItem("pzc_seen_version")}catch(_){}
   const num=v=>v.split(".").map(Number);
