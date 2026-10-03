@@ -580,15 +580,16 @@ const IV=[
  ["Geschlecht","s",["M","W"]],
  ["Schwanger","s",JN],
  ["Einsatznummer","t","Fzg.-Nummer"],
- ["Bemerkung","t","zur freien Verfügung"],
- ["Transportmittel","s",["KTW","RTW","NAW","ITW","RTH","ITH"]],
- ["Funkrufname","t"]
+ ["Bemerkung","t","zur freien Verfügung"]
+
 ];
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.5";
+const APP_VERSION="2.6";
 const CHANGELOG=[
+ {v:"2.6",d:"03.10.2026",items:[
+  "SK-1-Anmeldung gekürzt: Die Felder „Transportmittel“ und „Funkrufname“ sowie der Block „Übermittlung an Leitstelle“ sind entfernt"]},
  {v:"2.5",d:"03.10.2026",items:[
   "Neu: Button „Begriff fehlt oder falscher Treffer – melden“ unter den Suchergebnissen. Du kannst den richtigen Code und eine Notiz angeben; alles bleibt auf dem Gerät.",
   "Unter „Archiv“ stehen die gemeldeten Begriffe – mit „Teilen / kopieren“ schickst du sie gesammelt weiter, damit die Suche besser wird"]},
@@ -1398,12 +1399,10 @@ function openPanel(){
     <div class="warn" style="margin:0">${esc(byCode[state.code][1])}</div></div>
   <div class="blk" id="zus"></div>
   <div class="blk"><h3><span class="step">5</span>IVENA-Abfrage</h3>${IV.map((f,i)=>fieldHTML("iv",f,i)).join("")}</div>
-  <div class="blk"><h3><span class="step">6</span>Übermittlung an Leitstelle</h3>
-    <div class="chk"><i>✓</i>Transportziel</div><div class="chk"><i>✓</i>Auftragsnummer</div><div class="chk"><i>✓</i>Name (Patient)</div>
-    <div class="warn">Name im Funkalphabet und Nummern folgen in der Zusammenfassung.</div></div>
   <div class="blk"><h3>📝 Notiz</h3>
     <div class="opts" style="margin-bottom:8px">${NOTE_CHIPS.map(c=>`<button class="chip" data-nc="${esc(c)}">${esc(c)}</button>`).join("")}</div>
     <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
+  <div class="warn" style="text-align:center">Name im Funkalphabet und Nummern folgen in der Zusammenfassung.</div>
   <button class="btn" id="pNext" style="padding:20px;font-size:19px">Weiter zur Zusammenfassung ›</button>`;
   renderZus(k0);
   const gs=$("flow").querySelector(`.opt[data-l="Geschlecht"][data-v="${state.sex}"]`); if(gs)gs.click();
