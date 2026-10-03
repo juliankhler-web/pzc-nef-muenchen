@@ -84,7 +84,7 @@ h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .sheet h2{margin:0 0 2px;font-size:20px}
 .sheet .cd{color:var(--mute);font-size:14px;margin-bottom:14px}
 .urg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.u{border:3px solid transparent;border-radius:16px;padding:12px 6px;color:#fff;font-weight:800;font-size:34px;text-align:center}
+.u{border:3px solid transparent;border-radius:16px;padding:12px 6px;color:#fff;font-weight:800;font-size:30px;text-align:center}
 .u small{display:block;font-size:11px;font-weight:700;opacity:.95;line-height:1.2;margin-top:2px}
 .u.d1{background:var(--d1)}.u.d2{background:var(--d2);color:#1a1a1a}.u.d3{background:var(--d3)}
 .u.off{opacity:.2;pointer-events:none;filter:grayscale(1)}
@@ -200,6 +200,7 @@ textarea.inp{min-height:84px;resize:vertical}
 .namerow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
 .namerow input{width:100%;font-size:18px;padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit;font-weight:600}
 .namerow input:focus{outline:none;border-color:var(--accent)}
+.legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:700;margin:4px 2px 10px}.legend span{display:flex;gap:5px;align-items:center}.legend .lg{color:var(--mute);font-weight:600}
 .hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
 .sugg{margin:10px 0 0}
 .hidden{display:none!important}
@@ -246,10 +247,11 @@ textarea.inp{min-height:84px;resize:vertical}
   </div>
 
   <div id="listView" class="hidden" style="margin-top:8px">
+    <div class="legend"><span><i class="dot d1"></i> BD1</span><span><i class="dot d2"></i> BD2</span><span><i class="dot d3"></i> BD3</span><span class="lg">= mögliche Behandlungsdringlichkeit</span></div>
     <div class="list" id="list"></div>
   </div>
 
-  <p class="note">Codes laut RZV-München-Tafel. Dringlichkeits-Felder (1/2/3) vor Einsatz gegen die Original-Tafel prüfen. Eingabehilfe, kein Ersatz für IVENA.</p>
+  <p class="note">Codes und BD1/BD2/BD3 laut offizieller IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen am 03.10.2026. Eingabehilfe, kein Ersatz für IVENA – bei Abweichungen gilt die IVENA-App.</p>
   </div>
 </div>
 
@@ -292,12 +294,12 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="chips" id="ageChips" style="margin-bottom:12px"></div>
   <button class="scanbtn" id="scanBtn">📷 Karte / Ausweis fotografieren</button>
   <input type="file" id="scanFile" accept="image/*" capture="environment" class="hidden">
-  <!-- 3 Dringlichkeit -->
-  <div class="lbl"><span><span class="step">3</span>Behandlungsdringlichkeit</span></div>
+  <!-- 3 BD -->
+  <div class="lbl"><span><span class="step">3</span>BD · Behandlungsdringlichkeit</span></div>
   <div class="urg">
-    <button class="u d1" data-u="1">1<small>Notfall / sofort<br>Schockraum, Stroke, PCI</small></button>
-    <button class="u d2" data-u="2">2<small>Stationär wahrsch.<br>kein sofortiger Bedarf</small></button>
-    <button class="u d3" data-u="3">3<small>Ambulant<br>&lt; 24 h</small></button>
+    <button class="u d1" data-u="1">BD1<small>Notfallversorgung, sofortige Intervention im KH<br>z. B. Schockraum, Stroke Unit</small></button>
+    <button class="u d2" data-u="2">BD2<small>Stationäre Versorgung wahrscheinlich, kein unmittelbarer Handlungsbedarf</small></button>
+    <button class="u d3" data-u="3">BD3<small>Ambulante Versorgung ausreichend oder Ausschlussdiagnostik (&lt; 24 h)</small></button>
   </div>
   <div class="sb hidden" id="sb"></div>
   <div class="acts">
@@ -307,53 +309,204 @@ textarea.inp{min-height:84px;resize:vertical}
 </div>
 
 <div class="result">
-  <div class="code"><small>PZC (Code / Alter / Dringlichkeit)</small>
+  <div class="code"><small>PZC (Code / Alter / BD)</small>
     <span id="rOut"><span id="rS">_</span> <span id="rC">___</span><i>/</i><span id="rA">__</span><i>/</i><span id="rU">_</span></span></div>
   <button class="copy" id="copy">Kopieren</button>
 </div>
 
 <script>
-/* [Code, Bezeichnung, erlaubte Dringlichkeiten] */
+/* [Code, Bezeichnung, mögliche Behandlungsdringlichkeiten BD] – Quelle: offizielle IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen 03.10.2026 */
 const D = [
-[131,"Reanimation laufend / intermittierend","1"],[132,"Reanimation ROSC","1"],[133,"Reanimation Trauma laufend/intermittierend","1"],[134,"Reanimation Hypothermie","1"],
-[140,"vvECMO Zuverlegung","12"],[141,"vvECMO Abholung","12"],[142,"vaECMO Zuverlegung","12"],[143,"vaECMO Abholung","12"],[144,"eCPR Zuverlegung","1"],[145,"eCPR Abholung","1"],
-[211,"Polytrauma mit SHT","1"],[212,"Polytrauma ohne SHT","1"],[213,"Schockraumindikation nach Unfallhergang","1"],[214,"Mehrfachverletzung sonstige","12"],[215,"Mehrfachverletzung mit Augen","12"],[219,"oberflächliche Verletzungen (bel. Lokalisation)","3"],
-[221,"SHT offen","12"],[222,"SHT geschlossen","123"],[223,"Gesichtsverletzung","123"],[224,"Kopfverletzung","123"],[225,"Augenverletzung","123"],
-[231,"Thorax penetrierend","12"],[232,"Thorax geschlossen / stumpf","123"],[233,"Pneumothorax traumatisch","123"],
-[241,"Abdomen penetrierend","12"],[242,"Abdomen geschlossen/stumpf","12"],[243,"Akutes Abdomen (nicht Trauma)","123"],
-[251,"Verl. der Wirbelsäule mit neurol. Ausfällen","12"],[252,"Verl. der Wirbelsäule ohne neurol. Ausfälle","123"],[253,"Rückenschmerzen, akut mit neurol. Symptomatik","123"],[254,"Rückenschmerzen nicht traumatisch ohne neurol. Ausfälle","123"],[255,"Lähmung / Querschnitt akut (nicht Stroke)","123"],
-[261,"Becken offen","12"],[262,"Becken geschlossen","123"],[263,"Urogenitaltrauma (isoliert)","123"],
-[271,"Extremitäten offen","12"],[272,"Extremitäten geschlossen","123"],[273,"Hüft- / Schenkelhalsfraktur","123"],[274,"Verl. d. Extrem. mit Gefäß-/Nervenverl.","12"],
-[275,"Handverletzung","123"],[276,"Fingeramputation","123"],[277,"Hand- / Extremitäten Amputation","12"],
-[281,"Verbrennung / Verbrühung","123"],[282,"Verätzung","123"],[283,"Hochspannungstrauma","123"],
-[284,"Barotrauma/Tauchunfall/Dekompressionskrankheit","12"],[285,"Strahlentrauma","12"],[286,"Hitzeerschöpfung / Hitzschlag","123"],[287,"Unterkühlung / Erfrierung","123"],[288,"(Beinahe-) Ertrinken / Badeunfall","12"],
-[291,"Aortenaneurysma","1"],[292,"Extremitätenischämie (akut)","12"],[293,"Aorta ascendens Dissektion (bestätigt)","1"],[299,"Gefäßchirurgischer Notfall, sonstiger","12"],
-[311,"Atemnot (unklar) / Atembeschwerden / ARI","123"],[312,"Obstruktion (Asthma / COPD)","123"],[313,"Hämoptoe / Hämoptysen","123"],[314,"(Bolus-) Aspiration","123"],[315,"Bronchitis / Pneumonie","123"],[316,"Hyperventilation","23"],[317,"Lungenödem (nicht kardial)","123"],[318,"Spontanpneumothorax","123"],[319,"Pneumologischer Notfall, sonstiger","123"],
-[321,"Anaphylaxie / Unverträglichkeitsreaktion","123"],[322,"Synkope / Kollaps","123"],[323,"Hypotonie","123"],[324,"Thrombose","123"],[325,"Unklares Fieber","123"],[326,"Exsikkose","123"],[329,"Internistischer Notfall, sonstiger","123"],
-[331,"Unklarer Brust- / Thoraxschmerz","12"],[332,"STEMI / „OMI“","1"],[333,"NSTEMI, instabile AP","12"],
-[341,"Arrhythmie","123"],[342,"Bradykardie","123"],[343,"Tachykardie","123"],[344,"Elektrounfall (Schwachstrom)","123"],[345,"Hypertensiver Notfall / Krise","123"],[346,"Kardiogener Schock","12"],[347,"Herzinsuffizienz","123"],[348,"Lungenembolie","123"],[349,"Kardiologischer Notfall, sonstiger","123"],
-[351,"GI-Blutung","123"],[353,"Bauchschmerzen","123"],[354,"Gastroenteritis","123"],[359,"Gastroenterologischer Notfall, sonstiger","123"],
-[360,"Rauchgas / Reizgas (nicht CO)","123"],[361,"Alkohol","123"],[362,"Drogen / Rauschgift","123"],[363,"sonstige Intoxikation","123"],[364,"Lebensmittel","123"],[365,"Medikamente","123"],[366,"Pflanzenschutzmittel","123"],[367,"tierische Gifte","123"],[368,"Giftpflanzen","123"],[369,"Inhalative Intoxikation, sonstige","123"],[370,"Kohlenmonoxid-Vergiftung","123"],
-[371,"Meningitis / Enzephalitis","123"],[372,"TBC","123"],[373,"Sepsis (Infekt. + qSOFA mind. 2)","123"],[374,"Septischer Schock","123"],[375,"hochkontagiöse Erkrankung (Sonderiso)","123"],[376,"Covid-19 – SARS-CoV-2 (bestätigt) – zur Quarantäne aktuelle Infektionskrankheit (bestätigt)","123"],[377,"Covid-19 – SARS-CoV-2 (nicht bestätigt) – aktuelle Infektionskrankheit (nicht bestätigt)","123"],[378,"SARS-CoV-2 zur Quarantäne – aktuelle Infektionskrankheit zur Quarantäne","123"],[379,"Infektiologischer Notfall, sonstiger","123"],
-[391,"Akuter endokrinologischer Notfall","123"],[392,"Hyperglykämie","123"],[393,"Hypoglykämie","123"],
-[411,"Anhaltender epileptischer Anfall","12"],[412,"epileptischer Anfall (stattgehabt)","123"],[413,"Kopf- / Gesichtsschmerz (bei SK1 NC!)","123"],[414,"Vigilanzminderung / Koma (ohne Trauma)","123"],[415,"Schwindel","23"],[419,"Neurologischer Notfall, sonstiger","123"],
-[421,"Schlaganfall / Blutung < 24h oder unklar","12"],[423,"Schlaganfall / Blutung > 24h","123"],[425,"diagnostizierter cerebraler Gefäßverschluss zur Thrombektomie","1"],
-[431,"Suizid, angedroht","23"],[432,"Einweisung, psychiatrische","23"],[433,"Einweisung (nach BayPsychKHG)","23"],[434,"Einweisung (nach BayPsychKHG), mit Fixierung","23"],[435,"Akute Verwirrtheit / Delir","123"],
-[511,"pädiatrisch – Atemnot","123"],[512,"schwerer Husten (Pseudokrupp)","123"],[513,"pädiatrisch – Fieberkrampf","123"],[519,"pädiatrischer Notfall, sonstiger","123"],
-[521,"< 16 SSW","12"],[522,"16+0 SSW bis 21+6 SSW","12"],[523,"22+0 SSW bis 28+6 SSW","12"],[524,"29+0 SSW bis 31+6 SSW","12"],[525,"32+0 SSW bis 35+6 SSW und jede Wachstumsstörung des Feten","12"],[526,"ab 36+0 SSW","12"],[527,"ab 36+0 SSW bei Diabetes","12"],[528,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge","12"],[529,"Drillinge ab 33+0 SSW","12"],
-[530,"akute fetale Gefährdung, Erstversorgung ggf. in ungeeigneter Klinik","1"],
-[531,"< 16 SSW","12"],[532,"16+0 SSW bis 21+6 SSW","12"],[533,"22+0 SSW bis 28+6 SSW","12"],[534,"29+0 SSW bis 31+6 SSW","12"],[535,"32+0 SSW bis 35+6 SSW und jede Wachstumsstörung des Feten","12"],[536,"ab 36+0 SSW","12"],[537,"ab 36+0 SSW bei Diabetes","12"],[538,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge","12"],[539,"Drillinge ab 33+0 SSW","12"],
-[540,"akute fetale Gefährdung, Erstversorgung ggf. in ungeeigneter Klinik","1"],
-[541,"< 16 SSW","123"],[542,"16+0 SSW bis 21+6 SSW","123"],[543,"22+0 SSW bis 28+6 SSW","123"],[544,"29+0 SSW bis 31+6 SSW","123"],[545,"32+0 SSW bis 35+6 SSW und jede Wachstumsstörung des Feten","123"],[546,"ab 36+0 SSW","123"],[547,"ab 36+0 SSW bei Diabetes","123"],[548,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge","123"],[549,"Drillinge ab 33+0 SSW","123"],
-[551,"vaginale Blutung","123"],[552,"Unterbauchschmerzen","123"],[553,"Sexualdelikt","123"],[559,"gynäkologischer Notfall, sonstiger","123"],
-[601,"Transport zu definierten Leistungen","23"],[602,"Transport zu geplanter Dialyse","23"],[603,"Transport zu geplantem Herzkatheter","23"],[604,"Transport zu geplantem CT","23"],[605,"Transport zu geplantem MRT","23"],
-[701,"Haut- und Geschlechtskrankheiten","23"],
-[711,"Nieren- / Harnleiterkolik","123"],[712,"Hodenschmerz","123"],[713,"Harnverhalt (akut)","123"],[714,"Hämaturie","123"],[715,"Katheterwechsel (transurethral)","23"],[716,"Katheterwechsel (suprapubisch)","23"],[717,"Katheterverlust / -verstopfung","23"],[718,"Harnwegsinfekt","123"],[719,"urologischer Notfall, sonstiger","123"],
-[721,"akute Augenerkrankung","123"],[729,"Augennotfall, sonstiger","123"],
-[731,"Nasenbluten (Epistaxis) unstillbar","123"],[732,"(Nach-) Blutung, HNO, akut","123"],[733,"Tracheostoma – Komplikation","123"],[739,"HNO Notfall, sonstiger","123"],
-[749,"Mund-Kiefer-Gesicht-Notfall, sonstiger","123"],
-[751,"geriatrische Einweisung","23"],
-[779,"sonstige Notfallsituationen","123"]
+[131,"Reanimation, laufend / intermittierend","1"],
+[132,"Reanimation ROSC","1"],
+[133,"Reanimation bei Trauma, laufend / intermittierend","1"],
+[134,"Reanimation Hypothermie","1"],
+[140,"vvECMO Zuverlegung","12"],
+[141,"vvECMO Abholung","12"],
+[142,"vaECMO Zuverlegung","12"],
+[143,"vaECMO Abholung","12"],
+[144,"eCPR Zuverlegung","1"],
+[145,"eCPR Abholung","1"],
+[211,"Trauma Schockraum A mit SHT","1"],
+[212,"Trauma Schockraum A ohne SHT","1"],
+[213,"Trauma Schockraum B","1"],
+[214,"Mehrfachverletzung sonstige","12"],
+[215,"Mehrfachverletzung mit Augen","12"],
+[219,"oberflächliche Verletzung (bel. Lokalisation)","3"],
+[221,"SHT offen","12"],
+[222,"SHT geschlossen","123"],
+[223,"Gesichtsverletzung","123"],
+[224,"Kopfverletzung","123"],
+[225,"Augenverletzung","123"],
+[231,"Thorax penetrierend","12"],
+[232,"Thorax geschlossen / stumpf","123"],
+[233,"Pneumothorax (traumatisch)","12"],
+[241,"Abdomen penetrierend","12"],
+[242,"Abdomen geschlossen / stumpf","123"],
+[243,"Akutes Abdomen (nicht traumatisch)","12"],
+[251,"Verl. der Wirbelsäule mit neurologischen Ausfällen","12"],
+[252,"Verl. der Wirbelsäule ohne neurologische Ausfälle","23"],
+[253,"Rückenschmerzen, akut mit neurolog. Symptomatik","12"],
+[254,"Rückenschmerzen, nicht traumatisch ohne neurologische Ausfälle","23"],
+[255,"Lähmung / Querschnitt akut (nicht Stroke)","12"],
+[261,"Becken offen","12"],
+[262,"Becken geschlossen","123"],
+[263,"Urogenitaltrauma (isoliert)","123"],
+[271,"Fraktur Extremitäten offen","12"],
+[272,"Fraktur Extremitäten geschlossen","123"],
+[273,"Hüft- / Schenkelhalsfraktur","23"],
+[274,"Verl. der Extremitäten mit Gefäß- / Nervenverl.","123"],
+[275,"Handverletzung","123"],
+[276,"Finger Amputation","12"],
+[277,"Hand- / Extremitäten Amputation","12"],
+[279,"Sonstige Extremitätenverletzung","123"],
+[281,"Verbrennung / Verbrühung","123"],
+[282,"Verätzung","123"],
+[283,"Hochspannungstrauma (ab 1000 V ~)","12"],
+[284,"Barotrauma / Tauchunfall / Dekompressionskrankheit","123"],
+[285,"Strahlentrauma","123"],
+[286,"Hitzeerschöpfung / Hitzschlag","123"],
+[287,"Unterkühlung / Erfrierung","123"],
+[288,"(Beinahe- ) Ertrinken / Badeunfall","123"],
+[291,"Aortenaneurysma","12"],
+[292,"Extremitätenischaemie (akut)","12"],
+[293,"Aorta ascendens Dissektion (bestätigt)","12"],
+[294,"Aorta ascendens Dissektion (Verdacht)","12"],
+[299,"Gefäßchirurgischer Notfall, sonstiger","23"],
+[311,"Atemnot (unklar) / Atembeschwerden / ARI","123"],
+[312,"Obstruktion (Asthma / COPD)","123"],
+[313,"Hämoptoe / Hämoptysen","123"],
+[314,"(Bolus- ) Aspiration","123"],
+[315,"Bronchitis / Pneumonie","123"],
+[316,"Hyperventilation","23"],
+[317,"Lungenödem (nicht kardial)","123"],
+[318,"Spontanpneumothorax","123"],
+[319,"Pneumologischer Notfall, sonstiger","23"],
+[321,"Anaphylaxie / Unverträglichkeitsreaktion","123"],
+[322,"Synkope / Kollaps","123"],
+[323,"Hypotonie","123"],
+[324,"Thrombose","123"],
+[325,"Unklares Fieber","123"],
+[326,"Exsikkose","123"],
+[329,"Internistischer Notfall, sonstiger","23"],
+[331,"Unklarer Brust- / Thoraxschmerz","23"],
+[332,"STEMI / \"OMI\"","1"],
+[333,"NSTEMI, instabile AP","123"],
+[341,"Arrhythmie","123"],
+[342,"Bradykardie","123"],
+[343,"Tachykardie","123"],
+[344,"Elektrounfall (bis 1000 V~)","123"],
+[345,"Hypertensiver Notfall / Krise","123"],
+[346,"Kardiogener Schock","12"],
+[347,"Herzinsuffizienz","123"],
+[348,"Lungenembolie","123"],
+[349,"Kardiologischer Notfall, sonstiger","23"],
+[351,"Obere GI-Blutung","123"],
+[352,"Untere GI-Blutung","123"],
+[353,"Bauchschmerzen","23"],
+[354,"Gastroenteritis","123"],
+[359,"Gastroenterologischer Notfall, sonstiger","23"],
+[360,"Intoxikation Rauchgas/Reizgas (nicht CO)","123"],
+[361,"Intoxikation Alkohol","123"],
+[362,"Intoxikation Drogen/Rauschgift","123"],
+[363,"sonstige Intoxikation","123"],
+[364,"Intoxikation Lebensmittel","123"],
+[365,"Intoxikation Medikamente","123"],
+[366,"Intoxikation Pflanzenschutzmittel","123"],
+[367,"Intoxikation tierische Gifte","123"],
+[368,"Intoxikation Giftpflanzen","123"],
+[369,"inhalative Intoxikation, sonstige","23"],
+[370,"Kohlenmonoxid - Vergiftung","123"],
+[371,"Meningitis / Enzephalitis","123"],
+[372,"TBC","123"],
+[373,"Sepsis (Infekt NEWS-2 Score min 5)","12"],
+[374,"Septischer Schock","1"],
+[375,"hochkontagiöse Erkrankung (Sonder-ISO)","1"],
+[376,"Covid-19-SARS - CoV 2 (bestätigt)","12"],
+[377,"Covid-19-SARS - CoV 2 (nicht bestätigt)","123"],
+[378,"SARS-CoV 2 zur Quarantäne - aktuelle Infektionskrankheit zur Quarantän","2"],
+[379,"Infektiologischer Notfall, sonstiger","23"],
+[391,"Akuter endokrinologischer Notfall","123"],
+[392,"Hyperglykämie","123"],
+[393,"Hypoglykämie","123"],
+[411,"Anhaltender epileptischer Anfall","1"],
+[412,"Epileptischer Anfall (stattgehabt)","123"],
+[413,"Kopf- / Gesichtsschmerz (bei BD 1 NC!)","123"],
+[414,"Vigilanzminderung / Koma (ohne Trauma)","123"],
+[415,"Schwindel","123"],
+[419,"Neurologischer Notfall, sonstiger","23"],
+[421,"Schlaganfall / Blutung: < 24h oder unklar","1"],
+[423,"Schlaganfall / Blutung: > 24h","123"],
+[425,"diagnostizierter Cerebraler Gefäßverschluss zur Thrombektomie","1"],
+[431,"Suizid, angedroht","2"],
+[432,"Einweisung, psychiatrische","2"],
+[433,"Einweisung (nach LandesPsychKG)","2"],
+[434,"Einweisung (nach LandesPsychKG) mit Fixierung","2"],
+[435,"Akute Verwirrtheit / Delir","123"],
+[511,"pädiatrisch - Atemnot","123"],
+[512,"schwerer Husten (Pseudokrupp)","123"],
+[513,"pädiatrisch - Fieberkrampf","123"],
+[519,"pädiatrischer Notfall, sonstiger","23"],
+[521,"< 16 SSW (präklinische Geburt)","12"],
+[522,"16+0 SSW bis 21+6 SSW (präklinische Geburt)","12"],
+[523,"22+0 SSW bis 28+6 SSW (präklinische Geburt)","12"],
+[524,"29+0 SSW bis 31+6 SSW (präklinische Geburt)","12"],
+[525,"32+0 SSW bis 36+6 SSW und jede Wachstumsstörung des Feten (präklinisch","12"],
+[526,"ab 37+0 SSW (präklinische Geburt)","12"],
+[527,"ab 37+0 SSW bei Diabetes (präklinische Geburt)","12"],
+[528,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge (präklinische Geburt)","12"],
+[529,"Drillinge ab 33+0 SSW (präklinische Geburt)","12"],
+[530,"akute fetale Gefährdung, Erstversorgung (einsetzende Geburt)","1"],
+[531,"< 16 SSW (einsetzende Geburt)","1"],
+[532,"16+0 SSW bis 21+6 SSW (einsetzende Geburt)","1"],
+[533,"22+0 SSW bis 28+6 SSW (einsetzende Geburt)","1"],
+[534,"29+0 SSW bis 31+6 SSW (einsetzende Geburt)","1"],
+[535,"32+0 SSW bis 36+6 SSW + jede Wachstumsstörg. d. Feten (einsetz. Geburt","1"],
+[536,"ab 37+0 SSW (einsetzende Geburt)","12"],
+[537,"ab 37+0 SSW bei Diabetes (einsetzende Geburt)","12"],
+[538,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge (einsetzende Geburt)","12"],
+[539,"Drillinge ab 33+0 SSW (einsetzende Geburt)","12"],
+[540,"akute fetale Gefährdung, Erstversorgung (Schwangerschaft-Notfall)","1"],
+[541,"< 16 SSW (Schwangerschaft-Notfall)","12"],
+[542,"16+0 SSW bis 21+6 SSW (Schwangerschaft-Notfall)","12"],
+[543,"22+0 SSW bis 28+6 SSW (Schwangerschaft-Notfall)","12"],
+[544,"29+0 SSW bis 31+6 SSW (Schwangerschaft-Notfall)","12"],
+[545,"32+0 SSW bis 36+6 SSW + jede Wachstumsstörg. d. Feten (Notfall Schw.)","12"],
+[546,"ab 37+0 SSW (Schwangerschaft-Notfall)","12"],
+[547,"ab 37+0 SSW bei Diabetes (Schwangerschaft-Notfall)","12"],
+[548,"Drillinge bis 32+6 SSW, alle über 3 Mehrlinge (Schwangerschaft-Notfall","12"],
+[549,"Drillinge ab 33+0 SSW (Schwangerschaft-Notfall)","12"],
+[551,"vaginale Blutung","123"],
+[552,"Unterbauchschmerzen","123"],
+[553,"Sexualdelikt","123"],
+[559,"Gynäkologischer Notfall, sonstiger","23"],
+[601,"Transport zu definierten Leistungen","123"],
+[602,"Transport zu geplanter Dialyse","123"],
+[603,"Transport zu geplantem Herzkatheter","123"],
+[604,"Transport zu geplantem CT","123"],
+[605,"Transport zu geplantem MRT","123"],
+[701,"Haut - und Geschlechtskrankheiten","23"],
+[711,"Nieren - Harnleiterkolik","123"],
+[712,"Hodenschmerz","123"],
+[713,"Harnverhalt (akut)","123"],
+[714,"Hämaturie","123"],
+[715,"Katheterwechsel (transurethral)","3"],
+[716,"Katheterwechsel (suprapubisch)","3"],
+[717,"Katheterverlust / - verstopfung","23"],
+[718,"Harnwegsinfekt","123"],
+[719,"Urologischer Notfall, sonstiger","23"],
+[721,"akute Augenerkrankung","123"],
+[729,"Augennotfall, sonstiger","23"],
+[731,"Nasenbluten (Epistaxis) unstillbar","123"],
+[732,"(Nach-) Blutung, HNO, akut","123"],
+[733,"Tracheostoma - Komplikation","123"],
+[739,"HNO Notfall, sonstiger","23"],
+[749,"Mund-Kiefer-Gesicht-Notfall, sonstiger","23"],
+[751,"Geriatrische Einweisung","2"],
+[779,"sonstige Notfallsituationen","23"],
+[801,"Schmerz / Schwellung Bewegungsapparat (nicht traumatisch)","3"],
+[802,"Schwellung / Abszeß, sonstige Lokalisation","3"],
+[809,"Allgemeinmedizin, sonstiger Notfall","3"]
 ];
 
 /* Kategorien – eigene Gruppierung nach NEF-Alltag */
@@ -373,7 +526,7 @@ const CATS=[
  {id:"sonst",n:"Urologie, Augen, HNO, Sonstiges", s:"601–779", c:"#8b5cf6", f:c=>c>=601}
 ];
 const SUB={521:"Präklinische Geburt",531:"Einsetzende Geburt",541:"Notfall in der Schwangerschaft",551:"Gynäkologisch",
- 140:"ECMO",131:"Reanimation",601:"Sonstige Einsätze / Transporte",701:"Haut",711:"Urologie",721:"Augen",731:"HNO",749:"Mund-Kiefer-Gesicht",751:"Geriatrie",779:"Unbestimmt"};
+ 140:"ECMO",131:"Reanimation",601:"Sonstige Einsätze / Transporte",701:"Haut",711:"Urologie",721:"Augen",731:"HNO",749:"Mund-Kiefer-Gesicht",751:"Geriatrie",779:"Unbestimmt",801:"Allgemeinmedizin"};
 
 const QUICK=[
  [332,"STEMI","r"],[421,"Schlaganfall","t"],[131,"Reanimation","r"],[211,"Polytrauma + SHT","r"],
@@ -426,8 +579,13 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.3";
+const APP_VERSION="2.4";
 const CHANGELOG=[
+ {v:"2.4",d:"03.10.2026",items:[
+  "Neue Bezeichnung überall: BD1, BD2, BD3 (Behandlungsdringlichkeit) statt „Dringlichkeit 1/2/3“",
+  "Codeliste jetzt direkt aus der offiziellen IVENA-Bayern-PZC-Liste übernommen (190 Codes): 6 neue Codes (279, 294, 352, 801, 802, 809) und bei 68 Codes geänderte BD-Möglichkeiten gegenüber der alten Tafel",
+  "Geänderte Bezeichnungen laut Liste, z. B. Sepsis nach NEWS-2, Schwangerschaftswochen 36+6/37+0, „LandesPsychKG“",
+  "Legende BD1/BD2/BD3 über den Trefferlisten; BD steht in der Zusammenfassung"]},
  {v:"2.3",d:"03.10.2026",items:[
   "Suche deutlich erweitert: über 20 Körperteile × Beschwerden („Fuß blau“, „Knie geschwollen“, „Auge rot“, „Hand eingeklemmt“, „Rücken Schmerzen“ …) – nach dem Muster von „Finger“",
   "Hunderte Alltags- und Notfallbegriffe: Unfallhergänge (Leiter gefallen, Hundebiss, Kreissäge …), Notfall-Beschreibungen (kein Puls, Schaum vor dem Mund …) und Fachabkürzungen (SAB, ICB, LAE, TIA …)"]},
@@ -475,7 +633,7 @@ const CHANGELOG=[
   "Unter dem Treffer steht, über welchen Begriff er gefunden wurde",
   "Schnell-Begriffe unter der Suche zum Antippen"]},
  {v:"1.0",d:"03.10.2026",items:[
-  "PZC finden: Geschlecht, Code, Alter, Dringlichkeit – Anzeige unten live",
+  "PZC finden: Geschlecht, Code, Alter, BD – Anzeige unten live",
   "SK-1-Anmeldung Schritt für Schritt inkl. IVENA-Abfrage und Zusatzdaten",
   "EKG-Schnellwahl (ST-Hebung/-Senkung, V1–V6)",
   "Notizen und Archiv mit Datum und Uhrzeit",
@@ -765,13 +923,19 @@ const BODY=[
  [["Bauch","Unterbauch","Oberbauch","Magen","Nabel","Bauchdecke","Flanke"],{fract:[242],wound:[241],crush:[242],burn:[281],pain:[353,243,359,552,711,351],swell:[243,347,353,354],infect:[354,359,243]}],
  [["Leiste","Genitalbereich","Hoden","Penis","Scheide","Intimbereich","Damm"],{fract:[263],wound:[263],crush:[263],burn:[281],pain:[712,263,711,552],swell:[712,263,718],infect:[718,701,719]}]
 ];
+const LIMB=new Set(["Finger","Hand","Arm","Schulter","Fuß","Bein","Oberschenkel","Rücken","Nacken"]);
 BODY.forEach(([words,map])=>words.forEach(w=>{
-  Object.entries(map).forEach(([cls,codes])=>codes.forEach(code=>{
+  Object.entries(map).forEach(([cls,codes0])=>{
+    let codes=codes0;
+    if((cls==="swell"||cls==="pain")&&LIMB.has(words[0]))codes=[...codes,801];
+    if(cls==="swell"||cls==="infect")codes=[...codes,802];
+    if(cls==="fract"&&["Hand","Arm","Schulter","Fuß","Bein","Oberschenkel"].includes(words[0]))codes=[...codes,279];
+    codes.forEach(code=>{
     if(!byCodeEarly(code))return;
     const a=KW[code]=KW[code]||[];
     a.push(w);
     CLS[cls].forEach(c=>a.push(w+" "+c));
-  }));
+  })});
 }));
 
 /* Alltagssituationen, Unfallhergänge, Notfallbegriffe und Fachabkürzungen */
@@ -843,7 +1007,13 @@ const SITU=[
  [[134],"unterkühlt Reanimation; Hypothermie Reanimation; Lawine Reanimation; Kälte Herzstillstand; Eis Reanimation"],
  [R(140,145),"ECMO; ECLS; eCPR; Lungenersatz; Herz-Lungen-Maschine; Kunstlunge; vvECMO; vaECMO"],
  [[291,293],"Aortenaneurysma; Aortendissektion; Aortenriss; Bauchaorta; reißender Schmerz; Vernichtungsschmerz Rücken; Aortenruptur; Stanford A; Stanford B; Blutdruckdifferenz Arme"],
- [[292],"Arterienverschluss; kaltes Bein; blasses Bein; Embolie Bein; Bein pulslos; Arm kalt; Arm blass; akute Ischämie; schmerzhaftes kaltes Bein"]
+ [[292],"Arterienverschluss; kaltes Bein; blasses Bein; Embolie Bein; Bein pulslos; Arm kalt; Arm blass; akute Ischämie; schmerzhaftes kaltes Bein"],
+[[279],"Bänderriss; Sehnenriss; Muskelriss; Kreuzbandriss; Meniskus; Achillessehne; Achillessehnenriss; Zerrung; Muskelzerrung; Muskelfaserriss; Sportverletzung; Verletzung Knie; Verletzung Arm; Verletzung Bein; Verletzung Fuß; Gliedmaße; Extremität; Sehne; Band; Gelenk verletzt"],
+ [[294],"Aortendissektion Verdacht; Dissektion Verdacht; reißender Schmerz Brust; Aorta; Stanford A Verdacht; Blutdruckdifferenz Arme; Vernichtungsschmerz Brust"],
+ [[352],"Blut im Stuhl; Blutstuhl; Darmblutung; Blut aus dem Darm; Hämorrhoiden Blutung; Enddarmblutung; Blut am Stuhl; Divertikelblutung; frisches Blut Stuhl; rektale Blutung; Blutabgang rektal; Rektumblutung; Afterblutung; Blut aus dem After; untere GI-Blutung"],
+ [[801],"Gelenkschmerzen; Arthrose; Arthritis; Gicht; Muskelschmerzen; Rheuma; Gelenk geschwollen; Gelenk schmerzt; Schmerzen Bewegungsapparat; Sehnenscheidenentzündung; Schleimbeutelentzündung; Bursitis; Hexenschuss; Tennisarm; Ischias; Nackenschmerzen; Verspannung; Schulter schmerzt; Knie schmerzt; Hüfte schmerzt; nicht traumatisch"],
+ [[802],"Abszess; Schwellung; Beule; Furunkel; Eiterbeule; Zyste; Knoten; Schwellung unklar; Eiter; Geschwulst; Lymphknoten geschwollen"],
+ [[809],"Hausarzt; Allgemeinmedizin; Bagatelle; nichts Schlimmes; Rezept; Krankschreibung; Routine; Erkältung; Husten; Schnupfen; Halsschmerzen; leichte Kopfschmerzen; Verstopfung; leichte Übelkeit; Medikamente aufgebraucht; soziale Indikation; Hilfe nötig; keine Beschwerden"]
 ];
 SITU.forEach(([cs,t])=>cs.forEach(c=>{if(!byCodeEarly(c))return;(KW[c]=KW[c]||[]).push(...t.split(";").map(x=>x.trim()).filter(Boolean))}));
 Object.keys(KW).forEach(c=>{KW[c]=[...new Set(KW[c])]});
@@ -1236,6 +1406,7 @@ function openSummary(){
   <div class="blk"><h3>Zusammenfassung</h3>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
+    ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
     ${row("Sonderbett",sk.sb?SBD[sk.sb].n:"")}
     ${zus?`<div class="sh">Zusatzdaten</div>${zus}`:""}
     <div class="sh">IVENA-Abfrage</div>${iv}

@@ -16,6 +16,11 @@ Eingabehilfe für NEF-Fahrer: PZC-Code finden (Geschlecht · Code / Alter / Drin
 ## Nach Änderungen
 In `sw.js` die Versionsnummer (`pzc-v1`) erhöhen, damit Geräte die neue Version laden.
 
+## Datenquelle
+Codeliste und mögliche Behandlungsdringlichkeiten (BD1/BD2/BD3) stammen aus der offiziellen IVENA-Bayern-PZC-Liste
+(https://bayern.ivena-web.de/pzc.php), abgerufen am 03.10.2026 (190 Codes). Bei Abweichungen gilt die IVENA-App.
+Die Such-Begriffe (Alltagswörter, Körperteile, Fachrichtungen) sind eine eigene Zuordnung und bitte im Alltag prüfen.
+
 ## Offen / prüfen
-- Dringlichkeits-Felder pro Code sind vom Foto der Tafel abgelesen → gegen das Original prüfen
 - Krankenhausliste fehlt bewusst (keine verifizierte Quelle)
+- Foto-Auslesen (Karte/Ausweis) ist mit echten Karten noch zu testen
