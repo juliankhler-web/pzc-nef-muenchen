@@ -168,6 +168,10 @@ textarea.inp{min-height:84px;resize:vertical}
 .tiles.edit .tile .cnt{display:none}
 .tile.drag{animation:none!important;z-index:30;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:.95;transform:scale(1.04)}
 @keyframes wig{from{transform:rotate(-.8deg)}to{transform:rotate(.8deg)}}
+.scanbtn{width:100%;margin:0 0 16px;border:2px dashed var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:16px;font-size:17px;font-weight:700}
+.prog{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:12px 0}.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.raw{font-size:12px;color:var(--mute);white-space:pre-wrap;margin-top:8px}
+.namebox{font-size:24px;font-weight:800;padding:14px}
 .hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
 .sugg{margin:10px 0 0}
 .hidden{display:none!important}
@@ -239,7 +243,9 @@ textarea.inp{min-height:84px;resize:vertical}
     <input id="year" inputmode="decimal" maxlength="10" placeholder="1975" autocomplete="off">
     <div class="out"><b id="ageOut">––</b><span id="ageNote">Alter für den PZC</span></div>
   </div>
-  <div class="chips" id="ageChips" style="margin-bottom:16px"></div>
+  <div class="chips" id="ageChips" style="margin-bottom:12px"></div>
+  <button class="scanbtn" id="scanBtn">📷 Versichertenkarte fotografieren</button>
+  <input type="file" id="scanFile" accept="image/*" capture="environment" class="hidden">
   <!-- 3 Dringlichkeit -->
   <div class="lbl"><span><span class="step">3</span>Behandlungsdringlichkeit</span></div>
   <div class="urg">
@@ -374,8 +380,12 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.2";
+const APP_VERSION="1.3";
 const CHANGELOG=[
+ {v:"1.3",d:"03.10.2026",items:[
+  "Versichertenkarte fotografieren: Geburtsdatum wird ins Alter übernommen, der Name wird für die Übermittlung am Ende bereitgestellt",
+  "Der Name wird nie im Archiv gespeichert und nach dem Speichern gelöscht; das Foto bleibt auf dem Gerät und wird nicht gespeichert",
+  "Die Texterkennung läuft im Gerät; beim ersten Scan wird Internet zum Laden gebraucht"]},
  {v:"1.2",d:"03.10.2026",items:[
   "Häufig-Kacheln passen sich automatisch an: was du oft ins Archiv speicherst, rutscht nach oben (mit Zähler ×)",
   "Gedrückt halten → Kacheln verschieben oder mit ✕ entfernen, „Zurücksetzen“ stellt alles wieder her",
@@ -395,7 +405,7 @@ const CHANGELOG=[
   "Offline nutzbar"]}
 ];
 const $=id=>document.getElementById(id);
-const state={sex:null,age:null,code:null,urg:null,cat:null};
+const state={patName:"",sex:null,age:null,code:null,urg:null,cat:null};
 const NOW=new Date().getFullYear();
 
 /* ---- Alter ---- */
@@ -853,6 +863,7 @@ const pzcStr=(c,a,u)=>`${state.sex} ${c}/${String(a).padStart(2,"0")}/${u}`;
 const fmt=ts=>{const d=new Date(ts);return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"})+" · "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr"};
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 function saveEntry(extra){
+  state.patName="";
   const a=load();
   const e={code:state.code,id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
   a.unshift(e); store(a); renderArc(); return e;
@@ -914,7 +925,9 @@ function openPanel(){
   <div class="blk"><h3><span class="step">5</span>IVENA-Abfrage</h3>${IV.map((f,i)=>fieldHTML("iv",f,i)).join("")}</div>
   <div class="blk"><h3><span class="step">6</span>Übermittlung an Leitstelle</h3>
     <div class="chk"><i>✓</i>Transportziel</div><div class="chk"><i>✓</i>Auftragsnummer</div><div class="chk"><i>✓</i>Name (Patient)</div>
-    <div class="warn">Patientenname wird nicht gespeichert.</div></div>
+    <div class="fld"><label>Name für die Übermittlung</label>
+      <input class="inp namebox" id="patName" placeholder="Name (aus Karte oder tippen)" autocomplete="off" value="${esc(state.patName)}"></div>
+    <div class="warn">Nur auf diesem Bildschirm, wird nicht gespeichert und nach dem Speichern gelöscht.</div></div>
   <div class="blk"><h3>📝 Notiz</h3>
     <div class="opts" style="margin-bottom:8px">${NOTE_CHIPS.map(c=>`<button class="chip" data-nc="${esc(c)}">${esc(c)}</button>`).join("")}</div>
     <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
@@ -950,7 +963,7 @@ $("flow").addEventListener("click",e=>{
       if(was)delete sk[k];else{o.classList.add("on");sk[k]={l:o.dataset.l,v}}}
   }
 });
-$("flow").addEventListener("input",e=>{const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
+$("flow").addEventListener("input",e=>{if(e.target.id==="patName"){state.patName=e.target.value;return}const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
 function savePanel(){
   const answers=Object.keys(sk).filter(k=>k!=="sb"&&sk[k].v).map(k=>[sk[k].l,sk[k].v]);
   const note=$("note").value.trim();
@@ -975,6 +988,80 @@ $("copy").onclick=async()=>{
 
 renderHome();render();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+
+/* ---- Versichertenkarte scannen (OCR läuft komplett im Gerät, Foto wird nicht gespeichert) ---- */
+const closeModal=()=>$("mscrim").classList.remove("open");
+const openModal=h=>{$("modal").innerHTML=h;$("mscrim").classList.add("open")};
+let tessP=null;
+function loadTess(){
+  if(window.Tesseract)return Promise.resolve();
+  return tessP||(tessP=new Promise((res,rej)=>{
+    const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    sc.onload=res;sc.onerror=()=>{tessP=null;rej(new Error("offline"))};document.head.appendChild(sc);
+  }));
+}
+const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesundheit|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b)/i;
+function parseCard(text){
+  const lines=text.split(/\n+/).map(l=>l.replace(/[|_\\]+/g," ").trim()).filter(l=>l.length>1);
+  let dob="",dIdx=-1;
+  const now=new Date().getFullYear();
+  lines.forEach((l,i)=>{
+    if(dob)return;
+    const m=l.replace(/[Oo]/g,"0").match(/(\d{1,2})\s*[.,:]\s*(\d{1,2})\s*[.,:]\s*(\d{4})/);
+    if(m){const d=+m[1],mo=+m[2],y=+m[3];if(d>=1&&d<=31&&mo>=1&&mo<=12&&y>=1900&&y<=now){dob=`${String(d).padStart(2,"0")}.${String(mo).padStart(2,"0")}.${y}`;dIdx=i}}
+  });
+  const cand=[];
+  lines.forEach((l,i)=>{
+    if(/\d/.test(l)||NOTNAME.test(l))return;
+    const parts=l.split(/\s+/);
+    if(parts.every(x=>/^[A-Za-zÄÖÜäöüß'’\-.]{2,}$/.test(x))&&l.length<=40)cand.push({i,l});
+  });
+  let name="";
+  if(cand.length){
+    const ref=dIdx>=0?dIdx:Math.floor(lines.length/2);
+    cand.sort((a,b)=>Math.abs(a.i-ref)-Math.abs(b.i-ref));
+    name=cand.slice(0,2).sort((a,b)=>a.i-b.i).map(x=>x.l).join(" ");
+  }
+  return {name,dob};
+}
+async function prepImage(file){
+  const bmp=await createImageBitmap(file);
+  const sc=Math.min(1,2000/Math.max(bmp.width,bmp.height));
+  const cv=document.createElement("canvas");cv.width=Math.round(bmp.width*sc);cv.height=Math.round(bmp.height*sc);
+  const cx=cv.getContext("2d");cx.drawImage(bmp,0,0,cv.width,cv.height);
+  const im=cx.getImageData(0,0,cv.width,cv.height),d=im.data;
+  for(let i=0;i<d.length;i+=4){let g=.299*d[i]+.587*d[i+1]+.114*d[i+2];g=Math.max(0,Math.min(255,(g-128)*1.35+128));d[i]=d[i+1]=d[i+2]=g}
+  cx.putImageData(im,0,0);return cv;
+}
+async function scanCard(file){
+  openModal('<h2>Karte wird gelesen …</h2><div class="vv" id="scanMsg">Bild wird vorbereitet</div><div class="prog"><i id="scanBar"></i></div><div class="warn">Das Foto bleibt auf dem Gerät und wird nicht gespeichert.</div>');
+  try{
+    const cv=await prepImage(file);
+    $("scanMsg").textContent="Texterkennung wird geladen (beim ersten Mal ca. 15 MB)";
+    await loadTess();
+    const {data}=await Tesseract.recognize(cv,"deu",{logger:m=>{
+      if(m.status==="recognizing text"){$("scanMsg").textContent="Text wird erkannt";$("scanBar").style.width=Math.round(m.progress*100)+"%"}}});
+    const r=parseCard(data.text||"");
+    openModal(`<h2>Karte gelesen</h2><div class="vv">Bitte kurz prüfen und bei Bedarf korrigieren</div>
+      <div class="fld"><label>Name</label><input class="inp" id="scName" value="${esc(r.name)}" placeholder="Name"></div>
+      <div class="fld"><label>Geburtsdatum (TT.MM.JJJJ)</label><input class="inp" id="scDob" inputmode="decimal" value="${esc(r.dob)}" placeholder="TT.MM.JJJJ"></div>
+      <div class="warn">Der Name wird nur für die Übermittlung am Ende verwendet und nicht im Archiv gespeichert. Aus dem Geburtsdatum wird nur das Alter übernommen.</div>
+      <details><summary class="warn">Erkannter Text anzeigen</summary><div class="raw">${esc(data.text||"")}</div></details>
+      <div class="acts" style="grid-template-columns:1fr 1fr"><button class="btn sec" id="scNo">Abbrechen</button><button class="btn" id="scOk">Übernehmen</button></div>`);
+    $("scNo").onclick=closeModal;
+    $("scOk").onclick=()=>{
+      state.patName=$("scName").value.trim();
+      const dob=$("scDob").value.trim();if(dob){const y=$("year");y.value=dob;y.dispatchEvent(new Event("input"))}
+      closeModal();
+    };
+  }catch(err){
+    openModal(`<h2>Scan nicht möglich</h2><div class="vv">${err&&err.message==="offline"?"Für den ersten Scan wird Internet gebraucht, um die Texterkennung zu laden. Danach geht es meist auch ohne.":"Das Bild konnte nicht gelesen werden. Besser beleuchten, Karte flach und gerade fotografieren – oder Daten von Hand eingeben."}</div><button class="btn" style="width:100%;margin-top:12px" id="scX">OK</button>`);
+    $("scX").onclick=closeModal;
+  }
+}
+$("scanBtn").onclick=()=>$("scanFile").click();
+$("scanFile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
 
 /* ---- Versions-Popup ---- */
 function showModal(html){$("modal").innerHTML=html+'<button class="btn" style="width:100%;margin-top:16px" id="mOk">OK</button>';$("mscrim").classList.add("open");$("mOk").onclick=()=>$("mscrim").classList.remove("open")}
