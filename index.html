@@ -185,6 +185,18 @@ textarea.inp{min-height:84px;resize:vertical}
 .spell i{font:900 30px/1.15 ui-monospace,Menlo,monospace;font-style:normal;text-align:center}
 .spell span{font-size:26px;font-weight:700}
 .spell .sp{grid-column:1/-1;height:10px}
+.cam{position:fixed;inset:0;z-index:120;background:#000;display:flex;flex-direction:column}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.camframe{position:absolute;left:50%;top:44%;width:90%;max-width:640px;aspect-ratio:1.586;transform:translate(-50%,-50%);border:3px solid #fff;border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);pointer-events:none}
+.camtop{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.camsharp{padding:10px 14px;border-radius:12px;background:rgba(0,0,0,.65);color:#fff;font-weight:800;font-size:15px}
+.camsharp.ok{background:#1f8a3a}.camsharp.mid{background:#b8860b}.camsharp.bad{background:#b3261e}
+.camhint{position:absolute;left:12px;right:12px;bottom:calc(150px + env(safe-area-inset-bottom));text-align:center;color:#fff;font-weight:700;text-shadow:0 1px 4px #000}
+.cambar{position:absolute;left:0;right:0;bottom:0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.cambar button{border:0;border-radius:14px;background:rgba(255,255,255,.18);color:#fff;font-weight:800;font-size:16px;padding:16px 14px;min-width:92px}
+.cambar #camShot{width:84px;height:84px;min-width:84px;border-radius:50%;background:#fff;border:6px solid rgba(255,255,255,.5);padding:0}
+.camtorch{border:0;border-radius:12px;background:rgba(0,0,0,.65);color:#fff;font-size:22px;padding:8px 14px}
+.warnbox{margin:8px 0;padding:10px 12px;border-radius:12px;background:#fde8e8;color:#7a1010;font-weight:700;font-size:14px}
 .hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
 .sugg{margin:10px 0 0}
 .hidden{display:none!important}
@@ -251,6 +263,14 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="flow" id="sumFlow"></div>
 </div>
 
+<div class="cam hidden" id="cam">
+  <video id="camVid" playsinline muted autoplay></video>
+  <div class="camframe"></div>
+  <div class="camtop"><span class="camsharp" id="camSharp">Schärfe …</span><button class="camtorch hidden" id="camTorch" aria-label="Licht">🔦</button></div>
+  <div class="camhint">Karte in den Rahmen · ruhig halten · Antippen = scharfstellen · grün = scharf</div>
+  <div class="cambar"><button id="camPick">📁 Galerie</button><button id="camShot" aria-label="Foto aufnehmen"></button><button id="camX">Abbrechen</button></div>
+</div>
+<input type="file" id="scanPick" accept="image/*" class="hidden">
 <div class="mscrim" id="mscrim"><div class="modal" id="modal"></div></div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet">
@@ -401,8 +421,12 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.6";
+const APP_VERSION="1.7";
 const CHANGELOG=[
+ {v:"1.7",d:"03.10.2026",items:[
+  "Eigene Live-Kamera zum Fotografieren von Karte/Ausweis: Rahmen, Dauer-Autofokus, Antippen = scharfstellen, Licht-Button und Schärfeanzeige (grün = scharf)",
+  "Warnung, wenn das Foto unscharf ist; Vorschaubild im Prüffenster jetzt in voller Schärfe",
+  "„Galerie“-Auswahl, falls die Kamera nicht erlaubt wird"]},
  {v:"1.6",d:"03.10.2026",items:[
   "Neuer Button „Nach Update suchen“ (oben auf „Version“ tippen) – lädt bei einer neuen Version sofort die aktuelle App, Archiv und Einstellungen bleiben erhalten"]},
  {v:"1.5",d:"03.10.2026",items:[
@@ -832,7 +856,7 @@ let tx=null,ty=0,tt=0;
 document.addEventListener("touchstart",e=>{const t=e.touches[0];tx=t.clientX;ty=t.clientY;tt=Date.now()},{passive:true});
 document.addEventListener("touchend",e=>{
   if(tx==null)return;const t=e.changedTouches[0],dx=t.clientX-tx,dy=t.clientY-ty;tx=null;
-  if(e.target.closest&&e.target.closest("input,textarea"))return;
+  if(e.target.closest&&e.target.closest("input,textarea,#cam,.modal"))return;
   if(Math.abs(dx)>80&&Math.abs(dy)<60&&Date.now()-tt<600){dx>0?goBack():forward()}
 },{passive:true});
 
@@ -1189,6 +1213,7 @@ async function scanCard(file){
   openModal('<h2>Wird gelesen …</h2><div class="vv" id="scanMsg">Bild wird vorbereitet</div><div class="prog"><i id="scanBar"></i></div><div class="warn">Das Foto bleibt auf dem Gerät und wird nicht gespeichert. Bitte kurz warten.</div>');
   try{
     const bmp=await createImageBitmap(file);
+    const sharpV=sharpness(file instanceof HTMLCanvasElement?file:await bmpToCanvas(bmp));
     const base=document.createElement("canvas");base.width=bmp.width;base.height=bmp.height;base.getContext("2d").drawImage(bmp,0,0);
     setMsg("Texterkennung wird geladen (beim ersten Mal ca. 8 MB)");
     scanProg=m=>{if(m.status==="recognizing text")setBar(m.progress)};
@@ -1216,11 +1241,12 @@ async function scanCard(file){
       if(res.dob&&res.last)break;
     }
     scanProg=null;
-    const thumb=scaled(rotCanvas(base,bestDeg),360).toDataURL("image/jpeg",.6);
+    const thumb=scaled(rotCanvas(base,bestDeg),Math.min(1000,Math.max(base.width,base.height))).toDataURL("image/jpeg",.85);
     let msex=res.sex||state.sex||"",focus="scLast";
     const chips=lines.filter(l=>!/^[\W\d_]+$/.test(l)&&l.length<=44).slice(0,18).map(l=>`<button class="chip" data-line="${esc(l)}">${esc(l)}</button>`).join("");
     openModal(`<h2>Gelesen – bitte prüfen</h2>
-      <img src="${thumb}" alt="" style="width:100%;border-radius:10px;margin:6px 0 4px">
+      ${sharpV<SHARP_BAD?'<div class="warnbox">⚠ Das Foto ist unscharf – das Lesen kann ungenau sein. Besser nochmal fotografieren (ruhig halten, Antippen = scharfstellen).</div>':""}
+      <img src="${thumb}" alt="" style="width:100%;border-radius:10px;margin:6px 0 4px;image-rendering:auto">
       <div class="fld"><label>Nachname</label><input class="inp" id="scLast" value="${esc(res.last)}"></div>
       <div class="fld"><label>Vorname</label><input class="inp" id="scFirst" value="${esc(res.first)}"></div>
       <div class="fld"><label>Geburtsdatum (TT.MM.JJJJ)</label><input class="inp" id="scDob" inputmode="decimal" value="${esc(res.dob)}" placeholder="TT.MM.JJJJ"></div>
@@ -1238,7 +1264,7 @@ async function scanCard(file){
     });
     $("modal").querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>{msex=msex===b.dataset.ms?"":b.dataset.ms;$("modal").querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms===msex))});
     $("scNo").onclick=closeModal;
-    $("scAgain").onclick=()=>{closeModal();$("scanFile").click()};
+    $("scAgain").onclick=()=>{closeModal();openCam()};
     $("scOk").onclick=()=>{
       state.nachname=$("scLast").value.trim();state.vorname=$("scFirst").value.trim();
       const dob=$("scDob").value.trim();if(dob){const y=$("year");y.value=dob;y.dispatchEvent(new Event("input"))}
@@ -1251,6 +1277,63 @@ async function scanCard(file){
     $("scX").onclick=closeModal;
   }
 }
+/* ---- Live-Kamera mit Schärfeanzeige ---- */
+const SHARP_BAD=45,SHARP_OK=110;
+function bmpToCanvas(bmp){const c=document.createElement("canvas");c.width=bmp.width;c.height=bmp.height;c.getContext("2d").drawImage(bmp,0,0);return c}
+function sharpness(src){ // Varianz des Laplace-Filters: hoch = scharf
+  const w=480,h=Math.max(8,Math.round(src.height*w/src.width)),c=document.createElement("canvas");c.width=w;c.height=h;
+  const cx=c.getContext("2d");cx.drawImage(src,0,0,w,h);
+  const d=cx.getImageData(0,0,w,h).data,g=new Float32Array(w*h);
+  for(let i=0,j=0;i<d.length;i+=4,j++)g[j]=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+  let sum=0,sum2=0,n=0;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const k=y*w+x,l=4*g[k]-g[k-1]-g[k+1]-g[k-w]-g[k+w];sum+=l;sum2+=l*l;n++}
+  const m=sum/n;return sum2/n-m*m;
+}
+let camStream=null,camTimer=null,camTorchOn=false;
+function setSharpLabel(v){
+  const e=$("camSharp");e.className="camsharp "+(v>=SHARP_OK?"ok":v>=SHARP_BAD?"mid":"bad");
+  e.textContent=v>=SHARP_OK?"✓ Scharf":v>=SHARP_BAD?"Fast scharf …":"Unscharf";
+}
+function camMeasure(){
+  const v=$("camVid");if(!v.videoWidth)return;
+  const c=document.createElement("canvas"),w=480,h=300;c.width=w;c.height=h;
+  const sw=v.videoWidth*.8,sh=sw/1.6;const sx=(v.videoWidth-sw)/2,sy=Math.max(0,(v.videoHeight-sh)/2*.9);
+  c.getContext("2d").drawImage(v,sx,sy,sw,Math.min(sh,v.videoHeight-sy),0,0,w,h);
+  setSharpLabel(sharpness(c));
+}
+async function camFocus(){
+  const tr=camStream&&camStream.getVideoTracks()[0];if(!tr)return;
+  try{await tr.applyConstraints({advanced:[{focusMode:"single-shot"}]});setTimeout(()=>tr.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(()=>{}),1200)}catch(_){}
+}
+async function openCam(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){$("scanFile").click();return}
+  try{
+    camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}},audio:false});
+  }catch(e){camStream=null;$("scanFile").click();return}
+  const v=$("camVid");v.srcObject=camStream;try{await v.play()}catch(_){}
+  const tr=camStream.getVideoTracks()[0],cap=tr.getCapabilities?tr.getCapabilities():{};
+  try{if(cap.focusMode&&cap.focusMode.includes("continuous"))await tr.applyConstraints({advanced:[{focusMode:"continuous"}]})}catch(_){}
+  camTorchOn=false;$("camTorch").classList.toggle("hidden",!cap.torch);
+  $("camSharp").className="camsharp";$("camSharp").textContent="Schärfe …";
+  $("cam").classList.remove("hidden");
+  camTimer=setInterval(camMeasure,350);
+}
+function closeCam(){
+  clearInterval(camTimer);camTimer=null;
+  if(camStream)camStream.getTracks().forEach(t=>t.stop());
+  camStream=null;$("camVid").srcObject=null;$("cam").classList.add("hidden");
+}
+$("camVid").addEventListener("click",camFocus);
+$("camX").onclick=closeCam;
+$("camPick").onclick=()=>{closeCam();$("scanPick").click()};
+$("camTorch").onclick=async()=>{const tr=camStream&&camStream.getVideoTracks()[0];if(!tr)return;camTorchOn=!camTorchOn;try{await tr.applyConstraints({advanced:[{torch:camTorchOn}]})}catch(_){camTorchOn=!camTorchOn}};
+$("camShot").onclick=()=>{
+  const v=$("camVid");if(!v.videoWidth)return;
+  const c=document.createElement("canvas");c.width=v.videoWidth;c.height=v.videoHeight;c.getContext("2d").drawImage(v,0,0);
+  closeCam();scanCard(c);
+};
+$("scanPick").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
+
 function refreshScanRes(){
   const el=$("scanRes"),n=[state.vorname,state.nachname].filter(Boolean).join(" ");
   if(!n&&state.age==null){el.classList.add("hidden");return}
@@ -1258,8 +1341,8 @@ function refreshScanRes(){
   el.innerHTML=`<span>✓ ${esc(n||"Alter übernommen")}${state.age!=null?" · "+state.age+" J.":""}</span><button id="scanClear" aria-label="Entfernen">✕</button>`;
 }
 $("scanRes").addEventListener("click",e=>{if(e.target.id==="scanClear"){state.vorname=state.nachname="";const y=$("year");y.value="";y.dispatchEvent(new Event("input"));refreshScanRes()}});
-$("scanHome").onclick=()=>$("scanFile").click();
-$("scanBtn").onclick=()=>$("scanFile").click();
+$("scanHome").onclick=openCam;
+$("scanBtn").onclick=openCam;
 $("scanFile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
 
 /* ---- Versions-Popup ---- */
