@@ -426,8 +426,11 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.9";
+const APP_VERSION="2.0";
 const CHANGELOG=[
+ {v:"2.0",d:"03.10.2026",items:[
+  "Namenserkennung neu: bewertet Zeilen nach Lage zur Versichertennummer, Schriftgröße, Schreibweise und Vornamen-Liste statt irgendwelche Wörter zu nehmen; Kassenname und Kartenaufdruck werden zuverlässiger ausgeschlossen",
+  "Mehrere Durchgänge stimmen über den Namen ab; die wahrscheinlichsten Namenszeilen stehen zuerst in der Antippliste"]},
  {v:"1.9",d:"03.10.2026",items:[
   "Foto unscharf trotz scharfer Vorschau behoben: nach dem Antippen kurz „Ruhig halten“, dann werden mehrere Bilder aufgenommen und das schärfste genommen; wenn das Handy es kann, wird zusätzlich ein echtes Kamera-Standbild in höherer Auflösung geprüft"]},
  {v:"1.8",d:"03.10.2026",items:[
@@ -1138,17 +1141,26 @@ function findDate(l){
   if(/geb|birth|datum/i.test(l)){m=l.match(/(\d{1,2})\s+(\d{1,2})\s+(\d{4})/);if(m&&ok(+m[1],+m[2],+m[3]))return `${pad(+m[1])}.${pad(+m[2])}.${m[3]}`}
   return "";
 }
-function parseCard(text){
-  const lines=text.split(/\n+/).map(l=>l.replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim()).filter(l=>l.length>1);
+const FIRSTN=new Set("Peter Michael Thomas Andreas Wolfgang Klaus Juergen Guenter Stefan Christian Uwe Bernd Dieter Manfred Horst Hans Heinz Walter Werner Helmut Karl Rainer Frank Joerg Ulrich Markus Matthias Martin Alexander Sven Oliver Dirk Holger Ralf Jens Torsten Thorsten Jan Tobias Daniel Sebastian Florian Patrick Felix Lukas Jonas Leon Paul Maximilian Johannes Josef Franz Georg Anton Otto Fritz Hermann Gerhard Erich Kurt Rolf Siegfried Joachim Lothar Norbert Herbert Heinrich Wilhelm Friedrich Ernst Albert Rudolf Max Moritz Elias Noah Ben Finn Niklas Philipp Simon David Julian Fabian Benjamin Jonathan Tim Marco Mario Dominik Kevin Marcel Nico Timo Lars Sascha Marc Robert Roland Bernhard Gustav Emil Karlheinz Detlef Eberhard Burkhard Egon Gerd Jochen Hubert Konrad Leo Theo Henry Henri Hannes Jakob Matthias Mathias Tom Erwin Willi Alfred Bruno Harald Gunter Reinhard Reiner Axel Ingo Kai Nils Jannik Marvin Luca Luis Louis Anna Maria Ursula Monika Petra Sabine Susanne Andrea Claudia Birgit Karin Renate Gisela Brigitte Helga Ingrid Christa Elisabeth Angelika Barbara Gabriele Heike Martina Katrin Stefanie Nicole Sandra Melanie Julia Sarah Laura Lisa Lena Lea Hannah Sophie Sophia Emma Mia Emilia Marie Charlotte Johanna Clara Klara Anja Silke Kerstin Jutta Doris Rita Ilse Erika Hildegard Gertrud Margarete Margot Waltraud Irmgard Elfriede Edith Hannelore Marianne Ruth Eva Christine Katharina Nina Jennifer Jessica Vanessa Franziska Jana Jasmin Tanja Daniela Simone Manuela Nadine Carina Lara Leonie Lilly Lina Greta Frieda Ida Helene Luise Louisa Paula Pauline Mathilde Agnes Berta Dora Hedwig Kaethe Lieselotte Liselotte Gudrun Annemarie Rosemarie Marlies Marlene Roswitha Herta Hertha Inge Ingeborg Irene Ilona Evelyn Cornelia Beate Bettina Carola Dagmar Diana Dorothea Doreen Gaby Gabi Heidi Hanna Jacqueline Jule Katja Kristina Larissa Linda Mandy Margit Miriam Natalie Olga Patricia Regina Romy Sigrid Steffi Svenja Tina Ute Vera Verena Viola Yvonne Mehmet Mustafa Ahmet Ali Hasan Hueseyin Ibrahim Ismail Yusuf Murat Emre Burak Can Cem Kemal Osman Oemer Omer Selim Serkan Fatma Ayse Emine Hatice Zeynep Elif Merve Buesra Esra Oezlem Sevgi Leyla Aylin Derya Guel Gulay Nurcan Mohammed Muhammad Mohamed Ahmad Omar Khaled Hassan Hussein Samir Karim Youssef Amir Fatima Aisha Layla Samira Nadia Mariam Rania Piotr Krzysztof Tomasz Marek Jerzy Zbigniew Andrzej Stanislaw Wladimir Vladimir Sergej Sergey Alexej Dmitri Dmitrij Igor Oleg Nikolai Boris Viktor Juri Natalia Tatjana Irina Svetlana Swetlana Elena Jelena Marija Ivana Milan Goran Zoran Dragan Marko Nenad Ivan Josip Mirko Stjepan Ana Mira Snezana Dejan Darko Branko Giuseppe Giovanni Antonio Francesco Salvatore Luigi Carlo Paolo Angelo Vincenzo Michele Roberto Carmen Rosa Giulia Francesca Konstantin Dimitrios Georgios Nikos Nikolaos Panagiotis Vasilios Christos Eleni Sofia Despina Adam Eric Erik Jonas Linus Anton Valentin Vincent Rafael Raphael Samuel Stephan Steffen Christoph Christof Carsten Karsten Bjoern Sascha Pascal Dennis Denis Marcus Marius Mike Ronny Rene Rico Danny Enrico Benedikt Fabienne Lucia Lucie Melina Mara Marta Martha Maja Maya Nora Nele Pia Rebecca Rike Ronja Sina Stella Tabea Theresa Therese Ulrike Wiebke Wilma Zoe".toLowerCase().split(/\s+/).map(n=>n.replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u")));
+const isFirst=t=>String(t).split(/[\s,\-]+/).some(w=>w.length>=2&&FIRSTN.has(fold(w)));
+function lineObjs(d){
+  const L=(d.lines||[]).map(l=>({t:(l.text||"").replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim(),c:l.confidence,h:l.bbox?l.bbox.y1-l.bbox.y0:0,y:l.bbox?l.bbox.y0:0})).filter(l=>l.t.length>1);
+  if(L.length)return L;
+  return (d.text||"").split(/\n+/).map((t,i)=>({t:t.replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim(),c:80,h:0,y:i*10})).filter(l=>l.t.length>1);
+}
+function parseCard(text,lobjs){
+  lobjs=lobjs||lineObjs({text});
+  const lines=lobjs.map(l=>l.t);
   const now=new Date().getFullYear(),pad=n=>String(n).padStart(2,"0");
-  let dob="",dIdx=-1,sex="",first="",last="";
+  let dob="",dIdx=-1,sex="",first="",last="",labelled=false;
   lines.forEach((l,i)=>{if(dob)return;const d=findDate(l);if(d){dob=d;dIdx=i}});
-  const alpha=l=>/^[A-Za-zÄÖÜäöüß'’\-. ]{2,}$/.test(l)&&!NOTNAME.test(l);
+  const alpha=l=>/^[A-Za-zÄÖÜäöüß'’\-., ]{2,}$/.test(l)&&!NOTNAME.test(l);
   const nextVal=i=>{for(let k=i+1;k<Math.min(lines.length,i+3);k++)if(alpha(lines[k]))return lines[k];return ""};
   lines.forEach((l,i)=>{
     if(!last&&/^(name|nachname|familienname)\b|^surname\b/i.test(l)&&!/vornamen|given/i.test(l))last=nextVal(i);
     if(!first&&/(vornamen|given\s*names?)/i.test(l))first=nextVal(i);
   });
+  if(last)labelled=true;
   const raw=text.split(/\n+/).map(l=>l.trim()).filter(Boolean);
   raw.forEach((l,i)=>{
     if(!sex&&/(geschlecht|\bsex\b)/i.test(l)){const m=(l+" "+(raw[i+1]||"")).match(/(?:^|\s)([MFW])(?:\s|\/|$)/);if(m)sex=m[1]==="M"?"M":"W"}
@@ -1159,17 +1171,48 @@ function parseCard(text){
       if(!dob&&d>=1&&d<=31&&mo>=1&&mo<=12&&y<=now)dob=`${pad(d)}.${pad(mo)}.${y}`;
       if(!sex&&m[4]!=="<")sex=m[4]==="M"?"M":"W"}
   }
-  if(!last){
-    const cand=[];
-    lines.forEach((l,i)=>{if(/\d/.test(l)||!alpha(l)||l.length>40)return;cand.push({i,l})});
-    if(cand.length){
-      const ref=dIdx>=0?dIdx:Math.floor(lines.length/2);
-      cand.sort((a,b)=>Math.abs(a.i-ref)-Math.abs(b.i-ref));
-      const pick=cand.slice(0,2).sort((a,b)=>a.i-b.i).map(x=>x.l);
-      if(pick.length===2){first=pick[0];last=pick[1]}else last=pick[0];
-    }
+  // Kandidaten für Namenszeilen bewerten (Krankenversichertenkarte u. ä.)
+  const cands=[];
+  if(!labelled){
+    const hs=lobjs.map(l=>l.h).filter(x=>x>0).sort((a,b)=>a-b),med=hs.length?hs[Math.floor(hs.length/2)]:0;
+    const anchors=[];
+    lobjs.forEach((l,i)=>{if(/versicherten|vers\.?\s*-?\s*nr/i.test(l.t)||/(?:^|\s)[A-Z]\s?[0-9OIlSB]{9}(?:\s|$)/.test(l.t))anchors.push(i)});
+    lobjs.forEach((l,i)=>{
+      const t=l.t.replace(/^[^A-Za-zÄÖÜäöüß]+|[^A-Za-zÄÖÜäöüß.]+$/g,"").trim();
+      if(!t||!alpha(t)||t.length>36||(l.c!=null&&l.c<55))return;
+      const words=t.split(/[\s,]+/).filter(w=>w.replace(/\./g,"").length>=1);
+      if(words.length<1||words.length>4)return;
+      const short=words.filter(w=>w.replace(/\./g,"").length<=2&&!/^(dr|von|van|de|zu)\.?$/i.test(w)).length;
+      let sc=1;
+      if(isFirst(t))sc+=4;
+      sc+=words.every(w=>/^\p{Lu}\p{Ll}+/u.test(w)||/^(von|van|de|zu|dr\.?)$/i.test(w))?2:(t===t.toUpperCase()?1:0);
+      anchors.forEach(a=>{const d=a-i;if(d>=1&&d<=3)sc+=5-d;else if(d<0&&d>=-2)sc+=1});
+      if(!anchors.length&&dIdx>=0&&Math.abs(i-dIdx)<=3)sc+=2;
+      if(med>0){if(l.h>=med*1.15)sc+=2;else if(l.h<med*.7)sc-=2}
+      if(l.c!=null&&l.c>85)sc+=1;
+      sc-=2*short;
+      cands.push({t,score:sc,y:l.y,hit:isFirst(t)});
+    });
   }
-  return {first:titleCase(first),last:titleCase(last),dob,sex};
+  return {first:titleCase(first),last:titleCase(last),dob,sex,cands,labelled};
+}
+const cleanName=t=>t.replace(/\b(dr|prof|med|dipl|ing|mag)\b\.?/gi,"").replace(/\s+/g," ").trim();
+function pickNames(agg){
+  const arr=[...agg.values()].filter(o=>o.score>=4).sort((a,b)=>b.score-a.score);
+  if(!arr.length)return {first:"",last:""};
+  if(arr.length===1||arr[1].score<arr[0].score*.45){
+    const raw=arr[0].t;
+    if(raw.includes(",")){const [a,b]=raw.split(",");return {last:titleCase(cleanName(a)),first:titleCase(cleanName(b||""))}}
+    const w=cleanName(raw).split(" ").filter(Boolean);
+    if(w.length>=2){
+      if(isFirst(w[w.length-1])&&!isFirst(w[0]))return {last:titleCase(w.slice(0,-1).join(" ")),first:titleCase(w[w.length-1])};
+      return {first:titleCase(w.slice(0,-1).join(" ")),last:titleCase(w[w.length-1])};
+    }
+    return {first:"",last:titleCase(w.join(" "))};
+  }
+  const two=arr.slice(0,2).sort((a,b)=>a.y-b.y),a=cleanName(two[0].t),b=cleanName(two[1].t);
+  if(isFirst(b)&&!isFirst(a))return {last:titleCase(a),first:titleCase(b)};
+  return {first:titleCase(a),last:titleCase(b)};
 }
 const pscore=r=>(r.dob?3:0)+(r.last?2:0)+(r.first?1:0)+(r.sex?.5:0);
 const goodWords=t=>t.split(/\s+/).filter(w=>/^[A-Za-zÄÖÜäöüß]{4,}$/.test(w)).length;
@@ -1239,16 +1282,23 @@ async function scanCard(file){
     // 2) mehrere Durchgänge mit unterschiedlicher Aufbereitung, Ergebnisse zusammenführen
     const big=scaled(rotCanvas(base,bestDeg),2200);
     const passes=[["Durchgang 1/3",()=>grayContrast(big),11],["Durchgang 2/3",()=>adaptive(big),11],["Durchgang 3/3",()=>grayContrast(big),6]];
-    let res={first:"",last:"",dob:"",sex:""},lines=[],texts=[];
+    let res={first:"",last:"",dob:"",sex:""},lines=[],labelledDone=false;
+    const agg=new Map();
     for(const [label,mk,psm] of passes){
       setMsg(label);setBar(0);
       const d=await rec(worker,mk(),psm);
-      texts.push(d.text||"");
-      const r=parseCard(d.text||"");
-      for(const k of ["first","last","dob","sex"])if(!res[k]&&r[k])res[k]=r[k];
-      (d.text||"").split(/\n+/).map(l=>l.trim()).filter(l=>l.length>1).forEach(l=>{if(!lines.some(x=>x.toLowerCase()===l.toLowerCase()))lines.push(l)});
-      if(res.dob&&res.last)break;
+      const lo=lineObjs(d),r=parseCard(d.text||"",lo);
+      for(const k of ["dob","sex"])if(!res[k]&&r[k])res[k]=r[k];
+      if(r.labelled&&!labelledDone){res.first=r.first;res.last=r.last;labelledDone=true}
+      r.cands.forEach(c=>{const key=fold(c.t),o=agg.get(key)||{t:c.t,score:0,y:c.y,hit:c.hit};o.score+=c.score;agg.set(key,o)});
+      lo.map(l=>l.t).forEach(l=>{if(!lines.some(x=>x.toLowerCase()===l.toLowerCase()))lines.push(l)});
+      const top=Math.max(0,...[...agg.values()].map(o=>o.score));
+      if(res.dob&&(labelledDone||top>=12))break;
     }
+    if(!labelledDone){const nm=pickNames(agg);res.first=nm.first;res.last=nm.last}
+    // wahrscheinlichste Namenszeilen zuerst in die Antippliste
+    const best=[...agg.values()].sort((a,b)=>b.score-a.score).map(o=>o.t);
+    lines=[...new Set([...best.slice(0,6),...lines])];
     scanProg=null;
     const thumb=scaled(rotCanvas(base,bestDeg),Math.min(1000,Math.max(base.width,base.height))).toDataURL("image/jpeg",.85);
     let msex=res.sex||state.sex||"",focus="scLast";
