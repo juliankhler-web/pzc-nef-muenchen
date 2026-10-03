@@ -426,8 +426,11 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.2";
+const APP_VERSION="2.3";
 const CHANGELOG=[
+ {v:"2.3",d:"03.10.2026",items:[
+  "Suche deutlich erweitert: über 20 Körperteile × Beschwerden („Fuß blau“, „Knie geschwollen“, „Auge rot“, „Hand eingeklemmt“, „Rücken Schmerzen“ …) – nach dem Muster von „Finger“",
+  "Hunderte Alltags- und Notfallbegriffe: Unfallhergänge (Leiter gefallen, Hundebiss, Kreissäge …), Notfall-Beschreibungen (kein Puls, Schaum vor dem Mund …) und Fachabkürzungen (SAB, ICB, LAE, TIA …)"]},
  {v:"2.2",d:"03.10.2026",items:[
   "Suche nach Fachrichtungen: „Chirurgie“, „Handchirurgie“, „Augenarzt“, „Kardiologie“, „Neurologie“, „Zahnarzt“ … findet die passenden Codes",
   "Finger- und Handverletzungen deutlich besser auffindbar („Finger“, „Finger gequetscht“, „Finger abgeschnitten“, „Finger gebrochen“)",
@@ -727,6 +730,124 @@ const DEPT=[
  [R(360,370),"Toxikologie; Giftnotruf; Vergiftung"]
 ];
 DEPT.forEach(([cs,t])=>cs.forEach(c=>{if(byCodeEarly(c))(KW[c]=KW[c]||[]).push(...t.split(";").map(x=>x.trim()))}));
+/* ---- Begriffe automatisch erzeugen: Körperteil × Beschwerde (z. B. „Fuß blau“, „Knie geschwollen“) ---- */
+const CLS={
+ fract:["gebrochen","Bruch","Fraktur","angebrochen","verstaucht","verrenkt","ausgekugelt","geprellt","Prellung","umgeknickt","verdreht","Sturz","gestürzt","verletzt","Verletzung","kaputt"],
+ wound:["geschnitten","Schnittwunde","aufgeschnitten","Platzwunde","Riss","Risswunde","blutet","Blutung","Wunde","offene Wunde","Stichwunde","gestochen","Biss","gebissen","Kratzer","Schürfwunde","aufgeschlitzt","Splitter"],
+ crush:["gequetscht","eingeklemmt","Quetschung","zerquetscht","Quetschwunde","in der Tür eingeklemmt"],
+ burn:["verbrannt","verbrüht","Verbrennung","Verbrühung","Brandblase","Brandwunde"],
+ amput:["abgetrennt","abgeschnitten","abgerissen","amputiert","ab","Amputation","Teilamputation","abgehackt"],
+ swell:["geschwollen","angeschwollen","dick","Schwellung","Ödem","aufgequollen","Wasser","dicker"],
+ pain:["Schmerzen","Schmerz","tut weh","schmerzt","wehtun","starke Schmerzen","Krämpfe","Stechen","Ziehen"],
+ numb:["taub","Taubheit","Kribbeln","eingeschlafen","gelähmt","Lähmung","gefühllos","schwach","kraftlos","Ameisenlaufen"],
+ cold:["kalt","blass","blau","verfärbt","weiß","schwarz","pulslos","durchblutungsgestört"],
+ infect:["entzündet","Entzündung","Eiter","eitert","rot","gerötet","überwärmt","Abszess","Phlegmone","Rötung"]
+};
+const BODY=[
+ [["Finger","Daumen","Zeigefinger","Mittelfinger","Ringfinger","kleiner Finger","Fingerkuppe","Fingernagel","Fingerglied"],{fract:[272,275],wound:[275,219],crush:[275],burn:[281],amput:[276],swell:[275,701,321],pain:[275,272],numb:[292,421],cold:[292],infect:[701,275]}],
+ [["Hand","Handgelenk","Handfläche","Handrücken","Mittelhand","Hände"],{fract:[272,275],wound:[275,219],crush:[275],burn:[281],amput:[277],swell:[275,324,701],pain:[275,272],numb:[421,292,253],cold:[292],infect:[701,275]}],
+ [["Arm","Unterarm","Oberarm","Ellenbogen","Arme"],{fract:[272,271],wound:[219,272,274],crush:[272,274],burn:[281],amput:[277],swell:[324,321,701],pain:[272,331,333],numb:[421,253,292],cold:[292],infect:[701]}],
+ [["Schulter","Schlüsselbein","Schulterblatt","Schultergelenk"],{fract:[272],wound:[219],crush:[272],burn:[281],swell:[272],pain:[272,331],numb:[421,253],cold:[292],infect:[701]}],
+ [["Fuß","Füße","Zeh","Zehe","Zehen","großer Zeh","Ferse","Knöchel","Sprunggelenk","Fußsohle","Fußrücken","Fußgelenk"],{fract:[272,271],wound:[219,272],crush:[272,271],burn:[281],amput:[277],swell:[324,347,272,701],pain:[272,324],numb:[292,421],cold:[292],infect:[701]}],
+ [["Bein","Beine","Unterschenkel","Wade","Schienbein","Knie","Kniescheibe","Kniegelenk","Wadenbein"],{fract:[272,271],wound:[219,272,274],crush:[272,274],burn:[281],amput:[277],swell:[324,347,701],pain:[324,272,292],numb:[292,421,253],cold:[292],infect:[701,324]}],
+ [["Oberschenkel","Hüfte","Hüftgelenk","Schenkelhals","Oberschenkelhals"],{fract:[273,272],wound:[219,274],crush:[273,272],pain:[273,272,324],swell:[324],numb:[253,292],infect:[701]}],
+ [["Becken","Gesäß","Steißbein","Po"],{fract:[262,261],wound:[219,261],crush:[262,261],pain:[262,254,243],swell:[701],infect:[701]}],
+ [["Rücken","Wirbelsäule","Kreuz","Lendenwirbel","Halswirbel","Brustwirbel","Bandscheibe","Lendenwirbelsäule"],{fract:[252,251],wound:[219],crush:[252,251],pain:[254,253,252,331,293],numb:[253,255,251,421],swell:[701],infect:[701,371]}],
+ [["Nacken","Genick","Halswirbelsäule","HWS"],{fract:[252,251],pain:[252,254,371,413],numb:[253,421],swell:[701],infect:[371]}],
+ [["Kopf","Schädel","Stirn","Hinterkopf","Schläfe","Kopfhaut"],{fract:[222,221,224],wound:[224,221],crush:[221,222],burn:[281],pain:[413,222,414],numb:[421,415],swell:[224,222,321],infect:[371,325]}],
+ [["Gesicht","Wange","Kinn","Lippe","Jochbein","Nasenbein","Kiefer","Unterkiefer","Oberkiefer"],{fract:[223,749],wound:[223,224],crush:[223],burn:[281],swell:[321,223,749],pain:[413,223,749],numb:[421,413],infect:[701,749]}],
+ [["Auge","Augen","Augenlid","Hornhaut","Pupille","Augapfel"],{fract:[225],wound:[225,729],burn:[225,282,281],swell:[321,721],pain:[721,729,225],numb:[421,721],infect:[721],cold:[721]}],
+ [["Nase","Nasenflügel","Nasenscheidewand"],{fract:[223,731],wound:[223,731],swell:[321,731],pain:[739,413],infect:[739]}],
+ [["Ohr","Ohren","Ohrläppchen","Gehörgang","Trommelfell"],{wound:[739,224],pain:[739,415],swell:[739],infect:[739]}],
+ [["Mund","Zunge","Zahn","Zähne","Zahnfleisch","Gaumen"],{fract:[749],wound:[749,732],swell:[321,749],pain:[749,732],infect:[749]}],
+ [["Hals","Kehle","Rachen","Kehlkopf","Luftröhre","Mandeln"],{wound:[231,299,739],swell:[321,739,314],pain:[739,373,371],infect:[739]}],
+ [["Brust","Brustkorb","Rippe","Rippen","Thorax","Herzgegend","Brustbein"],{fract:[232,233],wound:[231],crush:[232,233],burn:[281],pain:[331,332,333,232,311,318,348],numb:[331,421],swell:[701]}],
+ [["Bauch","Unterbauch","Oberbauch","Magen","Nabel","Bauchdecke","Flanke"],{fract:[242],wound:[241],crush:[242],burn:[281],pain:[353,243,359,552,711,351],swell:[243,347,353,354],infect:[354,359,243]}],
+ [["Leiste","Genitalbereich","Hoden","Penis","Scheide","Intimbereich","Damm"],{fract:[263],wound:[263],crush:[263],burn:[281],pain:[712,263,711,552],swell:[712,263,718],infect:[718,701,719]}]
+];
+BODY.forEach(([words,map])=>words.forEach(w=>{
+  Object.entries(map).forEach(([cls,codes])=>codes.forEach(code=>{
+    if(!byCodeEarly(code))return;
+    const a=KW[code]=KW[code]||[];
+    a.push(w);
+    CLS[cls].forEach(c=>a.push(w+" "+c));
+  }));
+}));
+
+/* Alltagssituationen, Unfallhergänge, Notfallbegriffe und Fachabkürzungen */
+const SITU=[
+ [[213,272,273,222,252,224],"Treppensturz; Sturz Treppe; Treppe gefallen; von der Leiter gefallen; Leitersturz; Sturz vom Gerüst; Gerüst; vom Dach gefallen; Dachsturz; aus dem Fenster gefallen; Balkon gestürzt; Sturz vom Baum; vom Pferd gefallen; Reitunfall; vom Rad gefallen; Fahrradunfall; E-Scooter gestürzt; Skateboard; Skiunfall; Snowboard; Skisturz; Rodeln; Fußballverletzung; Sportunfall; Arbeitsunfall; Betriebsunfall; Baustelle; Sturz im Bad; Sturz Dusche; aus dem Bett gefallen; Senior gestürzt; betrunken gestürzt; umgefallen; hingefallen"],
+ [[211,212,213],"Autounfall; PKW Unfall; Frontalcrash; Auffahrunfall; LKW Unfall; Motorradunfall; Biker; Fahrradfahrer angefahren; Fußgänger angefahren; Radfahrer angefahren; Kind angefahren; Unfall Autobahn; Verkehrsunfall; VU; Überschlag; Baum gefahren; eingeklemmt im Auto; Unfallopfer; Crash; Zusammenstoß; Kollision; Straßenbahn Unfall; Bahnunfall; Zug"],
+ [[222,252],"Schleudertrauma; HWS-Syndrom; Auffahrunfall Nacken; Peitschenschlag"],
+ [[231,241,211,212],"Messerstecherei; Messerangriff; Stichverletzung; erstochen; Schussverletzung; angeschossen; Schlägerei; verprügelt; Gewalt; Überfall; Tritt; Schlag auf den Kopf; Angriff; Messer; Schuss; Pistole; Armbrust; Pfeil"],
+ [[213,277,274,272],"Einklemmung; eingeklemmt; verschüttet; Verschüttung; Maschine eingezogen; Pressunfall; Quetschung Maschine; Kreissäge; Säge; Fräse; Rasenmäher; Häcksler; Kettensäge; Hand in Maschine; Förderband; Arbeitsmaschine; Stapler; Walze; Presse"],
+ [[219,367,321,275],"Hundebiss; Katzenbiss; Biss Hund; Biss Katze; Tierbiss; Pferdetritt; Pferd getreten; Zeckenbiss; Insektenstich; Wespenstich; Bienenstich; Hornissenstich; Qualle; Schlange; gebissen; Spinne; Marder; Ratte"],
+ [[288,287],"ertrunken; unter Wasser; aus dem Wasser gezogen; Eiseinbruch; See; Fluss; Badesee; Pool; Schwimmbad; Wasserrettung; Taucher; untergegangen; Schwimmer; Eis eingebrochen"],
+ [[311,314],"Fremdkörper verschluckt; Münze verschluckt; Knochen verschluckt; Essen verschluckt; Kind verschluckt; Erdnuss; Lego; Batterie verschluckt; Knopfzelle; kann nicht schlucken; Würgen; läuft blau an; kriegt keine Luft; verschluckt"],
+ [[363,365],"Batterie geschluckt; Knopfzelle geschluckt; Spülmittel getrunken; Reiniger getrunken; Waschmittel; Kind Tabletten genommen; Tabletten gegessen; Chemikalie; Frostschutz; Benzin getrunken; Terpentin; Alkohol Kind"],
+ [[131],"leblos aufgefunden; kein Puls; keine Atmung; Atemstillstand; Kreislaufstillstand; reagiert nicht und atmet nicht; Herz steht still; tot aufgefunden; Wiederbelebung läuft; Laien-Reanimation; Defi angebracht; AED; VF; Kammerflimmern; Asystolie; PEA; Rea; Herzstillstand zuhause"],
+ [[414],"bewusstlos aufgefunden; liegt bewusstlos; nicht erweckbar; reagiert nicht auf Ansprache; GCS 3; Koma; komatös; schwer ansprechbar; liegt am Boden; apathisch; Bewusstseinsverlust; nicht wach zu bekommen; bewusstseinsgetrübt"],
+ [[411,412],"Schaum vor dem Mund; Zungenbiss; eingenässt; zuckt; krampft; verdreht die Augen; Krampfanfall Kind; Anfall Epilepsie; Grand mal; Absence; Status; krampft seit; Zuckungen; epileptisch"],
+ [[332,333,331],"Herzdruck; Herzbeschwerden; Herz tut weh; Brustenge; Druck auf der Brust; Engegefühl Brust; Schmerz linker Arm; Schmerz Kiefer; Schmerz Oberbauch Herz; kalter Schweiß Brust; Vernichtungsschmerz; ACS; Infarkt; Herzinfarkt Verdacht; Herzattacke; Angina; Brustschmerz Belastung; Brustschmerz in Ruhe; Herzkranzgefäße"],
+ [[311],"kann nicht atmen; röchelt; keucht; blau angelaufen; Atemnot nachts; Atemnot Liegen; Atemnot Anstrengung; schnappt nach Luft; pfeifende Atmung; Atemgeräusche; Giemen; Brummen; Sauerstoff niedrig; SpO2 niedrig; Sättigung; kurzatmig; Luftnot; Dyspnoe"],
+ [[322],"kollabiert; zusammengebrochen; umgekippt; Schwarz vor Augen; Ohnmacht; Synkope; Kreislaufprobleme; Kreislauf weg; weg gewesen; Blackout; Sekundenschlaf; beim Aufstehen schwindelig; Schwächeanfall"],
+ [[393],"zittert; schwitzt kalt; Heißhunger; Diabetiker bewusstlos; Insulin gespritzt nichts gegessen; Zucker zu niedrig; BZ niedrig; Unterzuckerung; Hypoglykämie"],
+ [[392],"Zucker zu hoch; BZ hoch; HI; Durst Wasserlassen; Diabetiker Kreislauf; Acetongeruch; Kussmaul; Ketoazidose; DKA; Überzuckerung; Hyperglykämie"],
+ [[421,423,425],"Schlaganfall; Apoplex; Insult; TIA; Hirninfarkt; Hirnblutung; ICB; SAB; Subarachnoidalblutung; Gesicht hängt; Arm kraftlos; Sprachstörung; lallt; kann nicht sprechen; Halbseitenlähmung; Sehstörung plötzlich; Gesichtsfeldausfall; FAST; BE-FAST; Lyse; Thrombolyse; Thrombektomie; Hirnschlag; Schlag; Facialisparese; Mundwinkel hängt; plötzlich verwirrt"],
+ [[414,413,421],"SAB; Subarachnoidalblutung; Donnerschlagkopfschmerz; schlimmster Kopfschmerz; Nackensteife; Hirnblutung"],
+ [[351,243],"Blut erbrochen; Bluterbrechen; Kaffeesatz; schwarzer Stuhl; Teerstuhl; Blut im Stuhl; Blutstuhl; Magenblutung; Darmblutung; Ösophagusvarizen; Hämatemesis; Meläna; Krampfadern Speiseröhre; Leberzirrhose Blutung"],
+ [[243,353],"Bauch hart; Brettharter Bauch; Appendizitis; Blinddarm; Gallenkolik; Cholezystitis; Pankreatitis; Divertikulitis; Ileus; Darmverschluss; Perforation; Peritonitis; Gallenstein; Bauchspeicheldrüse; Bauchschmerz akut; Bauch aufgebläht; Bauch gespannt"],
+ [[354],"Durchfall; Erbrechen; Brechdurchfall; Magen-Darm; Gastroenteritis; Übelkeit; Magenverstimmung; Kotzen; Norovirus; Salmonellen"],
+ [[318,233],"Pneumothorax; Spannungspneu; Lungenkollaps; Stechen beim Atmen; Luft im Brustkorb; Rippe in Lunge"],
+ [[348],"Lungenembolie; LAE; plötzliche Atemnot; Thrombose und Atemnot; Embolie; Bein dick und Atemnot"],
+ [[341,343,342],"Herzrasen; Herzstolpern; Herzrhythmusstörung; Vorhofflimmern; Puls unregelmäßig; Puls 180; Puls 30; Bradykardie; Tachykardie; Arrhythmie; Herz stolpert"],
+ [[345],"Blutdruck 220; RR hoch; Hypertonie; Bluthochdruck; hypertensive Krise; Blutdruck zu hoch; Kopfschmerzen Blutdruck"],
+ [[323],"Blutdruck niedrig; RR niedrig; Hypotonie; Blutdruck 80; Kreislauf schlapp"],
+ [[321],"allergische Reaktion; Anaphylaxie; Quaddeln; Nesselsucht; Schwellung Lippen; Schwellung Zunge; Erdnussallergie; Nussallergie; Bienenstich Allergie; Wespenstich Allergie; Atemnot nach Essen; Antibiotika Allergie; Kontrastmittel; Juckreiz Ausschlag Atemnot; Epipen; Adrenalin Pen"],
+ [[373,374],"Sepsis; Blutvergiftung; Urosepsis; Fieber und Schock; schwerer Infekt; qSOFA; Schüttelfrost; Kreislauf schlecht Fieber; septisch; Lactat"],
+ [[371],"Meningitis; Hirnhautentzündung; Nackensteife; Meningokokken; Kopfschmerz Fieber Nackensteife; Petechien; Lichtscheu"],
+ [[325],"Fieber; hohes Fieber; Temperatur; Schüttelfrost; fiebert"],
+ [[512,511],"Pseudokrupp; bellender Husten; Stridor; Kind Atemnot; Baby Atemnot; Kind pfeift; Kind blau; Kind röchelt; Bronchiolitis; RS-Virus; Epiglottitis"],
+ [[513],"Fieberkrampf; Kind krampft; Baby Krampf; Kind Fieber Krampf"],
+ [[519],"Kind; Baby; Säugling; Kleinkind; Kinderarzt; Kinder Notfall; Kind nicht trinken; Kind schlapp; Kind apathisch; Kind bleich"],
+ [R(521,529),"Geburt; Baby kommt; Wehen; Presswehen; Blasensprung; Fruchtblase geplatzt; Fruchtwasser; Geburt Auto; Geburt zu Hause; Geburt läuft; Köpfchen sichtbar; Nabelschnur; Entbindung; Frühgeburt"],
+ [R(541,549),"Schwangere Blutung; Schwangere Bauchschmerzen; Eklampsie; Präeklampsie; HELLP; Krampf Schwangere; schwanger Unfall; schwanger Kopfschmerz; Schwangere Atemnot; Schwangerschaft Notfall; Plazenta; Placenta praevia; Wehen zu früh; vorzeitige Wehen; schwanger Sturz; Schwangerschaftsdiabetes"],
+ [[551,552],"Regelblutung stark; Periode; Zyklus; Unterleibsschmerzen; Eierstockzyste; Extrauterin; Eileiter; Abort; Fehlgeburt; Blutung nach Geburt; Blutung nach Abtreibung; Frau Blutung unten"],
+ [[431],"Suizid; Suizidversuch; Selbstmord; lebensmüde; will sich umbringen; Abschiedsbrief; Brücke springen; Selbstverletzung; Ritzen; Schnitte Arme; Strick; erhängt; Suizidgedanken; Selbstmordgedanken"],
+ [[435],"verwirrt; desorientiert; Demenz; Alzheimer; Delir; weiß nicht wo er ist; redet wirr; halluziniert; Halluzinationen; aggressiv verwirrt; Entzugsdelir; Delirium tremens; Unruhe; irrt umher"],
+ [[432,433,434],"Psychose; Wahn; Manie; Polizei Psychiatrie; Zwangseinweisung; Unterbringung; psychotisch; Stimmen hören; Verfolgungswahn; Eigengefährdung; Fremdgefährdung; Fixierung; Panikattacke"],
+ [[361],"betrunken; Alkoholvergiftung; Promille; Rausch; Alkoholentzug; Entzug; sturzbetrunken; Saufen; Koma Alkohol; Alkoholintoxikation; Komasaufen"],
+ [[362],"Drogen; Heroin; Kokain; Opioid; Überdosis; Cannabis; Ecstasy; Crystal; Fentanyl; Spritze; GHB; K.O.-Tropfen; Ketamin; Mischkonsum; Spice; Pillen; LSD; Pilze; Amphetamin; Speed; Koks; Junkie; Nadel"],
+ [[370],"Kohlenmonoxid; CO; CO-Vergiftung; Gasheizung; Kamin; Holzkohlegrill; Gastherme; Abgase; CO-Melder; Grill drinnen; Ofen; Kopfschmerz und Übelkeit mehrere Personen"],
+ [[360],"Rauchgas; Reizgas; Brandrauch; Rauchvergiftung; Pfefferspray; Tränengas; Reizstoff; Chlor; Rauch eingeatmet; Brand Wohnung; Wohnungsbrand Atemnot"],
+ [[286],"Hitzschlag; Sonnenstich; Hitze; Überhitzung; zu heiß; Hitzeerschöpfung; im Auto vergessen; Hitze Senior; Sonne"],
+ [[287],"unterkühlt; Erfrierung; Kälte; erfroren; Obdachlos kalt; Hypothermie; Kältetod; Frost; Lawine"],
+ [[281,282],"Verbrennung; Verbrühung; Feuer; Brand; heißes Wasser; Fett; Explosion; Flamme; Grillunfall; Spiritus; Brandbeschleuniger; Kerze; Herd; Bügeleisen; Kamin; Funkenflug; Sonnenbrand; Verätzung; Säure; Lauge"],
+ [[283,344],"Stromunfall; Stromschlag; Hochspannung; Blitzschlag; Oberleitung; Trafo; Starkstrom; Steckdose; Elektrounfall; Weidezaun; Strom"],
+ [[284],"Tauchunfall; Taucher; Dekompression; Caisson; Druckkammer; Aufstieg zu schnell"],
+ [[231,232,233],"Rippenbruch; Rippenprellung; Brustkorbprellung; Stich Brust; Schuss Brust; Lenkrad; Sicherheitsgurt; Sturz Rippen; Husten Rippe"],
+ [[251,252,253],"Rückenschmerzen; Hexenschuss; Bandscheibenvorfall; Ischias; Lähmung Beine; Taubheit Beine; Blasenlähmung; Reithosenanästhesie; Cauda equina; Wirbelbruch; Wirbelsäule"],
+ [[711],"Nierenkolik; Nierenstein; Flankenschmerz; Harnleiterstein; Kolik Niere"],
+ [[713],"Harnverhalt; kann nicht pinkeln; Blase voll; Urinverhalt; Prostata; Katheter"],
+ [[717],"Katheter verstopft; Katheter raus; Katheter verloren; Blasenkatheter; DK"],
+ [[731],"Nasenbluten; Epistaxis; Nase blutet; unstillbar; Nasenbluten Blutverdünner"],
+ [[732],"Nachblutung; Tonsillektomie; Mandel-OP; Zahn gezogen; Blutung nach Zahnarzt; HNO-OP; Blutung Mund"],
+ [[733],"Trachealkanüle; Tracheostoma; Kanüle raus; Kanüle verstopft; Luftröhrenschnitt; Tracheotomie"],
+ [[749],"Zahn ausgeschlagen; Zahnschmerzen; Zahnabszess; Kiefer; Kieferbruch; Wangen dick; Zahnunfall; Zahn raus; Mund Blutung"],
+ [[721,729,225],"Auge rot; Auge schmerzt; Auge Fremdkörper; Sehverlust; plötzlich blind; Schleier; Lichtblitze; Augenverletzung; Chemie im Auge; Schweißerblitz; Sand im Auge; Glaukomanfall"],
+ [[701],"Ausschlag; Hautausschlag; Windpocken; Gürtelrose; Krätze; Abszess; Wunde entzündet; Geschwür; offenes Bein; Dekubitus; Wundliegen; Hautinfektion; Wundrose"],
+ [[751],"Senior; Altersheim; Pflegeheim; Pflegefall; Bewohner; Einweisung vom Heim; alte Dame; alter Mann"],
+ [R(601,605),"Verlegung; Transport; Rückfahrt; Dialysefahrt; Fahrt zum CT; Fahrt zum MRT; Herzkatheter geplant; Krankentransport; Intensivtransport"],
+ [[375],"Ebola; Lassa; Marburg; hochansteckend; Sonderisolierung; Quarantäne; Pocken; Pest; Milzbrand; Anthrax"],
+ [R(376,378),"Covid; Corona; SARS-CoV-2; positiv getestet; Quarantäne; Isolation"],
+ [[134],"unterkühlt Reanimation; Hypothermie Reanimation; Lawine Reanimation; Kälte Herzstillstand; Eis Reanimation"],
+ [R(140,145),"ECMO; ECLS; eCPR; Lungenersatz; Herz-Lungen-Maschine; Kunstlunge; vvECMO; vaECMO"],
+ [[291,293],"Aortenaneurysma; Aortendissektion; Aortenriss; Bauchaorta; reißender Schmerz; Vernichtungsschmerz Rücken; Aortenruptur; Stanford A; Stanford B; Blutdruckdifferenz Arme"],
+ [[292],"Arterienverschluss; kaltes Bein; blasses Bein; Embolie Bein; Bein pulslos; Arm kalt; Arm blass; akute Ischämie; schmerzhaftes kaltes Bein"]
+];
+SITU.forEach(([cs,t])=>cs.forEach(c=>{if(!byCodeEarly(c))return;(KW[c]=KW[c]||[]).push(...t.split(";").map(x=>x.trim()).filter(Boolean))}));
+Object.keys(KW).forEach(c=>{KW[c]=[...new Set(KW[c])]});
+
 
 const lev=(a,b)=>{const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]};
@@ -741,13 +862,14 @@ function stem(w){
   return w;
 }
 const toWords=s=>fold(s).split(" ").filter(Boolean).map(w=>({raw:w,st:stem(w)}));
-const IDX=D.map(d=>({d,name:toWords(d[1]),terms:(KW[d[0]]||[]).map(t=>({t,ws:toWords(t)}))}));
+const IDX=D.map(d=>{const name=toWords(d[1]),terms=(KW[d[0]]||[]).map(t=>({t,ws:toWords(t)}));
+  const bag=" "+[...name,...terms.flatMap(t=>t.ws)].map(w=>w.raw+" "+w.st).join(" ")+" ";return {d,name,terms,bag}});
 function mscore(t,w){
   if(w.raw===t.raw)return 9;
   if(w.st===t.st)return 8;
   if((t.st.length>=3&&w.st.startsWith(t.st))||w.raw.startsWith(t.raw))return 5;
   if(t.st.length>=5&&w.st.length>=5&&t.st.startsWith(w.st)&&t.st.length-w.st.length<=3)return 4;
-  if(t.raw.length>=4&&w.raw.includes(t.raw))return 3;
+  if(t.raw.length>=5&&w.raw.includes(t.raw))return 3;
   return 0;
 }
 function search(q){
@@ -759,6 +881,7 @@ function search(q){
   const run=(fuzzy,any)=>{
     const out=[];
     IDX.forEach(x=>{
+      if(!fuzzy&&!any){let skip=false;for(const t of toks){const k=t.raw.slice(0,3),k2=t.st.slice(0,3);if(!x.bag.includes(k)&&!x.bag.includes(k2)){skip=true;break}}if(skip)return}
       let total=0,matched=0;const termCov=x.terms.map(()=>({n:0,sc:0}));let ok=true;
       for(const t of toks){
         let best=0;
@@ -948,14 +1071,17 @@ document.addEventListener("click",e=>{
   const sg=e.target.closest("[data-s]"); if(sg){const q=$("q");q.value=sg.dataset.s;q.dispatchEvent(new Event("input"));return}
   const it=e.target.closest("[data-c]"); if(it){openSheet(+it.dataset.c)}
 });
-$("q").addEventListener("input",e=>{
+let qTimer=null;
+$("q").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>doSearch(e.target),90)});
+function doSearch(el){
+  const e={target:el};
   const v=e.target.value.trim();
   if(!v){searching=false;setBase();return}
   const r=search(e.target.value), hints={};
   r.forEach(x=>{if(x.hint)hints[x.d[0]]=x.hint});
   fillList(r.map(x=>x.d),false,hints);
   searching=true;setBase(); // Ergebnisse direkt unter dem Suchfeld, ohne Seitenwechsel und ohne Springen
-});
+}
 
 function openSheet(c){
   const d=byCode[c]; state.code=c; state.urg=d[2].length===1?+d[2]:null;
