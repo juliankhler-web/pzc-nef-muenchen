@@ -426,8 +426,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.0";
+const APP_VERSION="2.1";
 const CHANGELOG=[
+ {v:"2.1",d:"03.10.2026",items:[
+  "Suche springt nicht mehr: Ergebnisse erscheinen direkt unter dem Suchfeld, die Seite bleibt beim Tippen ruhig"]},
  {v:"2.0",d:"03.10.2026",items:[
   "Namenserkennung neu: bewertet Zeilen nach Lage zur Versichertennummer, Schriftgröße, Schreibweise und Vornamen-Liste statt irgendwelche Wörter zu nehmen; Kassenname und Kartenaufdruck werden zuverlässiger ausgeschlossen",
   "Mehrere Durchgänge stimmen über den Namen ab; die wahrscheinlichsten Namenszeilen stehen zuerst in der Antippliste"]},
@@ -829,28 +831,30 @@ function renderHome(){
   renderTiles();
   $("cats").innerHTML=CATS.map(c=>`<button class="cat" style="--c:${c.c}" data-cat="${c.id}">${c.n}<small>${c.s}</small></button>`).join("");
 }
-function showList(items,withSub,hints){
+function fillList(items,withSub,hints){
   if(!items.length){$("list").innerHTML='<div class="empty">Nichts gefunden – anderes Wort probieren oder über die Kategorien gehen</div>'}
   else{let h="";
     items.forEach(d=>{ if(withSub&&SUB[d[0]]) h+=`<div class="sub">${SUB[d[0]]}</div>`; h+=itemHTML(d,hints&&hints[d[0]])});
     $("list").innerHTML=h;}
-  push({v:"list"});
 }
+function showList(items,withSub,hints){fillList(items,withSub,hints);push({v:"list"})}
 
 /* ---- Navigation: Zurück / Vor / Start, auch per Wischen ---- */
-let cur={v:"home"}, stack=[], fwd=[], histOK=true;
+let cur={v:"home"}, stack=[], fwd=[], histOK=true, searching=false;
 function apply(){
   const v=cur.v, arc=v==="arc";
   $("mainView").classList.toggle("hidden",arc);$("arcView").classList.toggle("hidden",!arc);
   $("tabMain").classList.toggle("on",!arc);$("tabArc").classList.toggle("on",arc);
-  const base=[...stack,cur].reverse().find(x=>x.v==="list"||x.v==="home").v;
-  $("home").classList.toggle("hidden",base==="list");$("listView").classList.toggle("hidden",base!=="list");
+  setBase();
   $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
   $("panel").classList.toggle("open",v==="panel");$("sum").classList.toggle("open",v==="sum");
   $("nav").classList.toggle("hidden",v==="home");document.body.classList.toggle("hasnav",v!=="home");
   $("nFwd").classList.toggle("hidden",!fwd.length);
   if(arc)renderArc();
-  if(v==="list"||v==="home"||v==="arc")window.scrollTo(0,0);
+}
+function setBase(){
+  const base=searching?"list":[...stack,cur].reverse().find(x=>x.v==="list"||x.v==="home").v;
+  $("home").classList.toggle("hidden",base==="list");$("listView").classList.toggle("hidden",base!=="list");
 }
 function hpush(){if(!histOK)return;try{history.pushState({},"")}catch(_){histOK=false}}
 function push(s){
@@ -860,7 +864,11 @@ function push(s){
 function back(){if(!stack.length)return;fwd.push(cur);cur=stack.pop();apply()}
 function forward(){if(!fwd.length)return;stack.push(cur);cur=fwd.pop();hpush();apply()}
 function goBack(){if(!stack.length)return;if(histOK)history.back();else back()}
-function goHome(){if(cur.v==="home")return;$("q").value="";push({v:"home"})}
+function goHome(){
+  const was=searching;searching=false;$("q").value="";window.scrollTo(0,0);
+  if(cur.v==="home"){if(was)setBase();return}
+  push({v:"home"})
+}
 try{history.replaceState({},"")}catch(_){histOK=false}
 addEventListener("popstate",back);
 $("nBack").onclick=goBack;$("nHome").onclick=goHome;$("nFwd").onclick=forward;
@@ -900,10 +908,11 @@ document.addEventListener("click",e=>{
 });
 $("q").addEventListener("input",e=>{
   const v=e.target.value.trim();
-  if(!v){if(cur.v==="list")goBack();return}
+  if(!v){searching=false;setBase();return}
   const r=search(e.target.value), hints={};
   r.forEach(x=>{if(x.hint)hints[x.d[0]]=x.hint});
-  showList(r.map(x=>x.d),false,hints);
+  fillList(r.map(x=>x.d),false,hints);
+  searching=true;setBase(); // Ergebnisse direkt unter dem Suchfeld, ohne Seitenwechsel und ohne Springen
 });
 
 function openSheet(c){
@@ -967,7 +976,7 @@ $("arcList").addEventListener("click",e=>{
 });
 $("arcExport").onclick=()=>{navigator.clipboard?.writeText(load().map(entryText).join("\n\n———\n\n"));$("arcExport").textContent="✓ kopiert"};
 $("arcClear").onclick=()=>{if(confirm("Gesamtes Archiv löschen?")){store([]);renderArc()}};
-$("tabMain").onclick=goHome;$("tabArc").onclick=()=>push({v:"arc"});
+$("tabMain").onclick=goHome;$("tabArc").onclick=()=>{window.scrollTo(0,0);push({v:"arc"})};
 $("saveOnly").onclick=()=>{saveEntry({});goBack();$("saveOnly").textContent="✓ gespeichert";setTimeout(()=>$("saveOnly").textContent="Nur speichern",1500)};
 
 /* ---- SK 1 Panel ---- */
@@ -1087,7 +1096,7 @@ function savePanel(){
   const answers=Object.keys(sk).filter(k=>k!=="sb"&&sk[k].v).map(k=>[sk[k].l,sk[k].v]);
   const nm=[state.nachname.trim(),state.vorname.trim()].filter(Boolean).join(", ");
   saveEntry({sb:sk.sb?SBD[sk.sb].n:"",answers,note:state.note||"",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim()});
-  stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();
+  stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();window.scrollTo(0,0);
 }
 document.querySelectorAll(".sxb").forEach(b=>b.onclick=()=>{
   state.sex=state.sex===b.dataset.sx?null:b.dataset.sx;
