@@ -201,6 +201,9 @@ textarea.inp{min-height:84px;resize:vertical}
 .namerow input{width:100%;font-size:18px;padding:14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-family:inherit;font-weight:600}
 .namerow input:focus{outline:none;border-color:var(--accent)}
 .legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:700;margin:4px 2px 10px}.legend span{display:flex;gap:5px;align-items:center}.legend .lg{color:var(--mute);font-weight:600}
+.reportbtn{width:100%;margin:12px 0 4px;border:2px dashed var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font-size:16px;font-weight:700}
+.rep{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:14px}
+.rep b{font-size:15px}.rep .rm{float:right;border:0;background:none;color:var(--d1);font-size:18px;font-weight:900}
 .hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
 .sugg{margin:10px 0 0}
 .hidden{display:none!important}
@@ -222,6 +225,10 @@ textarea.inp{min-height:84px;resize:vertical}
   <div id="arcView" class="hidden">
     <div class="list" id="arcList"></div>
     <div class="chips"><button class="mini" id="arcExport">Alles kopieren</button><button class="mini del" id="arcClear">Archiv leeren</button></div>
+    <div class="lbl" style="margin-top:22px"><span>Gemeldete Suchbegriffe <span id="repCount"></span></span></div>
+    <div id="repList"></div>
+    <div class="chips"><button class="mini" id="repShare">Meldungen teilen / kopieren</button><button class="mini del" id="repClear">Meldungen leeren</button></div>
+    <p class="note">Die Meldungen enthalten nur Suchbegriffe und Codes, keine Patientendaten. Sie helfen, die Suche zu verbessern.</p>
     <p class="note">Alles (auch Name und Nummern) wird nur in diesem Browser auf diesem Gerät gespeichert und nirgends hochgeladen. Gerät mit Sperrcode schützen. Daten gehen verloren, wenn der Browser-Speicher gelöscht wird.</p>
   </div>
 
@@ -249,6 +256,7 @@ textarea.inp{min-height:84px;resize:vertical}
   <div id="listView" class="hidden" style="margin-top:8px">
     <div class="legend"><span><i class="dot d1"></i> BD1</span><span><i class="dot d2"></i> BD2</span><span><i class="dot d3"></i> BD3</span><span class="lg">= mögliche Behandlungsdringlichkeit</span></div>
     <div class="list" id="list"></div>
+    <button class="reportbtn hidden" id="reportBtn">❗ Begriff fehlt oder falscher Treffer – melden</button>
   </div>
 
   <p class="note">Codes und BD1/BD2/BD3 laut offizieller IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen am 03.10.2026. Eingabehilfe, kein Ersatz für IVENA – bei Abweichungen gilt die IVENA-App.</p>
@@ -579,8 +587,11 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.4";
+const APP_VERSION="2.5";
 const CHANGELOG=[
+ {v:"2.5",d:"03.10.2026",items:[
+  "Neu: Button „Begriff fehlt oder falscher Treffer – melden“ unter den Suchergebnissen. Du kannst den richtigen Code und eine Notiz angeben; alles bleibt auf dem Gerät.",
+  "Unter „Archiv“ stehen die gemeldeten Begriffe – mit „Teilen / kopieren“ schickst du sie gesammelt weiter, damit die Suche besser wird"]},
  {v:"2.4",d:"03.10.2026",items:[
   "Neue Bezeichnung überall: BD1, BD2, BD3 (Behandlungsdringlichkeit) statt „Dringlichkeit 1/2/3“",
   "Codeliste jetzt direkt aus der offiziellen IVENA-Bayern-PZC-Liste übernommen (190 Codes): 6 neue Codes (279, 294, 352, 801, 802, 809) und bei 68 Codes geänderte BD-Möglichkeiten gegenüber der alten Tafel",
@@ -1190,6 +1201,7 @@ function apply(){
 function setBase(){
   const base=searching?"list":[...stack,cur].reverse().find(x=>x.v==="list"||x.v==="home").v;
   $("home").classList.toggle("hidden",base==="list");$("listView").classList.toggle("hidden",base!=="list");
+  $("reportBtn").classList.toggle("hidden",!searching);
 }
 function hpush(){if(!histOK)return;try{history.pushState({},"")}catch(_){histOK=false}}
 function push(s){
@@ -1241,7 +1253,7 @@ document.addEventListener("click",e=>{
   const sg=e.target.closest("[data-s]"); if(sg){const q=$("q");q.value=sg.dataset.s;q.dispatchEvent(new Event("input"));return}
   const it=e.target.closest("[data-c]"); if(it){openSheet(+it.dataset.c)}
 });
-let qTimer=null;
+let qTimer=null,lastSearch={q:"",codes:[]};
 $("q").addEventListener("input",e=>{clearTimeout(qTimer);qTimer=setTimeout(()=>doSearch(e.target),90)});
 function doSearch(el){
   const e={target:el};
@@ -1249,6 +1261,7 @@ function doSearch(el){
   if(!v){searching=false;setBase();return}
   const r=search(e.target.value), hints={};
   r.forEach(x=>{if(x.hint)hints[x.d[0]]=x.hint});
+  lastSearch={q:e.target.value.trim(),codes:r.slice(0,8).map(x=>x.d[0])};
   fillList(r.map(x=>x.d),false,hints);
   searching=true;setBase(); // Ergebnisse direkt unter dem Suchfeld, ohne Seitenwechsel und ohne Springen
 }
@@ -1293,7 +1306,50 @@ function entryText(e){
   if(e.note) t+=`\nNotiz: ${e.note}`;
   return t;
 }
+/* ---- „Begriff fehlt?“: Meldungen sammeln (nur auf dem Gerät) ---- */
+const REPKEY="pzc_meldungen_v1";
+const repLoad=()=>{try{return JSON.parse(localStorage.getItem(REPKEY)||"[]")}catch(_){return []}};
+const repStore=a=>{try{localStorage.setItem(REPKEY,JSON.stringify(a))}catch(_){}};
+function repLine(r){
+  const right=r.right?` → richtig: ${r.right}${byCode[r.right]?" ("+byCode[r.right][1]+")":""}`:"";
+  const wrong=r.wrong&&r.wrong.length?` | passt nicht: ${r.wrong.join(", ")}`:"";
+  return `„${r.q}“${right}${wrong}${r.note?" | "+r.note:""} | gezeigt: ${(r.shown||[]).join(", ")||"–"} | ${fmt(r.ts)}`;
+}
+function renderReports(){
+  const a=repLoad();$("repCount").textContent=a.length?`(${a.length})`:"";
+  $("repList").innerHTML=a.length?a.map(r=>`<div class="rep"><button class="rm" data-rm="${r.id}" aria-label="Löschen">✕</button><b>${esc(r.q)}</b>${r.right?` → <b>${esc(r.right)}</b> ${byCode[r.right]?esc(byCode[r.right][1]):""}`:""}${r.wrong&&r.wrong.length?`<div>passt nicht: ${esc(r.wrong.join(", "))}</div>`:""}${r.note?`<div style="color:var(--mute)">${esc(r.note)}</div>`:""}</div>`).join(""):'<div class="empty" style="padding:10px">Noch keine Meldungen</div>';
+}
+function openReport(){
+  const q=lastSearch.q,shown=lastSearch.codes;let wrong=new Set();
+  const chips=shown.map(c=>`<button class="chip" data-w="${c}">${c} ${esc(byCode[c][1].slice(0,28))}</button>`).join("");
+  openModal(`<h2>Begriff melden</h2><div class="vv">Hilft, die Suche zu verbessern</div>
+    <div class="fld"><label>Suchbegriff</label><input class="inp" id="rpQ" value="${esc(q)}"></div>
+    <div class="fld"><label>Welcher Code wäre richtig? (optional)</label><input class="inp" id="rpCode" inputmode="numeric" placeholder="z. B. 332"><div class="warn" id="rpName"></div></div>
+    ${chips?`<div class="fld"><label>Dieser Treffer passt nicht (optional):</label><div class="chips" id="rpWrong">${chips}</div></div>`:""}
+    <div class="fld"><label>Notiz (optional)</label><input class="inp" id="rpNote" placeholder="z. B. sagen wir im Einsatz so"></div>
+    <div class="acts" style="grid-template-columns:1fr 1fr"><button class="btn sec" id="rpNo">Abbrechen</button><button class="btn" id="rpOk">Speichern</button></div>`);
+  $("rpCode").addEventListener("input",e=>{const c=+e.target.value;$("rpName").textContent=byCode[c]?"✓ "+byCode[c][1]:(e.target.value?"Code nicht in der Liste":"")});
+  $("rpWrong")&&$("rpWrong").addEventListener("click",e=>{const b=e.target.closest("[data-w]");if(!b)return;const c=+b.dataset.w;if(wrong.has(c)){wrong.delete(c);b.classList.remove("on")}else{wrong.add(c);b.classList.add("on")}});
+  $("rpNo").onclick=closeModal;
+  $("rpOk").onclick=()=>{
+    const code=+$("rpCode").value;
+    const r={id:Date.now(),ts:Date.now(),q:$("rpQ").value.trim()||q,right:byCode[code]?code:"",wrong:[...wrong],note:$("rpNote").value.trim(),shown};
+    if(!r.q&&!r.right&&!r.note)return;
+    const a=repLoad();a.unshift(r);repStore(a);renderReports();closeModal();
+    const b=$("reportBtn");b.textContent="✓ Gemeldet ("+a.length+") – danke";setTimeout(()=>b.textContent="❗ Begriff fehlt oder falscher Treffer – melden",2500);
+  };
+}
+$("reportBtn").onclick=openReport;
+$("repList").addEventListener("click",e=>{const b=e.target.closest("[data-rm]");if(!b)return;repStore(repLoad().filter(x=>x.id!==+b.dataset.rm));renderReports()});
+$("repShare").onclick=async()=>{
+  const a=repLoad();if(!a.length)return;
+  const txt="PZC-App Version "+APP_VERSION+" – gemeldete Suchbegriffe:\n\n"+a.map(repLine).join("\n");
+  try{if(navigator.share){await navigator.share({title:"Gemeldete Suchbegriffe",text:txt});return}}catch(_){}
+  try{await navigator.clipboard.writeText(txt);$("repShare").textContent="✓ kopiert"}catch(_){}
+};
+$("repClear").onclick=()=>{if(confirm("Alle Meldungen löschen?")){repStore([]);renderReports()}};
 function renderArc(){
+  renderReports();
   renderTiles();
   const a=load(); $("arcCount").textContent=a.length?`(${a.length})`:"";
   $("arcList").innerHTML=a.length?a.map(e=>`<div class="arc" data-id="${e.id}">
