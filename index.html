@@ -172,6 +172,19 @@ textarea.inp{min-height:84px;resize:vertical}
 .prog{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:12px 0}.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
 .raw{font-size:12px;color:var(--mute);white-space:pre-wrap;margin-top:8px}
 .namebox{font-size:24px;font-weight:800;padding:14px}
+.scanhero{width:100%;margin:0 0 14px;border:3px solid var(--accent);background:var(--card);color:var(--ink);border-radius:16px;padding:18px 14px;text-align:left}
+.scanhero b{display:block;font-size:21px;line-height:1.2;font-weight:900}
+.scanhero small{display:block;margin-top:4px;color:var(--mute);font-size:13px;font-weight:600}
+.scanres{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-6px 0 14px;padding:12px 14px;border-radius:12px;background:var(--sayb);color:var(--ink);font-weight:700}
+.scanres button{border:0;background:none;color:var(--d1);font-size:20px;font-weight:900;padding:6px 10px}
+.srow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:16px}
+.srow span{color:var(--mute)}.srow b{text-align:right}.srow b.nil{color:var(--mute);font-weight:500}
+.sh{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 2px}
+.spellh{font-size:13px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 4px}
+.spell{display:grid;grid-template-columns:44px 1fr;gap:2px 10px;align-items:baseline}
+.spell i{font:900 30px/1.15 ui-monospace,Menlo,monospace;font-style:normal;text-align:center}
+.spell span{font-size:26px;font-weight:700}
+.spell .sp{grid-column:1/-1;height:10px}
 .hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
 .sugg{margin:10px 0 0}
 .hidden{display:none!important}
@@ -193,11 +206,13 @@ textarea.inp{min-height:84px;resize:vertical}
   <div id="arcView" class="hidden">
     <div class="list" id="arcList"></div>
     <div class="chips"><button class="mini" id="arcExport">Alles kopieren</button><button class="mini del" id="arcClear">Archiv leeren</button></div>
-    <p class="note">Gespeichert nur auf diesem Gerät (Browser). Keine Patientennamen eintragen. Daten gehen verloren, wenn der Browser-Speicher gelöscht wird.</p>
+    <p class="note">Alles (auch Name und Nummern) wird nur in diesem Browser auf diesem Gerät gespeichert und nirgends hochgeladen. Gerät mit Sperrcode schützen. Daten gehen verloren, wenn der Browser-Speicher gelöscht wird.</p>
   </div>
 
   <div id="mainView">
 
+  <button class="scanhero" id="scanHome"><b>📷 FOTO: Versichertenkarte oder Ausweis</b><small>Name &amp; Geburtsdatum werden gelesen – alles bleibt auf diesem Gerät</small></button>
+  <div class="scanres hidden" id="scanRes"></div>
   <div class="lbl">Geschlecht (steht vor dem PZC)</div>
   <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
   <!-- 1 PZC -->
@@ -225,9 +240,15 @@ textarea.inp{min-height:84px;resize:vertical}
 <div class="panel" id="panel">
   <div class="ph">
     <div class="pz"><small>PZC</small><span id="pPzc"></span></div>
-    <button class="btn" id="pSave" style="padding:12px 16px">Speichern</button>
+    <button class="btn" id="pNextTop" style="padding:12px 16px">Weiter ›</button>
   </div>
   <div class="flow" id="flow"></div>
+</div>
+
+<!-- Zusammenfassung -->
+<div class="panel" id="sum">
+  <div class="ph"><div class="pz"><small>Zusammenfassung</small><span id="sPzc"></span></div></div>
+  <div class="flow" id="sumFlow"></div>
 </div>
 
 <div class="mscrim" id="mscrim"><div class="modal" id="modal"></div></div>
@@ -244,7 +265,7 @@ textarea.inp{min-height:84px;resize:vertical}
     <div class="out"><b id="ageOut">––</b><span id="ageNote">Alter für den PZC</span></div>
   </div>
   <div class="chips" id="ageChips" style="margin-bottom:12px"></div>
-  <button class="scanbtn" id="scanBtn">📷 Versichertenkarte fotografieren</button>
+  <button class="scanbtn" id="scanBtn">📷 Karte / Ausweis fotografieren</button>
   <input type="file" id="scanFile" accept="image/*" capture="environment" class="hidden">
   <!-- 3 Dringlichkeit -->
   <div class="lbl"><span><span class="step">3</span>Behandlungsdringlichkeit</span></div>
@@ -380,8 +401,14 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="1.3";
+const APP_VERSION="1.4";
 const CHANGELOG=[
+ {v:"1.4",d:"03.10.2026",items:[
+  "Foto von Versichertenkarte oder Ausweis gleich ganz oben am Anfang; liest Name, Geburtsdatum (→ Alter) und bei Ausweisen das Geschlecht",
+  "Nach der SK-1-Anmeldung: „Weiter“ → Zusammenfassung aller Angaben",
+  "Name im deutschen Funkalphabet untereinander (Nachname, Vorname) für die Abfrage der Leitstelle",
+  "Felder für Patientennummer und NEF-Nummer (NEF-Nummer wird gemerkt)",
+  "Name und Nummern werden jetzt mit dem Einsatz im Archiv gespeichert – nur auf diesem Gerät"]},
  {v:"1.3",d:"03.10.2026",items:[
   "Versichertenkarte fotografieren: Geburtsdatum wird ins Alter übernommen, der Name wird für die Übermittlung am Ende bereitgestellt",
   "Der Name wird nie im Archiv gespeichert und nach dem Speichern gelöscht; das Foto bleibt auf dem Gerät und wird nicht gespeichert",
@@ -405,7 +432,7 @@ const CHANGELOG=[
   "Offline nutzbar"]}
 ];
 const $=id=>document.getElementById(id);
-const state={patName:"",sex:null,age:null,code:null,urg:null,cat:null};
+const state={vorname:"",nachname:"",patNr:"",nefNr:(()=>{try{return localStorage.getItem("pzc_nef")||""}catch(_){return ""}})(),note:"",sex:null,age:null,code:null,urg:null,cat:null};
 const NOW=new Date().getFullYear();
 
 /* ---- Alter ---- */
@@ -777,7 +804,7 @@ function apply(){
   const base=[...stack,cur].reverse().find(x=>x.v==="list"||x.v==="home").v;
   $("home").classList.toggle("hidden",base==="list");$("listView").classList.toggle("hidden",base!=="list");
   $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
-  $("panel").classList.toggle("open",v==="panel");
+  $("panel").classList.toggle("open",v==="panel");$("sum").classList.toggle("open",v==="sum");
   $("nav").classList.toggle("hidden",v==="home");document.body.classList.toggle("hasnav",v!=="home");
   $("nFwd").classList.toggle("hidden",!fwd.length);
   if(arc)renderArc();
@@ -863,13 +890,15 @@ const pzcStr=(c,a,u)=>`${state.sex} ${c}/${String(a).padStart(2,"0")}/${u}`;
 const fmt=ts=>{const d=new Date(ts);return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"})+" · "+d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr"};
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 function saveEntry(extra){
-  state.patName="";
   const a=load();
   const e={code:state.code,id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
-  a.unshift(e); store(a); renderArc(); return e;
+  a.unshift(e); store(a); state.vorname=state.nachname=state.patNr="";refreshScanRes();renderArc(); return e;
 }
 function entryText(e){
   let t=`${fmt(e.ts)}\nPZC ${e.pzc} – ${e.title}`;
+  if(e.name) t+=`\nName: ${e.name}`;
+  if(e.patNr) t+=`\nPatientennummer: ${e.patNr}`;
+  if(e.nefNr) t+=`\nNEF-Nummer: ${e.nefNr}`;
   if(e.sb) t+=`\nSonderbett: ${e.sb}`;
   (e.answers||[]).forEach(([k,v])=>t+=`\n${k}: ${v}`);
   if(e.note) t+=`\nNotiz: ${e.note}`;
@@ -881,8 +910,9 @@ function renderArc(){
   $("arcList").innerHTML=a.length?a.map(e=>`<div class="arc" data-id="${e.id}">
     <div class="top"><span class="pzc">${esc(e.pzc)}</span><span class="dt">${fmt(e.ts)}</span></div>
     <div class="ti">${esc(e.title)}${e.sb?` · <b>${esc(e.sb)}</b>`:""}</div>
+    ${e.name?`<div class="ti">👤 ${esc(e.name)}</div>`:""}
     ${e.note?`<div class="ti" style="color:var(--mute)">📝 ${esc(e.note)}</div>`:""}
-    <div class="det">${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
+    <div class="det">${e.patNr?`<div><b>Patientennummer:</b> ${esc(e.patNr)}</div>`:""}${e.nefNr?`<div><b>NEF-Nummer:</b> ${esc(e.nefNr)}</div>`:""}${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
       <div class="row"><button class="mini" data-act="copy">Kopieren</button><button class="mini del" data-act="del">Löschen</button></div></div>
   </div>`).join(""):'<div class="empty">Noch keine Einträge</div>';
 }
@@ -925,13 +955,11 @@ function openPanel(){
   <div class="blk"><h3><span class="step">5</span>IVENA-Abfrage</h3>${IV.map((f,i)=>fieldHTML("iv",f,i)).join("")}</div>
   <div class="blk"><h3><span class="step">6</span>Übermittlung an Leitstelle</h3>
     <div class="chk"><i>✓</i>Transportziel</div><div class="chk"><i>✓</i>Auftragsnummer</div><div class="chk"><i>✓</i>Name (Patient)</div>
-    <div class="fld"><label>Name für die Übermittlung</label>
-      <input class="inp namebox" id="patName" placeholder="Name (aus Karte oder tippen)" autocomplete="off" value="${esc(state.patName)}"></div>
-    <div class="warn">Nur auf diesem Bildschirm, wird nicht gespeichert und nach dem Speichern gelöscht.</div></div>
+    <div class="warn">Name im Funkalphabet und Nummern folgen in der Zusammenfassung.</div></div>
   <div class="blk"><h3>📝 Notiz</h3>
     <div class="opts" style="margin-bottom:8px">${NOTE_CHIPS.map(c=>`<button class="chip" data-nc="${esc(c)}">${esc(c)}</button>`).join("")}</div>
     <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
-  <button class="btn" id="pSave2" style="padding:18px">Speichern ins Archiv</button>`;
+  <button class="btn" id="pNext" style="padding:20px;font-size:19px">Weiter zur Zusammenfassung ›</button>`;
   renderZus(k0);
   const gs=$("flow").querySelector(`.opt[data-l="Geschlecht"][data-v="${state.sex}"]`); if(gs)gs.click();
   $("panel").scrollTop=0; push({v:"panel"});
@@ -963,19 +991,68 @@ $("flow").addEventListener("click",e=>{
       if(was)delete sk[k];else{o.classList.add("on");sk[k]={l:o.dataset.l,v}}}
   }
 });
-$("flow").addEventListener("input",e=>{if(e.target.id==="patName"){state.patName=e.target.value;return}const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
+$("flow").addEventListener("input",e=>{const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
+const ABC={A:"Anton",B:"Berta",C:"Cäsar",D:"Dora",E:"Emil",F:"Friedrich",G:"Gustav",H:"Heinrich",I:"Ida",J:"Julius",K:"Kaufmann",L:"Ludwig",M:"Martha",N:"Nordpol",O:"Otto",P:"Paula",Q:"Quelle",R:"Richard",S:"Samuel",T:"Theodor",U:"Ulrich",V:"Viktor",W:"Wilhelm",X:"Xanthippe",Y:"Ypsilon",Z:"Zacharias","Ä":"Ärger","Ö":"Ökonom","Ü":"Übermut","ß":"Eszett","-":"Bindestrich"};
+const BASE={"à":"a","á":"a","â":"a","ã":"a","å":"a","è":"e","é":"e","ê":"e","ë":"e","ì":"i","í":"i","î":"i","ï":"i","ò":"o","ó":"o","ô":"o","õ":"o","ù":"u","ú":"u","û":"u","ç":"c","ñ":"n","ý":"y","ÿ":"y","š":"s","ž":"z","č":"c","ć":"c","ł":"l","ø":"o"};
+function spellHTML(txt){
+  let h="";
+  [...txt.trim()].forEach(ch=>{
+    if(ch===" "){h+='<div class="sp"></div>';return}
+    let k=ch==="ß"?"ß":ch.toUpperCase();if(BASE[ch.toLowerCase()])k=BASE[ch.toLowerCase()].toUpperCase();
+    h+=`<i>${esc(k==="ß"?"ß":k)}</i><span>${esc(ABC[k]||(/\d/.test(k)?"Ziffer "+k:"Zeichen"))}</span>`;
+  });
+  return h?`<div class="spell">${h}</div>`:"";
+}
+function renderSpell(){
+  const n=state.nachname.trim(),v=state.vorname.trim();
+  $("spellOut").innerHTML=(n?`<div class="spellh">Nachname · ${esc(n)}</div>${spellHTML(n)}`:"")+(v?`<div class="spellh">Vorname · ${esc(v)}</div>${spellHTML(v)}`:"")||'<div class="warn">Name eintragen oder Karte fotografieren – wird dann buchstabiert angezeigt.</div>';
+}
+function openSummary(){
+  state.note=$("note").value.trim();
+  $("sPzc").textContent=pzcStr(state.code,state.age,state.urg);
+  const row=(l,v)=>`<div class="srow"><span>${esc(l)}</span><b class="${v?"":"nil"}">${v?esc(v):"–"}</b></div>`;
+  const zus=(sk.sb?SBD[sk.sb].f:[]).map((f,i)=>row(f[0],sk["zus_"+i]&&sk["zus_"+i].v)).join("");
+  const iv=IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)).join("");
+  $("sumFlow").innerHTML=`
+  <div class="blk"><h3>Zusammenfassung</h3>
+    <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
+    <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
+    ${row("Sonderbett",sk.sb?SBD[sk.sb].n:"")}
+    ${zus?`<div class="sh">Zusatzdaten</div>${zus}`:""}
+    <div class="sh">IVENA-Abfrage</div>${iv}
+    ${state.note?`<div class="sh">Notiz</div><div style="padding:6px 0">${esc(state.note)}</div>`:""}
+  </div>
+  <div class="blk"><h3>Name · Leitstelle fragt ab</h3>
+    <div class="fld" style="margin-top:0"><label>Nachname</label><input class="inp namebox" id="fNach" autocomplete="off" value="${esc(state.nachname)}"></div>
+    <div class="fld"><label>Vorname</label><input class="inp namebox" id="fVor" autocomplete="off" value="${esc(state.vorname)}"></div>
+    <div id="spellOut"></div></div>
+  <div class="blk"><h3>Nummern</h3>
+    <div class="fld" style="margin-top:0"><label>Patientennummer</label><input class="inp namebox" id="fPatNr" inputmode="numeric" autocomplete="off" value="${esc(state.patNr)}"></div>
+    <div class="fld"><label>NEF-Nummer</label><input class="inp namebox" id="fNefNr" autocomplete="off" placeholder="z. B. 12/1" value="${esc(state.nefNr)}"></div>
+    <div class="warn">Die NEF-Nummer wird für den nächsten Einsatz gemerkt.</div></div>
+  <button class="btn" id="sSave" style="padding:20px;font-size:19px">Speichern ins Archiv</button>
+  <div class="warn" style="text-align:center">Wird nur auf diesem Gerät gespeichert.</div>`;
+  renderSpell();$("sum").scrollTop=0;push({v:"sum"});
+}
+$("sumFlow").addEventListener("input",e=>{
+  const id=e.target.id;
+  if(id==="fNach"){state.nachname=e.target.value;renderSpell()}
+  else if(id==="fVor"){state.vorname=e.target.value;renderSpell()}
+  else if(id==="fPatNr")state.patNr=e.target.value;
+  else if(id==="fNefNr"){state.nefNr=e.target.value;try{localStorage.setItem("pzc_nef",state.nefNr)}catch(_){}}
+});
 function savePanel(){
   const answers=Object.keys(sk).filter(k=>k!=="sb"&&sk[k].v).map(k=>[sk[k].l,sk[k].v]);
-  const note=$("note").value.trim();
-  saveEntry({sb:sk.sb?SBD[sk.sb].n:"",answers,note});
+  const nm=[state.nachname.trim(),state.vorname.trim()].filter(Boolean).join(", ");
+  saveEntry({sb:sk.sb?SBD[sk.sb].n:"",answers,note:state.note||"",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim()});
   stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();
 }
 document.querySelectorAll(".sxb").forEach(b=>b.onclick=()=>{
   state.sex=state.sex===b.dataset.sx?null:b.dataset.sx;
   document.querySelectorAll(".sxb").forEach(x=>x.classList.toggle("on",x.dataset.sx===state.sex));render();});
 $("goSK").onclick=openPanel;
-$("pSave").onclick=savePanel;
-document.addEventListener("click",e=>{if(e.target.id==="pSave2")savePanel()});
+$("pNextTop").onclick=openSummary;
+document.addEventListener("click",e=>{if(e.target.id==="pNext")openSummary();if(e.target.id==="sSave")savePanel()});
 renderArc();
 $("scrim").onclick=goBack;
 
@@ -1001,29 +1078,47 @@ function loadTess(){
     sc.onload=res;sc.onerror=()=>{tessP=null;rej(new Error("offline"))};document.head.appendChild(sc);
   }));
 }
-const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesundheit|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b)/i;
+const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesundheit|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b|bundesrepublik|personalausweis|identity|ausweis|staatsangeh|nationality|surname|given|vornamen|geburtsname|geburtsort|place of|date of|sex|geschlecht|signature|unterschrift|augenfarbe|gr[oö][sß]e|height|anschrift|address|behoerde|authority)/i;
+const titleCase=t=>t&&t===t.toUpperCase()?t.toLowerCase().replace(/(^|[\s\-'’])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):t;
 function parseCard(text){
   const lines=text.split(/\n+/).map(l=>l.replace(/[|_\\]+/g," ").trim()).filter(l=>l.length>1);
-  let dob="",dIdx=-1;
   const now=new Date().getFullYear();
+  let dob="",dIdx=-1,sex="",first="",last="";
+  const okDate=(d,mo,y)=>d>=1&&d<=31&&mo>=1&&mo<=12&&y>=1900&&y<=now;
+  const pad=n=>String(n).padStart(2,"0");
   lines.forEach((l,i)=>{
     if(dob)return;
     const m=l.replace(/[Oo]/g,"0").match(/(\d{1,2})\s*[.,:]\s*(\d{1,2})\s*[.,:]\s*(\d{4})/);
-    if(m){const d=+m[1],mo=+m[2],y=+m[3];if(d>=1&&d<=31&&mo>=1&&mo<=12&&y>=1900&&y<=now){dob=`${String(d).padStart(2,"0")}.${String(mo).padStart(2,"0")}.${y}`;dIdx=i}}
+    if(m&&okDate(+m[1],+m[2],+m[3])){dob=`${pad(+m[1])}.${pad(+m[2])}.${m[3]}`;dIdx=i}
   });
-  const cand=[];
+  const alpha=l=>/^[A-Za-zÄÖÜäöüß'’\-. ]{2,}$/.test(l)&&!NOTNAME.test(l);
+  const nextVal=i=>{for(let k=i+1;k<Math.min(lines.length,i+3);k++)if(alpha(lines[k]))return lines[k];return ""};
+  // Personalausweis: Beschriftungen
   lines.forEach((l,i)=>{
-    if(/\d/.test(l)||NOTNAME.test(l))return;
-    const parts=l.split(/\s+/);
-    if(parts.every(x=>/^[A-Za-zÄÖÜäöüß'’\-.]{2,}$/.test(x))&&l.length<=40)cand.push({i,l});
+    if(!last&&/^(name|nachname|familienname)\b|^surname\b/i.test(l)&&!/vornamen|given/i.test(l))last=nextVal(i);
+    if(!first&&/(vornamen|given\s*names?)/i.test(l))first=nextVal(i);
   });
-  let name="";
-  if(cand.length){
-    const ref=dIdx>=0?dIdx:Math.floor(lines.length/2);
-    cand.sort((a,b)=>Math.abs(a.i-ref)-Math.abs(b.i-ref));
-    name=cand.slice(0,2).sort((a,b)=>a.i-b.i).map(x=>x.l).join(" ");
+  const raw=text.split(/\n+/).map(l=>l.trim()).filter(Boolean);
+  raw.forEach((l,i)=>{
+    if(!sex&&/(geschlecht|\bsex\b)/i.test(l)){const m=(l+" "+(raw[i+1]||"")).match(/(?:^|\s)([MFW])(?:\s|\/|$)/);if(m)sex=m[1]==="M"?"M":"W"}
+  });
+  // Ausweis-Rückseite (maschinenlesbare Zeilen) als Reserve
+  if(!dob||!sex){
+    const m=text.replace(/\s/g,"").match(/(\d{2})(\d{2})(\d{2})\d([MF<])\d{6}/);
+    if(m){const yy=+m[1],y=yy>now%100?1900+yy:2000+yy;if(!dob&&okDate(+m[3],+m[2],y))dob=`${pad(+m[3])}.${pad(+m[2])}.${y}`;if(!sex&&m[4]!=="<")sex=m[4]==="M"?"M":"W"}
   }
-  return {name,dob};
+  // Krankenversichertenkarte: Namenszeilen
+  if(!last){
+    const cand=[];
+    lines.forEach((l,i)=>{if(/\d/.test(l)||!alpha(l)||l.length>40)return;cand.push({i,l})});
+    if(cand.length){
+      const ref=dIdx>=0?dIdx:Math.floor(lines.length/2);
+      cand.sort((a,b)=>Math.abs(a.i-ref)-Math.abs(b.i-ref));
+      const pick=cand.slice(0,2).sort((a,b)=>a.i-b.i).map(x=>x.l);
+      if(pick.length===2){first=pick[0];last=pick[1]}else last=pick[0];
+    }
+  }
+  return {first:titleCase(first),last:titleCase(last),dob,sex};
 }
 async function prepImage(file){
   const bmp=await createImageBitmap(file);
@@ -1043,23 +1138,36 @@ async function scanCard(file){
     const {data}=await Tesseract.recognize(cv,"deu",{logger:m=>{
       if(m.status==="recognizing text"){$("scanMsg").textContent="Text wird erkannt";$("scanBar").style.width=Math.round(m.progress*100)+"%"}}});
     const r=parseCard(data.text||"");
-    openModal(`<h2>Karte gelesen</h2><div class="vv">Bitte kurz prüfen und bei Bedarf korrigieren</div>
-      <div class="fld"><label>Name</label><input class="inp" id="scName" value="${esc(r.name)}" placeholder="Name"></div>
+    let msex=r.sex||state.sex||"";
+    openModal(`<h2>Gelesen – bitte prüfen</h2><div class="vv">Bei Bedarf korrigieren</div>
+      <div class="fld"><label>Nachname</label><input class="inp" id="scLast" value="${esc(r.last)}"></div>
+      <div class="fld"><label>Vorname</label><input class="inp" id="scFirst" value="${esc(r.first)}"></div>
       <div class="fld"><label>Geburtsdatum (TT.MM.JJJJ)</label><input class="inp" id="scDob" inputmode="decimal" value="${esc(r.dob)}" placeholder="TT.MM.JJJJ"></div>
-      <div class="warn">Der Name wird nur für die Übermittlung am Ende verwendet und nicht im Archiv gespeichert. Aus dem Geburtsdatum wird nur das Alter übernommen.</div>
+      <div class="fld"><label>Geschlecht</label><div class="sx"><button class="sxb ${msex==="M"?"on":""}" data-ms="M">M</button><button class="sxb ${msex==="W"?"on":""}" data-ms="W">W</button></div></div>
+      <div class="warn">Bleibt auf diesem Gerät. Aus dem Geburtsdatum wird das Alter berechnet; der Name erscheint in der Zusammenfassung buchstabiert und wird mit dem Einsatz im Archiv gespeichert.</div>
       <details><summary class="warn">Erkannter Text anzeigen</summary><div class="raw">${esc(data.text||"")}</div></details>
       <div class="acts" style="grid-template-columns:1fr 1fr"><button class="btn sec" id="scNo">Abbrechen</button><button class="btn" id="scOk">Übernehmen</button></div>`);
+    $("modal").querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>{msex=msex===b.dataset.ms?"":b.dataset.ms;$("modal").querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms===msex))});
     $("scNo").onclick=closeModal;
     $("scOk").onclick=()=>{
-      state.patName=$("scName").value.trim();
+      state.nachname=$("scLast").value.trim();state.vorname=$("scFirst").value.trim();
       const dob=$("scDob").value.trim();if(dob){const y=$("year");y.value=dob;y.dispatchEvent(new Event("input"))}
-      closeModal();
+      if(msex&&state.sex!==msex)document.querySelector(`.sxb[data-sx="${msex}"]`).click();
+      refreshScanRes();closeModal();
     };
   }catch(err){
     openModal(`<h2>Scan nicht möglich</h2><div class="vv">${err&&err.message==="offline"?"Für den ersten Scan wird Internet gebraucht, um die Texterkennung zu laden. Danach geht es meist auch ohne.":"Das Bild konnte nicht gelesen werden. Besser beleuchten, Karte flach und gerade fotografieren – oder Daten von Hand eingeben."}</div><button class="btn" style="width:100%;margin-top:12px" id="scX">OK</button>`);
     $("scX").onclick=closeModal;
   }
 }
+function refreshScanRes(){
+  const el=$("scanRes"),n=[state.vorname,state.nachname].filter(Boolean).join(" ");
+  if(!n&&state.age==null){el.classList.add("hidden");return}
+  el.classList.remove("hidden");
+  el.innerHTML=`<span>✓ ${esc(n||"Alter übernommen")}${state.age!=null?" · "+state.age+" J.":""}</span><button id="scanClear" aria-label="Entfernen">✕</button>`;
+}
+$("scanRes").addEventListener("click",e=>{if(e.target.id==="scanClear"){state.vorname=state.nachname="";const y=$("year");y.value="";y.dispatchEvent(new Event("input"));refreshScanRes()}});
+$("scanHome").onclick=()=>$("scanFile").click();
 $("scanBtn").onclick=()=>$("scanFile").click();
 $("scanFile").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
 
