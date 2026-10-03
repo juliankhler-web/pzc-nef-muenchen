@@ -149,6 +149,27 @@ textarea.inp{min-height:84px;resize:vertical}
 .arc .row{display:flex;gap:8px;margin-top:8px}
 .mini{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:700;font-size:13px}
 .mini.del{color:var(--d1)}
+.ver{border:0;background:none;color:var(--mute);font-size:12px;font-weight:700;padding:6px 0;text-decoration:underline}
+.mscrim{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.mscrim.open{display:flex}
+.modal{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
+.modal h2{margin:0 0 4px;font-size:22px}
+.modal .vv{color:var(--mute);font-size:13px;margin-bottom:12px}
+.modal h3{margin:14px 0 4px;font-size:15px}
+.modal ul{margin:0;padding-left:20px}.modal li{margin:4px 0}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.tile{position:relative;background:var(--card);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:14px;padding:14px 12px;min-height:72px;cursor:pointer;touch-action:manipulation}
+.tile b{display:block;font-size:17px;line-height:1.2}
+.tile small{display:block;color:var(--mute);font-size:12px;margin-top:3px}
+.tile .cnt{position:absolute;right:10px;top:8px;font-style:normal;font-size:12px;font-weight:800;color:var(--mute)}
+.tile .x{display:none;position:absolute;right:-6px;top:-6px;width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);background:var(--d1);color:#fff;font-size:16px;font-weight:800;padding:0}
+.tiles.edit .tile{animation:wig .35s infinite alternate;touch-action:none}
+.tiles.edit .tile .x{display:block}
+.tiles.edit .tile .cnt{display:none}
+.tile.drag{animation:none!important;z-index:30;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:.95;transform:scale(1.04)}
+@keyframes wig{from{transform:rotate(-.8deg)}to{transform:rotate(.8deg)}}
+.hint{display:block;font-size:12px;color:var(--mute);font-weight:600;margin-top:2px}
+.sugg{margin:10px 0 0}
 .hidden{display:none!important}
 </style>
 </head>
@@ -159,7 +180,7 @@ textarea.inp{min-height:84px;resize:vertical}
   <button class="nb sm hidden" id="nFwd">›</button>
 </div>
 <div class="wrap">
-  <div class="top"><h1>PZC · NEF München</h1><button class="theme" id="themeBtn">◐ Auto</button></div>
+  <div class="top"><h1>PZC · NEF München <button class="ver" id="verBtn"></button></h1><button class="theme" id="themeBtn">◐ Auto</button></div>
   <div class="tabs">
     <button class="tab on" id="tabMain">PZC finden</button>
     <button class="tab" id="tabArc">Archiv <span id="arcCount"></span></button>
@@ -177,11 +198,13 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
   <!-- 1 PZC -->
   <div class="lbl"><span><span class="step">1</span>PZC · Was ist los?</span></div>
-  <input class="search" id="q" type="search" placeholder="Suche: Name oder Code (z. B. STEMI, 332, Krampf)" autocomplete="off">
+  <input class="search" id="q" type="search" placeholder="Suchen: Herzinfarkt, Krampf, Unterzucker, 332 …" autocomplete="off">
 
+  <div class="chips sugg" id="sugg"></div>
   <div id="home" style="margin-top:12px">
-    <div class="lbl">Häufig</div>
-    <div class="quick" id="quick"></div>
+    <div class="lbl"><span>Häufig · passt sich dem Archiv an</span><span id="tileCtl"></span></div>
+    <div class="tiles" id="quick"></div>
+    <div class="warn" id="tileHint">Gedrückt halten zum Verschieben oder Entfernen</div>
     <div class="lbl" style="margin-top:18px">Alle Kategorien</div>
     <div class="cats" id="cats"></div>
   </div>
@@ -203,6 +226,7 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="flow" id="flow"></div>
 </div>
 
+<div class="mscrim" id="mscrim"><div class="modal" id="modal"></div></div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet">
   <h2 id="sTitle"></h2>
@@ -349,6 +373,27 @@ const IV=[
 ];
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
+/* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
+const APP_VERSION="1.2";
+const CHANGELOG=[
+ {v:"1.2",d:"03.10.2026",items:[
+  "Häufig-Kacheln passen sich automatisch an: was du oft ins Archiv speicherst, rutscht nach oben (mit Zähler ×)",
+  "Gedrückt halten → Kacheln verschieben oder mit ✕ entfernen, „Zurücksetzen“ stellt alles wieder her",
+  "Suche versteht Beschwerden und Wortformen: z. B. „angeschwollener Fuß“, „Arm taub“, „Bauch tut weh“",
+  "Viele weitere Alltagsbegriffe hinzugefügt"]},
+ {v:"1.1",d:"03.10.2026",items:[
+  "Suche versteht jetzt Alltagsbegriffe: z. B. Herzinfarkt, Krampf, Unterzucker, Sturz, Blutvergiftung, Apoplex → richtiger Code",
+  "Mehrere Wörter möglich (z. B. „Kind Krampf“), Tippfehler werden verziehen",
+  "Unter dem Treffer steht, über welchen Begriff er gefunden wurde",
+  "Schnell-Begriffe unter der Suche zum Antippen"]},
+ {v:"1.0",d:"03.10.2026",items:[
+  "PZC finden: Geschlecht, Code, Alter, Dringlichkeit – Anzeige unten live",
+  "SK-1-Anmeldung Schritt für Schritt inkl. IVENA-Abfrage und Zusatzdaten",
+  "EKG-Schnellwahl (ST-Hebung/-Senkung, V1–V6)",
+  "Notizen und Archiv mit Datum und Uhrzeit",
+  "Dunkelmodus, große Zurück-/Start-Taste, Wischen für Zurück/Vor",
+  "Offline nutzbar"]}
+];
 const $=id=>document.getElementById(id);
 const state={sex:null,age:null,code:null,urg:null,cat:null};
 const NOW=new Date().getFullYear();
@@ -384,19 +429,331 @@ const unk=document.createElement("button");unk.className="chip";unk.textContent=
 unk.onclick=()=>{$("year").focus()};
 $("ageChips").appendChild(unk);
 
+/* ---- Suchbegriffe: Alltags- und Fachbegriffe -> Codes (Vorschläge, bitte prüfen) ---- */
+const R=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
+const SYN=[
+ [[131],"Reanimation; Rea; CPR; Herzstillstand; Kreislaufstillstand; Herzdruckmassage; Wiederbelebung; Defi; Reanimiert; Arrest; Puls weg"],
+ [[132],"ROSC; nach Reanimation; Kreislauf zurück; Post-Rea; wieder Puls"],
+ [[133],"Rea nach Unfall; Reanimation Unfall; traumatischer Herzstillstand; Trauma Herzstillstand"],
+ [[134],"Hypothermie Reanimation; Unterkühlung Rea; Kälte Herzstillstand"],
+ [R(140,143),"ECMO; ECLS; Lungenersatz; Herz-Lungen-Maschine; Kunstlunge"],
+ [[144,145],"eCPR; ECMO Reanimation; Rea ECMO"],
+ [[211],"Polytrauma; Schwerverletzt; Mehrfachverletzt; Verkehrsunfall; VU; Kopfverletzung schwer; Unfall; Schädel-Hirn"],
+ [[212],"Polytrauma; Schwerverletzt; Mehrfachverletzt; Verkehrsunfall; VU; Unfall"],
+ [[213],"Schockraum; Hochrasanz; Rasanztrauma; Unfallmechanismus; Sturz aus Höhe; Überschlag; Fußgänger angefahren; Verkehrsunfall; Unfall; Sturz; Absturz; Motorradunfall"],
+ [[214],"Mehrfachverletzung; mehrere Verletzungen; Unfall"],
+ [[221],"SHT; Schädel-Hirn-Trauma; Schädelfraktur; Schädelbruch; Kopfplatzwunde offen; Schädel; Kopfverletzung; Sturz Kopf; Unfall"],
+ [[222],"SHT; Gehirnerschütterung; Commotio; Kopfprall; Kopf angeschlagen; Schädelprellung; Sturz Kopf; Sturz; Kopf"],
+ [[223],"Gesicht; Nasenbein; Kiefer; Jochbein; Gesichtsfraktur; Platzwunde Gesicht; Nase gebrochen; Schlägerei"],
+ [[224],"Kopf; Platzwunde; Kopfplatzwunde; Schädel; Sturz Kopf"],
+ [[225],"Auge; Augenverletzung; Fremdkörper Auge; Auge verletzt"],
+ [[231],"Thorax; Stich Brust; Messerstich; Schuss Brust; Schussverletzung; Pfählung; penetrierend; Stichverletzung"],
+ [[232],"Rippenbruch; Rippenserienfraktur; Thoraxprellung; Brustkorb; Rippen; Brustkorbprellung; Sturz Rippen"],
+ [[233],"Pneumothorax; Lungenkollaps; Thoraxtrauma; Luft im Brustkorb"],
+ [[241],"Stich Bauch; Messerstich; Schuss Bauch; Bauchverletzung; Stichverletzung; Schussverletzung"],
+ [[242],"Bauchtrauma; Milzruptur; Leberruptur; stumpfes Bauchtrauma; Lenkerende; Bauch Unfall"],
+ [[243],"akutes Abdomen; Bauchschmerzen; Peritonitis; Darmverschluss; Ileus; Blinddarm; Appendizitis; Gallenkolik; Perforation; harter Bauch"],
+ [[251],"Querschnitt; Wirbelsäule; Lähmung nach Unfall; Wirbelbruch; WS-Fraktur; Taubheit nach Unfall"],
+ [[252],"Wirbelsäule; Wirbelbruch; HWS; BWS; LWS; Wirbelfraktur; Nacken; Genick; Sturz Rücken"],
+ [[253],"Rückenschmerzen; Bandscheibe; Bandscheibenvorfall; Ischias; Lähmung; Taubheit; Cauda; Beine taub"],
+ [[254],"Rückenschmerzen; Hexenschuss; Lumbago; Rücken; Kreuzschmerzen"],
+ [[255],"Querschnitt; Lähmung; Paraplegie; Tetraplegie; Beine gelähmt"],
+ [[261],"Becken offen; Beckenfraktur offen"],
+ [[262],"Beckenfraktur; Beckenbruch; Becken; Beckenprellung"],
+ [[263],"Genital; Hodentrauma; Urogenital; Penis; Harnröhre; Intimbereich"],
+ [[271],"offene Fraktur; Knochen sichtbar; Unterschenkel offen; offener Bruch; Splitter"],
+ [[272],"Fraktur; Knochenbruch; Bruch; Arm; Bein; Unterschenkel; Oberarm; Sprunggelenk; Verstauchung; Luxation; Schulter; ausgekugelt; Handgelenk; Sturz; Fahrradsturz"],
+ [[273],"Hüfte; Schenkelhals; Oberschenkelhals; Hüftfraktur; Sturz Senior; Oberschenkel; Sturz; gestürzt; Oma gestürzt"],
+ [[274],"Gefäßverletzung; Nervenverletzung; Durchblutungsstörung Extremität; pulslos; DMS; Bein kalt nach Unfall"],
+ [[275],"Hand; Handverletzung; Quetschung Hand; Platzwunde Hand; Schnittwunde Hand"],
+ [[276],"Finger; Fingeramputation; abgetrennter Finger; Daumen; Fingerkuppe"],
+ [[277],"Amputation; abgetrennt; Replantation; Hand abgetrennt; Arm abgetrennt; Bein abgetrennt"],
+ [[281],"Verbrennung; Verbrühung; Feuer; Brand; heißes Wasser; Fett; Explosion; Flamme; Wohnungsbrand; Grill"],
+ [[282],"Verätzung; Säure; Lauge; Chemie; Reiniger"],
+ [[283],"Stromunfall; Hochspannung; Strom; Blitz; Bahn; Oberleitung; Trafo; Blitzschlag; Starkstrom"],
+ [[284],"Tauchunfall; Taucher; Dekompression; Barotrauma; Caisson; Druckkammer"],
+ [[285],"Strahlung; radioaktiv; Strahlentrauma; Röntgen"],
+ [[286],"Hitzschlag; Sonnenstich; Hitze; Überhitzung; Hitzeerschöpfung; zu heiß; Sonne"],
+ [[287],"Unterkühlung; Erfrierung; Kälte; Hypothermie; Obdachlos kalt; erfroren; Frost"],
+ [[288],"Ertrinken; Badeunfall; Wasser; Beinahe-Ertrinken; See; Isar; Schwimmbad; untergegangen; Wasserrettung"],
+ [[291],"Bauchaortenaneurysma; BAA; Aneurysma; Aorta; Aortenruptur; Aorta Bauch"],
+ [[292],"Arterienverschluss; Embolie Bein; kaltes Bein; Extremitätenischämie; blasses Bein; Beinschmerz; Durchblutung Arm; Arm kalt"],
+ [[293],"Aortendissektion; Aorta; Dissektion; Stanford A; reißender Schmerz; Vernichtungsschmerz"],
+ [[299],"Gefäß; Gefäßchirurgie; Blutung Gefäß; Shunt; Krampfader; Varize; Dialyseshunt Blutung"],
+ [[311],"Atemnot; Luftnot; Kurzatmigkeit; Dyspnoe; Atembeschwerden; ARI; Sauerstoff; schwer Luft; keine Luft; Sättigung niedrig; SpO2"],
+ [[312],"Asthma; COPD; Obstruktion; Pfeifen; Bronchospastik; Spray; Asthmaanfall; Giemen"],
+ [[313],"Bluthusten; Hämoptoe; Hämoptyse; Blut gehustet"],
+ [[314],"Aspiration; Verschlucken; Bolus; Erstickung; Fremdkörper Atemweg; verschluckt; Würgen; Bolusgeschehen; Erstickungsanfall; Heimlich"],
+ [[315],"Pneumonie; Lungenentzündung; Bronchitis; Husten; Fieber Husten; Erkältung; Infekt Atemwege"],
+ [[316],"Hyperventilation; Panikattacke; Angstattacke; Schnellatmung; Panik; Angst"],
+ [[317],"Lungenödem; Wasser in der Lunge; Rasselgeräusche; Lunge nass"],
+ [[318],"Pneumothorax; Lungenkollaps; Spontanpneumothorax; stechender Schmerz Atmung; Lunge kollabiert"],
+ [[319],"Atem; Lunge; Pneumologie; Lungenerkrankung"],
+ [[321],"Anaphylaxie; allergischer Schock; Allergie; Wespenstich; Bienenstich; Quaddeln; Insektenstich; Nussallergie; allergische Reaktion; Quincke; Schwellung Zunge; Schwellung Gesicht; Urtikaria"],
+ [[322],"Synkope; Kollaps; Ohnmacht; bewusstlos kurz; umgekippt; Sturz Bewusstlosigkeit; Kreislaufkollaps; schwarz vor Augen; zusammengebrochen; Schwächeanfall"],
+ [[323],"Hypotonie; niedriger Blutdruck; Blutdruck niedrig; RR niedrig; Kreislauf schwach; Blutdruckabfall"],
+ [[324],"Thrombose; Beinvenenthrombose; TVT; geschwollenes Bein; Bein dick"],
+ [[325],"Fieber; unklares Fieber; Temperatur; Schüttelfrost"],
+ [[326],"Exsikkose; Dehydratation; ausgetrocknet; Durst; Flüssigkeitsmangel; zu wenig getrunken"],
+ [[329],"Internistischer Notfall; Innere; sonstiger internistischer; Schwäche; Allgemeinzustand; AZ-Verschlechterung"],
+ [[331],"Brustschmerz; Thoraxschmerz; Engegefühl; AP; Angina pectoris; Druck auf der Brust; Herzschmerz; Herz; Brustenge; Schmerz Brust; Brustschmerzen"],
+ [[332],"STEMI; Herzinfarkt; Infarkt; OMI; ST-Hebung; Vorderwandinfarkt; Hinterwandinfarkt; PCI; Herzkatheter; Myokardinfarkt; akutes Koronarsyndrom; ACS; Herzattacke"],
+ [[333],"NSTEMI; instabile AP; Infarkt; Troponin; ACS; Herzinfarkt; Koronarsyndrom; ST-Senkung; Angina pectoris"],
+ [[341],"Arrhythmie; Herzrhythmusstörung; unregelmäßiger Puls; Vorhofflimmern; Extrasystolen; Herzstolpern; Flimmern; Rhythmusstörung; absolute Arrhythmie"],
+ [[342],"Bradykardie; langsamer Puls; AV-Block; Puls niedrig; Herz langsam"],
+ [[343],"Tachykardie; schneller Puls; Herzrasen; SVT; Kammertachykardie; VT; Puls hoch; Herz rast"],
+ [[344],"Stromunfall Schwachstrom; Elektrounfall; Steckdose; Haushaltsstrom; Stromschlag; Strom"],
+ [[345],"Hypertensive Krise; Bluthochdruck; hoher Blutdruck; Hypertonie; RR hoch; Hochdruck; Blutdruck zu hoch"],
+ [[346],"Kardiogener Schock; Pumpversagen; Schock Herz; Herzschock"],
+ [[347],"Herzinsuffizienz; Herzschwäche; Wasser in den Beinen; Dekompensation; dekompensiert; Beinödeme"],
+ [[348],"Lungenembolie; LAE; Embolie; plötzliche Atemnot; Thrombembolie"],
+ [[349],"Herz; Kardiologie; Schrittmacher; ICD; Defibrillator ausgelöst; Schock ICD"],
+ [[351],"GI-Blutung; Magenblutung; Blut erbrochen; Bluterbrechen; Teerstuhl; Meläna; Kaffeesatz; Hämatemesis; Darmblutung; Blut im Stuhl; Ösophagusvarizen; Magengeschwür; Blutstuhl; Erbrechen Blut"],
+ [[353],"Bauchschmerzen; Bauchweh; Bauch; Kolik; Krämpfe; Magenschmerzen; Bauchkrämpfe"],
+ [[354],"Gastroenteritis; Durchfall; Erbrechen; Magen-Darm; Übelkeit; Brechdurchfall; Magen-Darm-Infekt; Kotzen"],
+ [[359],"Magen; Darm; Leber; Gallenblase; Pankreas; Gastro; Verstopfung"],
+ [[360],"Rauchgas; Reizgas; Brandrauch; Rauchvergiftung; Pfefferspray; Tränengas; Reizstoff; Chlor; Rauch"],
+ [[361],"Alkohol; betrunken; Alkoholvergiftung; Promille; Rausch; Alkoholintoxikation; Entzug; Alkoholentzug; blau; besoffen"],
+ [[362],"Drogen; Rauschgift; Heroin; Kokain; Opioid; Überdosis; Cannabis; Ecstasy; Amphetamin; Crystal; Fentanyl; Spritze; GHB; Ketamin; Mischkonsum; Koks"],
+ [[363],"Vergiftung; Intoxikation; Gift; Ingestion; Chemikalie getrunken"],
+ [[364],"Lebensmittelvergiftung; Pilze; Pilzvergiftung; Fischvergiftung; Verdorbenes; schlechtes Essen"],
+ [[365],"Medikamente; Tabletten; Überdosis Tabletten; Medikamentenvergiftung; Schlaftabletten; Paracetamol; Tablettenintoxikation; Suizid Tabletten; Medikamentenüberdosis"],
+ [[366],"Pflanzenschutzmittel; Insektizid; Pestizid; Herbizid; Gartengift; E605"],
+ [[367],"Schlangenbiss; Biss; Spinne; Tiergift; Zecke; Skorpion; Qualle; Giftiges Tier"],
+ [[368],"Giftpflanzen; Pflanze gegessen; Beeren; Tollkirsche; Eibe; Engelstrompete"],
+ [[369],"Inhalation; Gas; Dämpfe; Lösungsmittel; Gasaustritt; Lösemittel"],
+ [[370],"Kohlenmonoxid; CO; CO-Vergiftung; Gasheizung; Kamin; Holzkohlegrill; Gastherme; Abgase; CO-Melder"],
+ [[371],"Meningitis; Hirnhautentzündung; Nackensteife; Enzephalitis; Meningokokken; Nackensteifigkeit"],
+ [[372],"TBC; Tuberkulose"],
+ [[373],"Sepsis; Blutvergiftung; Infekt; qSOFA; Urosepsis; Fieber Schock; schwerer Infekt"],
+ [[374],"septischer Schock; Sepsis Schock; Katecholamine Sepsis; Schock Infekt"],
+ [[375],"hochkontagiös; Ebola; Lassa; Sonderisolierung; Isolierstation; Quarantäne; gefährliche Seuche"],
+ [[376,377,378],"Covid; Corona; SARS-CoV-2; Quarantäne; Covid positiv; Corona positiv"],
+ [[379],"Infekt; Infektion; Infektiologie; Norovirus; Grippe; Influenza; Scabies; Krätze; Läuse; ansteckend; MRSA"],
+ [[391],"endokrin; Schilddrüse; Addison; Nebenniere; thyreotoxische Krise; Ketoazidose; Stoffwechsel"],
+ [[392],"Hyperglykämie; Zucker hoch; Diabetes; Blutzucker hoch; Ketoazidose; DKA; Überzuckerung; BZ hoch; Diabetiker"],
+ [[393],"Hypoglykämie; Unterzucker; Unterzuckerung; Zucker niedrig; BZ niedrig; Insulin; Diabetiker bewusstlos; Zucker"],
+ [[411],"Status epilepticus; Krampfanfall anhaltend; Krampf; Epilepsie; Krampfanfall; Anfall; krampft noch; Dauerkrampf"],
+ [[412],"Krampfanfall; Epilepsie; Anfall; Krampf; epileptischer Anfall; Grand mal; postiktal; Krampf vorbei; Krampfanfall vorbei"],
+ [[413],"Kopfschmerz; Migräne; Gesichtsschmerz; Cluster; Trigeminus; Kopfweh"],
+ [[414],"Koma; bewusstlos; Bewusstseinstrübung; Vigilanzminderung; nicht ansprechbar; somnolent; GCS niedrig; soporös; reagiert nicht; bewusstseinsgetrübt"],
+ [[415],"Schwindel; Drehschwindel; Gleichgewicht; Vertigo; schwindelig"],
+ [[419],"Neuro; Neurologie; Lähmung; Guillain-Barré; Parkinson; MS; neurologisch"],
+ [[421],"Schlaganfall; Apoplex; Stroke; Hirnblutung; Hirninfarkt; Halbseitenlähmung; Sprachstörung; Facialisparese; hängender Mundwinkel; TIA; FAST; Insult; ICB; Lysefenster; Lyse; Lähmung; Sehstörung; Hirnschlag"],
+ [[423],"Schlaganfall alt; Stroke älter; Schlaganfall gestern; Schlaganfall vor Tagen; Apoplex alt"],
+ [[425],"Thrombektomie; Gefäßverschluss; LVO; Neuroradiologie; Verschluss Hirnarterie; Stroke Thrombektomie; Katheter Gehirn"],
+ [[431],"Suizid; Selbstmord; Suizidversuch; lebensmüde; Suizidgedanken; Selbstverletzung; Ritzen; Suizidankündigung; will nicht mehr leben"],
+ [[432],"Psychiatrie; Einweisung; psychisch; Psychose; Wahn; Manie; Unterbringung; psychiatrischer Notfall"],
+ [[433],"BayPsychKHG; Zwangseinweisung; Unterbringung; Eigengefährdung; Fremdgefährdung; Polizei Psychiatrie"],
+ [[434],"Fixierung; fixiert; BayPsychKHG; Zwangseinweisung; Gurt; Fixiert Psychiatrie"],
+ [[435],"Delir; Verwirrtheit; verwirrt; Demenz; desorientiert; Alzheimer; Unruhe; Verwirrt Senior; Entzugsdelir"],
+ [[511],"Kind Atemnot; Säugling; Atemnot Kind; Pädiatrie; Baby Atemnot"],
+ [[512],"Pseudokrupp; Krupp; bellender Husten; Kind Husten; Epiglottitis; Stridor"],
+ [[513],"Fieberkrampf; Kind Krampf; Fieber Krampf; Baby Krampf"],
+ [[519],"Kind; Kinder; Pädiatrie; Säugling; Baby; Kleinkind"],
+ [R(521,529),"Geburt; Entbindung; Kind kommt; Presswehen; Geburt Auto; Geburt zu Hause; Geburt laufend; Baby kommt; Schwangere; präklinische Geburt; Frühgeburt"],
+ [R(531,539),"Wehen; einsetzende Geburt; Geburtsbeginn; Wehen regelmäßig; Blasensprung; Schwangere; Fruchtblase"],
+ [R(541,549),"Schwangerschaft; Schwangere Notfall; Blutung Schwangerschaft; Eklampsie; Präeklampsie; HELLP; Krampf Schwangere; Bauchschmerzen schwanger; schwanger"],
+ [[530,540],"fetale Gefährdung; Nabelschnur; Herztöne; CTG; Kind in Gefahr"],
+ [[551],"vaginale Blutung; Blutung gynäkologisch; starke Regelblutung; Periode; Fehlgeburt; Abort; Blutung Frau"],
+ [[552],"Unterbauch; Unterleib; Eierstock; Extrauteringravidität; Bauchschmerzen Frau; Zyste"],
+ [[553],"Sexualdelikt; Vergewaltigung; Missbrauch; sexuelle Gewalt; Übergriff"],
+ [[559],"Gynäkologie; Frau; Frauenarzt; gynäkologisch"],
+ [R(601,605),"Transport; Verlegung; Dialyse; CT; MRT; Herzkatheter geplant; Fahrt; geplanter Transport"],
+ [[701],"Haut; Ausschlag; Hautkrankheit; Geschlechtskrankheit; Abszess; Wunde; Windpocken; Hautausschlag"],
+ [[711],"Nierenkolik; Harnleiterkolik; Nierenstein; Flankenschmerz; Kolik Niere; Nierenschmerzen"],
+ [[712],"Hoden; Hodenschmerz; Hodentorsion; Skrotum"],
+ [[713],"Harnverhalt; Blase voll; kann nicht urinieren; Urinverhalt; kein Wasser lassen"],
+ [[714],"Blut im Urin; Hämaturie; roter Urin"],
+ [[715],"Katheter wechseln; DK-Wechsel; Blasenkatheter wechseln"],
+ [[716],"Katheter wechseln suprapubisch; Blasenfistel; SPK"],
+ [[717],"Katheter verloren; Katheter verstopft; DK; Katheter raus; Katheter dicht"],
+ [[718],"Harnwegsinfekt; HWI; Blasenentzündung; Brennen beim Wasserlassen; Zystitis"],
+ [[719],"Urologie; Niere; Blase; Prostata; urologisch"],
+ [[721],"Auge; Augenerkrankung; rotes Auge; Sehverlust; Sehstörung plötzlich; Glaukom; Augenschmerz; Auge schmerzt"],
+ [[729],"Auge; Augennotfall; Fremdkörper Auge"],
+ [[731],"Nasenbluten; Epistaxis; Nase blutet"],
+ [[732],"Nachblutung; HNO Blutung; Tonsillen; Mandel; Zahnblutung; Blutung Mund; Nachblutung Mandel-OP; Mandel-OP"],
+ [[733],"Tracheostoma; Trachealkanüle; Kanüle; Tracheotomie; Luftröhrenschnitt; Trachealkanüle raus"],
+ [[739],"HNO; Hals; Nase; Ohr; Halsschmerzen; Ohrenschmerzen; Hörsturz; Fremdkörper Ohr; Fremdkörper Nase"],
+ [[749],"Kiefer; Zahn; Zahnschmerzen; Mund; Kieferfraktur; MKG; Zahnabszess; Zahnunfall; Zahn ausgeschlagen"],
+ [[751],"Geriatrie; Senior; alt; Altersheim; Pflegeheim; Einweisung alt; Bewohner Pflegeheim"],
+ [[779],"Sonstiges; unklar; Notfall unklar; nicht zuzuordnen; keine Ahnung; anderes"],
+[[324],"Fuß geschwollen; angeschwollener Fuß; Fuß dick; Knöchel geschwollen; Bein geschwollen; Bein dick; Wade schmerzt; Wadenschmerz; Wade; Bein rot; Bein warm; Fuß rot und warm"],
+ [[347],"Beine geschwollen; Füße geschwollen; Wasser in den Füßen; Knöchelödeme; Ödeme; Beine dick; Gewichtszunahme"],
+ [[272],"Fuß umgeknickt; Knöchel verstaucht; Fuß gebrochen; Fußschmerzen; Fuß geschwollen nach Sturz; Fuß verletzt; Zeh; Zeh gebrochen; Knie; Knieschmerzen; Knie verdreht; Ellenbogen; Handgelenk gebrochen; Arm gebrochen; Bein gebrochen"],
+ [[292],"Fuß kalt; Fuß blau; Fuß blass; Fuß taub; Zeh schwarz; Fuß kalt und schmerzhaft; Bein kalt; Arm kalt und blass"],
+ [[701],"Wundrose; Erysipel; Phlegmone; Fuß entzündet; diabetischer Fuß; offene Stelle am Fuß; Ulcus; Bein offen; Fuß rot; Haut rot; Wunde entzündet; Abszess"],
+ [[321],"Gesicht geschwollen; Lippe geschwollen; Zunge geschwollen; Augenlid geschwollen; Hand geschwollen nach Stich; Hals geschwollen; Schwellung nach Stich; Nesselsucht; juckt am ganzen Körper"],
+ [[421],"Arm taub; Gesicht hängt; Gesicht taub; Sprache verwaschen; lallt; Sprachprobleme; Sehen doppelt; plötzlich schwach; Arm schwach; Bein schwach; kann nicht sprechen; Mundwinkel hängt"],
+ [[331],"Schmerz Arm links; Schmerzen in den linken Arm; Ausstrahlung Arm; Kiefer Schmerz; Beklemmung; Brustdruck; Brust tut weh; Schmerz zwischen Schulterblättern"],
+ [[322],"weggetreten; blass und schwindlig; umgefallen; durchgesackt; Schwächeanfall; Kreislauf weg; zusammengesackt"],
+ [[311],"pfeift; röchelt; Lippen blau; zyanotisch; kann nicht durchatmen; ringt nach Luft; hustet und keucht"],
+ [[351],"schwarzer Stuhl; kotzt Blut; spuckt Blut; Blut im Erbrochenen"],
+ [[353],"Bauch tut weh; Krämpfe im Bauch; Bauch aufgebläht; Blähbauch; Bauch hart; Bauchweh"],
+ [[414],"liegt nur da; reagiert kaum; schwer weckbar; benommen; nicht wach zu bekommen; apathisch; schläfrig"],
+ [[435],"weiß nicht wo er ist; findet nicht nach Hause; durcheinander; redet wirr; Orientierungsstörung; kennt niemanden mehr"],
+ [[393],"zittrig; schwitzt und zittert; Diabetiker verwirrt; Heißhunger"],
+ [[713],"Bauch unten voll; Blase gespannt; kann nicht pinkeln; pinkeln"],
+ [[718],"brennt beim Pinkeln; Blasenentzündung; muss ständig aufs Klo; häufiger Harndrang"],
+ [[286],"zu viel Sonne; Hitzeschlag; Kreislauf Hitze; überhitzt"],
+ [[272],"Sturz auf Hand; Sturz auf Schulter; ausgerenkt"],
+ [[243],"Bauchschmerz heftig; Bauch brettharten; Bauch plötzlich Schmerz"],
+ [[415],"Karussell; dreht sich alles; torkelt; kann nicht stehen"],
+ [[341],"Herz stolpert; Herzklopfen; Puls unregelmäßig"],
+ [[345],"Kopf Druck Blutdruck; RR über 200; Blutdruck sehr hoch"],
+ [[363],"hat etwas getrunken; Reiniger getrunken; Chemikalie geschluckt; Batterie geschluckt"]
+];
+const KW={}; SYN.forEach(([cs,t])=>cs.forEach(c=>{(KW[c]=KW[c]||[]).push(...t.split(";").map(x=>x.trim()).filter(Boolean))}));
+const lev=(a,b)=>{const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]};
+const STOP=new Set(["der","die","das","ein","eine","einen","einem","mit","und","am","im","an","ist","hat","bei","von","zu","zum","zur","nach","auf","in","den","dem","des","sich","nicht","kein","keine","sehr","so","wie","patient","patientin","pat","hat","sind","mein","sein","ihr","sie","er","es"]);
+const fold=s=>s.toLowerCase().replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u").replace(/ß/g,"ss").replace(/ae/g,"a").replace(/oe/g,"o").replace(/ue/g,"u").replace(/schwoll/g,"schwell").replace(/[^a-z0-9+ ]+/g," ").replace(/\s+/g," ").trim();
+const SUF=["ungen","ung","keit","heit","lich","isch","ener","enen","enem","enes","ene","ern","er","en","em","es","e","n","s"];
+const PRE=/^(ange|auf|ge|an|ver|ein|aus|zer)/;
+function stem(w){
+  if(/^\d+$/.test(w)||w.length<=4)return w;
+  for(const x of SUF){if(w.length-x.length>=4&&w.endsWith(x)){w=w.slice(0,-x.length);break}}
+  if(w.length>7&&PRE.test(w)){const y=w.replace(PRE,"");if(y.length>=4)w=y}
+  return w;
+}
+const toWords=s=>fold(s).split(" ").filter(Boolean).map(w=>({raw:w,st:stem(w)}));
+const IDX=D.map(d=>({d,name:toWords(d[1]),terms:(KW[d[0]]||[]).map(t=>({t,ws:toWords(t)}))}));
+function mscore(t,w){
+  if(w.raw===t.raw)return 9;
+  if(w.st===t.st)return 8;
+  if((t.st.length>=3&&w.st.startsWith(t.st))||w.raw.startsWith(t.raw))return 5;
+  if(t.st.length>=5&&w.st.length>=5&&t.st.startsWith(w.st)&&t.st.length-w.st.length<=3)return 4;
+  if(t.raw.length>=4&&w.raw.includes(t.raw))return 3;
+  return 0;
+}
+function search(q){
+  const raw=fold(q).split(" ").filter(Boolean);
+  if(!raw.length)return [];
+  if(raw.length===1&&/^\d+$/.test(raw[0])) return IDX.filter(x=>String(x.d[0]).startsWith(raw[0])).map(x=>({d:x.d}));
+  let toks=raw.filter(w=>!STOP.has(w)).map(w=>({raw:w,st:stem(w)}));
+  if(!toks.length)toks=raw.map(w=>({raw:w,st:stem(w)}));
+  const run=fuzzy=>{
+    const out=[];
+    IDX.forEach(x=>{
+      let total=0;const termCov=x.terms.map(()=>({n:0,sc:0}));let ok=true;
+      for(const t of toks){
+        let best=0;
+        for(const w of x.name){const s=mscore(t,w);if(s)best=Math.max(best,Math.min(s,6))}
+        x.terms.forEach((tm,ti)=>{
+          let tb=0;for(const w of tm.ws){tb=Math.max(tb,mscore(t,w))}
+          if(!tb&&fuzzy&&t.st.length>=4)for(const w of tm.ws)if(Math.abs(w.st.length-t.st.length)<=2&&lev(w.st,t.st)<=(t.st.length>=7?2:1)){tb=2;break}
+          if(tb){termCov[ti].n++;termCov[ti].sc+=tb;best=Math.max(best,tb)}
+        });
+        if(!best&&fuzzy&&t.st.length>=4)for(const w of x.name)if(Math.abs(w.st.length-t.st.length)<=2&&lev(w.st,t.st)<=(t.st.length>=7?2:1)){best=2;break}
+        if(!best){ok=false;break}
+        total+=best;
+      }
+      if(!ok)return;
+      let hint=null,hb=-1;
+      termCov.forEach((c,i)=>{const v=c.n*100+c.sc;if(c.n&&v>hb){hb=v;hint=x.terms[i].t}});
+      const maxCov=Math.max(0,...termCov.map(c=>c.n));
+      if(maxCov>1)total+=maxCov*4;
+      out.push({d:x.d,score:total,hint});
+    });
+    return out.sort((a,b)=>b.score-a.score||a.d[0]-b.d[0]);
+  };
+  let r=run(false); if(!r.length)r=run(true); return r;
+}
+
 /* ---- Rendering ---- */
+
+/* ---- Häufig-Kacheln: automatisch nach Archiv, per Gedrückthalten verschieb- und entfernbar ---- */
+const TT=Object.fromEntries(QUICK.map(([c,t])=>[c,t]));
+const catColor=c=>(CATS.find(k=>k.f(c))||{c:"#888"}).c;
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(_){return d}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+let pins=lsGet("pzc_pins",{}), hidden=lsGet("pzc_hidden",[]), editMode=false;
+const NTILES=12;
+function usage(){
+  const cnt={};
+  (lsGet("pzc_archiv_v1",[])).forEach(e=>{const c=e.code||+((String(e.pzc).match(/(\d{3})\//)||[])[1]);if(c&&byCode[c])cnt[c]=(cnt[c]||0)+1});
+  return cnt;
+}
+function tileCodes(cnt){
+  const def=QUICK.map(q=>q[0]);
+  const score=c=>(cnt[c]||0)*1000+(def.includes(c)?100-def.indexOf(c):0);
+  const cands=[...new Set([...Object.keys(cnt).map(Number),...def])].filter(c=>!hidden.includes(c)).sort((a,b)=>score(b)-score(a));
+  const slots=Array(NTILES).fill(null);
+  Object.entries(pins).forEach(([c,i])=>{c=+c;if(!hidden.includes(c)&&byCode[c]&&i<NTILES&&slots[i]==null)slots[i]=c});
+  const pinned=new Set(slots.filter(Boolean)), rest=cands.filter(c=>!pinned.has(c));
+  for(let i=0;i<NTILES;i++)if(slots[i]==null)slots[i]=rest.shift()??null;
+  return slots.filter(Boolean);
+}
+function renderTiles(){
+  const cnt=usage(), codes=tileCodes(cnt), g=$("quick");
+  g.classList.toggle("edit",editMode);
+  g.innerHTML=codes.map(c=>`<div class="tile" data-c="${c}" style="--c:${catColor(c)}"><b>${esc(TT[c]||byCode[c][1].slice(0,40))}</b><small>${c} · ${esc(byCode[c][1].slice(0,46))}</small>${cnt[c]?`<i class="cnt">×${cnt[c]}</i>`:""}<button class="x" data-x="${c}" aria-label="Entfernen">✕</button></div>`).join("");
+  $("tileCtl").innerHTML=editMode?'<button class="mini" id="tileReset">Zurücksetzen</button> <button class="mini" id="tileDone">Fertig</button>':"";
+  $("tileHint").classList.toggle("hidden",editMode);
+}
+function setEdit(on){editMode=on;renderTiles()}
+document.addEventListener("click",e=>{
+  if(e.target.id==="tileDone"){setEdit(false);return}
+  if(e.target.id==="tileReset"){pins={};hidden=[];lsSet("pzc_pins",pins);lsSet("pzc_hidden",hidden);renderTiles();return}
+  const x=e.target.closest("[data-x]");
+  if(x){e.stopPropagation();const c=+x.dataset.x;hidden=[...hidden,c];delete pins[c];lsSet("pzc_hidden",hidden);lsSet("pzc_pins",pins);renderTiles();return}
+  if(editMode&&e.target.closest(".tile")){e.stopPropagation();return}
+},true);
+/* Gedrückt halten = Bearbeiten + Ziehen */
+(function(){
+  const g=$("quick");let timer=null,drag=null,sx=0,sy=0,moved=false,suppress=false;
+  const tiles=()=>[...g.querySelectorAll(".tile")];
+  g.addEventListener("contextmenu",e=>e.preventDefault());
+  g.addEventListener("pointerdown",e=>{
+    const t=e.target.closest(".tile");if(!t||e.target.closest(".x"))return;
+    sx=e.clientX;sy=e.clientY;moved=false;
+    const start=()=>{
+      if(!editMode){editMode=true;g.classList.add("edit");$("tileCtl").innerHTML='<button class="mini" id="tileReset">Zurücksetzen</button> <button class="mini" id="tileDone">Fertig</button>';$("tileHint").classList.add("hidden")}
+      drag={el:t,code:+t.dataset.c};t.classList.add("drag");
+      try{t.setPointerCapture(e.pointerId)}catch(_){}
+      if(navigator.vibrate)navigator.vibrate(15);
+    };
+    if(editMode){start()}else{timer=setTimeout(start,450)}
+  });
+  g.addEventListener("pointermove",e=>{
+    if(timer&&(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)){clearTimeout(timer);timer=null}
+    if(!drag)return;moved=true;
+    const r0=drag.el.getBoundingClientRect();
+    drag.el.style.transform=`translate(${e.clientX-sx}px,${e.clientY-sy}px) scale(1.04)`;
+    const over=tiles().find(t=>t!==drag.el&&(()=>{const r=t.getBoundingClientRect();return e.clientX>r.left&&e.clientX<r.right&&e.clientY>r.top&&e.clientY<r.bottom})());
+    if(over){
+      const list=tiles(),from=list.indexOf(drag.el),to=list.indexOf(over);
+      const before=to<from;g.insertBefore(drag.el,before?over:over.nextSibling);
+      const r1=drag.el.getBoundingClientRect();sx+=r1.left-r0.left;sy+=r1.top-r0.top; // Tile unter dem Finger halten
+      drag.el.style.transform=`translate(${e.clientX-sx}px,${e.clientY-sy}px) scale(1.04)`;
+    }
+  });
+  const end=()=>{
+    clearTimeout(timer);timer=null;
+    if(drag){
+      const idx=tiles().indexOf(drag.el);pins[drag.code]=idx;
+      lsSet("pzc_pins",pins);drag=null;suppress=true;setTimeout(()=>suppress=false,300);renderTiles();
+    }
+  };
+  g.addEventListener("pointerup",end);g.addEventListener("pointercancel",end);
+  g.addEventListener("touchmove",e=>{if(drag)e.preventDefault()},{passive:false});
+  g.addEventListener("click",e=>{if(suppress){e.stopPropagation();e.preventDefault()}},true);
+})();
+
 const byCode=Object.fromEntries(D.map(d=>[d[0],d]));
 function dots(l){return `<span class="dots">${[1,2,3].map(n=>l.includes(n)?`<i class="dot d${n}"></i>`:`<i class="dot" style="background:var(--line)"></i>`).join("")}</span>`}
-function itemHTML(d){return `<button class="item" data-c="${d[0]}"><span class="n">${d[0]}</span><span class="t">${d[1]}</span>${dots(d[2])}</button>`}
+function itemHTML(d,hint){return `<button class="item" data-c="${d[0]}"><span class="n">${d[0]}</span><span class="t">${d[1]}${hint?`<small class="hint">gefunden über „${esc(hint)}“</small>`:""}</span>${dots(d[2])}</button>`}
 
 function renderHome(){
-  $("quick").innerHTML=QUICK.map(([c,t,k])=>`<button class="q ${k}" data-c="${c}">${t}<small>${c} · ${byCode[c][1]}</small></button>`).join("");
+  $("sugg").innerHTML=["Herzinfarkt","Schlaganfall","Krampf","Unterzucker","Atemnot","Sturz","Verkehrsunfall","Vergiftung","Kollaps","Geburt"].map(t=>`<button class="chip" data-s="${t}">${t}</button>`).join("");
+  renderTiles();
   $("cats").innerHTML=CATS.map(c=>`<button class="cat" style="--c:${c.c}" data-cat="${c.id}">${c.n}<small>${c.s}</small></button>`).join("");
 }
-function showList(items,withSub){
-  if(!items.length){$("list").innerHTML='<div class="empty">Nichts gefunden</div>'}
+function showList(items,withSub,hints){
+  if(!items.length){$("list").innerHTML='<div class="empty">Nichts gefunden – anderes Wort probieren oder über die Kategorien gehen</div>'}
   else{let h="";
-    items.forEach(d=>{ if(withSub&&SUB[d[0]]) h+=`<div class="sub">${SUB[d[0]]}</div>`; h+=itemHTML(d)});
+    items.forEach(d=>{ if(withSub&&SUB[d[0]]) h+=`<div class="sub">${SUB[d[0]]}</div>`; h+=itemHTML(d,hints&&hints[d[0]])});
     $("list").innerHTML=h;}
   push({v:"list"});
 }
@@ -459,13 +816,15 @@ document.addEventListener("click",e=>{
   const cat=e.target.closest("[data-cat]"); if(cat){
     const k=CATS.find(x=>x.id===cat.dataset.cat); state.cat=k;
     showList(D.filter(d=>k.f(d[0])),true); window.scrollTo(0,0); return}
+  const sg=e.target.closest("[data-s]"); if(sg){const q=$("q");q.value=sg.dataset.s;q.dispatchEvent(new Event("input"));return}
   const it=e.target.closest("[data-c]"); if(it){openSheet(+it.dataset.c)}
 });
 $("q").addEventListener("input",e=>{
-  const v=e.target.value.trim().toLowerCase();
+  const v=e.target.value.trim();
   if(!v){if(cur.v==="list")goBack();return}
-  const hits=D.filter(d=>String(d[0]).startsWith(v)||d[1].toLowerCase().includes(v));
-  showList(hits,false);
+  const r=search(e.target.value), hints={};
+  r.forEach(x=>{if(x.hint)hints[x.d[0]]=x.hint});
+  showList(r.map(x=>x.d),false,hints);
 });
 
 function openSheet(c){
@@ -495,7 +854,7 @@ const fmt=ts=>{const d=new Date(ts);return d.toLocaleDateString("de-DE",{day:"2-
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 function saveEntry(extra){
   const a=load();
-  const e={id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
+  const e={code:state.code,id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
   a.unshift(e); store(a); renderArc(); return e;
 }
 function entryText(e){
@@ -506,6 +865,7 @@ function entryText(e){
   return t;
 }
 function renderArc(){
+  renderTiles();
   const a=load(); $("arcCount").textContent=a.length?`(${a.length})`:"";
   $("arcList").innerHTML=a.length?a.map(e=>`<div class="arc" data-id="${e.id}">
     <div class="top"><span class="pzc">${esc(e.pzc)}</span><span class="dt">${fmt(e.ts)}</span></div>
@@ -615,6 +975,22 @@ $("copy").onclick=async()=>{
 
 renderHome();render();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* ---- Versions-Popup ---- */
+function showModal(html){$("modal").innerHTML=html+'<button class="btn" style="width:100%;margin-top:16px" id="mOk">OK</button>';$("mscrim").classList.add("open");$("mOk").onclick=()=>$("mscrim").classList.remove("open")}
+const verList=l=>l.map(c=>`<h3>Version ${c.v} <span style="color:var(--mute);font-weight:500">· ${c.d}</span></h3><ul>${c.items.map(i=>`<li>${i}</li>`).join("")}</ul>`).join("");
+$("verBtn").textContent="Version "+APP_VERSION;
+$("verBtn").onclick=()=>showModal(`<h2>Änderungen</h2><div class="vv">Installiert: Version ${APP_VERSION}</div>`+verList(CHANGELOG));
+(function(){
+  let seen=null;try{seen=localStorage.getItem("pzc_seen_version")}catch(_){}
+  const num=v=>v.split(".").map(Number);
+  const newer=(a,b)=>{const x=num(a),y=num(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0}return false};
+  if(seen&&seen!==APP_VERSION){
+    const news=CHANGELOG.filter(c=>newer(c.v,seen));
+    if(news.length)showModal(`<h2>🆕 Update auf Version ${APP_VERSION}</h2><div class="vv">Vorher: Version ${seen}</div>`+verList(news));
+  }
+  try{localStorage.setItem("pzc_seen_version",APP_VERSION)}catch(_){}
+})();
 </script>
 </body>
 </html>
