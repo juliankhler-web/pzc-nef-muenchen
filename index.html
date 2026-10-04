@@ -588,8 +588,11 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="3.9";
+const APP_VERSION="4.0";
 const CHANGELOG=[
+ {v:"4.0",d:"04.10.2026",items:[
+  "Europäische Krankenversicherungskarte (Rückseite): die Zeilen Name und Vorname werden jetzt gezielt ausgeschnitten, vergrößert und einzeln gelesen – vorher kamen bei Handyfotos Fantasienamen heraus („Lte / Ylein“, „NaME KETTE“)",
+  "Die Karte wird nicht mehr nach nur einem Durchgang abgehakt, solange die Beschriftungen „Name“ / „Vornamen“ nicht gefunden wurden"]},
  {v:"3.9",d:"04.10.2026",items:[
   "Steht der Wert rechts neben der Beschriftung statt darunter (tschechischer Ausweis), wird er trotzdem gefunden"]},
  {v:"3.8",d:"04.10.2026",items:[
@@ -1903,7 +1906,7 @@ function parseCard(text,lobjs){
   }
   const lineConf=t=>{const o=lobjs.find(l=>l.t===t||l.t.indexOf(t)>=0);return o&&o.c!=null?o.c:50};
   const qOf=(role,t)=>{if(!t)return -99;const L=t.replace(/[^A-Za-zÀ-ÿ]/g,"").length;let q=10+lineConf(t)/20;if(L<3)q-=7;if(role==="first"&&isFirst(t))q+=3;if(/EHIC|MRZ/.test(src))q+=2;return q};
-  return {first:titleCase(first),last:titleCase(last),dob,sex,cands,labelled,src,yob,dobLine:(dob&&dobLine&&findDate(dobLine.t,true)===dob)?dobLine:null,idLike:idMarks,rl:{last:qOf("last",last),first:qOf("first",first)}};
+  return {first:titleCase(first),last:titleCase(last),dob,sex,cands,labelled,src,yob,dobLine:(dob&&dobLine&&findDate(dobLine.t,true)===dob)?dobLine:null,idLike:idMarks,rl:{last:qOf("last",last),first:qOf("first",first)},ehic:EHIC_HDR.test(text),lblL:lobjs.find(l=>l.h>0&&l.t.length<=24&&isLastLbl(l.t.replace(/^[\s\d.)\-–]+/,"")))||null,lblF:lobjs.find(l=>l.h>0&&l.t.length<=24&&isFirstLbl(l.t.replace(/^[\s\d.)\-–]+/,"")))||null};
 }
 const cleanName=t=>t.replace(/\b(dr|prof|med|dipl|ing|mag)\b\.?/gi,"").replace(/\s+/g," ").trim();
 function pickNames(agg,idLike){
@@ -1979,6 +1982,31 @@ async function rec(worker,cv,psm){
   const {data}=await worker.recognize(cv);return data;
 }
 
+async function readNameStrips(worker,big,lbl){
+  let L=lbl.last,F=lbl.first;const K=4.85;
+  if(!L&&F)L={x:F.x,y:F.y-K*F.h,h:F.h};
+  if(!F&&L)F={x:L.x,y:L.y+K*L.h,h:L.h};
+  const out={last:"",first:""};
+  const gap=F.y-L.y;if(gap<L.h*2.5||gap>L.h*9)return out;
+  const x0=Math.max(0,Math.min(L.x,F.x)-10),x1=Math.min(big.width,x0+big.width*.6);
+  const rh=gap-L.h*.9-2;
+  const strip=y0=>{y0=Math.max(0,y0);const h=Math.min(rh,big.height-y0);if(h<10)return null;const c=document.createElement("canvas"),k=Math.max(1,140/h);c.width=Math.round((x1-x0)*k);c.height=Math.round(h*k);c.getContext("2d").drawImage(big,x0,y0,x1-x0,h,0,0,c.width,c.height);return c};
+  const clean=t=>{const w=(t||"").split("\n")[0].replace(/[^A-Za-zÀ-ÿ'’.\- ]/g," ").split(/\s+/).filter(x=>x.replace(/[^A-Za-zÀ-ÿ]/g,"").length>=2);return w.join(" ").replace(/^[-.' ]+|[-.' ]+$/g,"")};
+  const rows=[["last",L.y+L.h*.9],["first",F.y+F.h*.9]];
+  for(const [role,y0] of rows){
+    const sc=strip(y0);if(!sc)continue;
+    let best=null;
+    for(const [mk,psm] of [[grayContrast,7],[grayContrast,6],[adaptive,6]]){
+      await worker.setParameters({tessedit_pageseg_mode:String(psm)});
+      const r=await worker.recognize(mk(sc));
+      const t=clean(r.data.text),c=r.data.confidence||0;
+      if(t.replace(/[^A-Za-zÀ-ÿ]/g,"").length>=2&&!/^(name|vornamen?|geburtsdatum)$/i.test(t)&&c>=25&&(!best||c>best.c))best={t,c};
+    }
+    if(best)out[role]=titleCase(best.t);
+  }
+  await worker.setParameters({tessedit_pageseg_mode:"11"});
+  return out;
+}
 async function scanCard(file){
   const setMsg=t=>{const e=$("scanMsg");if(e)e.textContent=t};
   const setBar=p=>{const e=$("scanBar");if(e)e.style.width=Math.round(p*100)+"%"};
@@ -2003,7 +2031,7 @@ async function scanCard(file){
     const big=scaled(rotCanvas(base,bestDeg),2200);
     const passes=[["Durchgang 1/4",()=>grayContrast(big),11],["Durchgang 2/4",()=>darkText(big),11],["Durchgang 3/4",()=>adaptive(big),11],["Durchgang 4/4",()=>grayContrast(big),6]];
     let res={first:"",last:"",dob:"",sex:"",yob:0,src:""},lines=[],labelledDone=false;
-    let dobSrc=null,idLikeAny=false;
+    let dobSrc=null,idLikeAny=false,ehicAny=false;const lbl={last:null,first:null};
     const agg=new Map(),dobVotes=new Map(),roleAgg={last:new Map(),first:new Map()};
     const runPass=async(wk,label,mk,psm)=>{
       setMsg(label);setBar(0);
@@ -2014,6 +2042,7 @@ async function scanCard(file){
       if(r.dob)dobVotes.set(r.dob,(dobVotes.get(r.dob)||0)+1);
       if(r.src&&!res.src)res.src=r.src;
       if(r.idLike)idLikeAny=true;
+      if(r.ehic)ehicAny=true;if(r.lblL&&!lbl.last)lbl.last=r.lblL;if(r.lblF&&!lbl.first)lbl.first=r.lblF;
       if(r.labelled){labelledDone=true;["last","first"].forEach(role=>{const t=r[role];if(!t)return;const k=fold(t),m=roleAgg[role],o=m.get(k)||{t,q:-99,n:0};o.q=Math.max(o.q,r.rl[role]);o.n++;m.set(k,o)})}
       r.cands.forEach(c=>{const key=fold(c.t),o=agg.get(key)||{t:c.t,best:-99,n:0,score:0,y:c.y,hit:c.hit};o.best=Math.max(o.best,c.score);o.n++;o.score=o.best+.5*(o.n-1);agg.set(key,o)});
       lo.map(l=>l.t).forEach(l=>{if(!lines.some(x=>x.toLowerCase()===l.toLowerCase()))lines.push(l)});
@@ -2022,11 +2051,21 @@ async function scanCard(file){
     const topScore=()=>Math.max(0,...[...agg.values()].map(o=>o.score));
     for(const [label,mk,psm] of passes){
       await runPass(worker,label,mk,psm);
-      if((res.dob||res.yob)&&((bestRole("last")&&bestRole("first"))||(!labelledDone&&topScore()>=9)))break; // erst aufhören, wenn Nachname UND Vorname sauber gelesen sind
+      if((res.dob||res.yob)&&(!ehicAny||lbl.last||lbl.first)&&((bestRole("last")&&bestRole("first"))||(!labelledDone&&topScore()>=9)))break; // erst aufhören, wenn Nachname UND Vorname sauber gelesen sind
     }
     // Auswahl nach Qualität statt „wer zuerst kommt“
     res.last=bestRole("last");res.first=bestRole("first");labelledDone=!!(res.last||res.first);
     if(dobVotes.size){let bd="",bc=0;dobVotes.forEach((c,d)=>{if(c>bc){bc=c;bd=d}});res.dob=bd}
+    // EHIC: Namenszeilen gezielt lesen – die weißen Felder mit Rahmen werden im Gesamtbild oft nicht erkannt. Position kommt von den Beschriftungen „Name“ / „Vornamen“
+    if(ehicAny&&(lbl.last||lbl.first)){
+      try{
+        setMsg("Namenszeilen werden gezielt gelesen");setBar(0);
+        const sr=await readNameStrips(worker,big,lbl);
+        if(sr.last){res.last=sr.last;labelledDone=true}
+        if(sr.first){res.first=sr.first;labelledDone=true}
+        if(sr.last||sr.first)res.src="EHIC (Namenszeilen gezielt gelesen)";
+      }catch(_){try{await worker.setParameters({tessedit_pageseg_mode:"11"})}catch(__){}}
+    }
     // Maschinenlesezeile erkennbar? Dann gezielt den unteren Kartenteil mit einem Spezialleser lesen (Prüfziffern sichern Geburtsdatum)
     const mrzHint=lines.some(l=>/^[A-Z0-9<«]{20,}$/.test(l.replace(/\s/g,""))&&(l.match(/[<«]/g)||[]).length>=3)||lines.some(l=>/^(IDD|P<|I<|ID[A-Z]{3}|AC[A-Z]{3})/.test(l.replace(/\s/g,"")));
     if(mrzHint){
