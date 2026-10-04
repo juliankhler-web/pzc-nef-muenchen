@@ -588,8 +588,31 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="3.0";
+const APP_VERSION="3.7";
 const CHANGELOG=[
+ {v:"3.7",d:"04.10.2026",items:[
+  "Die Texterkennung hört erst auf, wenn Nachname und Vorname sauber gelesen sind – vorher blieb ein verrauschter erster Durchgang hängen und der saubere Durchgang lief nicht mehr (französischer Ausweis)"]},
+ {v:"3.6",d:"04.10.2026",items:[
+  "Ausweise und EHIC: Reihenfolge Nachname → Vorname wird bei unsicherer Beschriftung beachtet (Martin / Maëlys statt vertauscht)"]},
+ {v:"3.5",d:"04.10.2026",items:[
+  "Nachname wird nicht mehr verworfen, nur weil die Zeile schlecht lesbar war, solange sie sauber aussieht (z. B. KOWALSKI auf dem polnischen Ausweis)",
+  "Datum in der Schreibweise „13 071990“ wird erkannt; reines Rauschen aus Kurzwörtern wird nie als Name vorgeschlagen"]},
+ {v:"3.4",d:"04.10.2026",items:[
+  "Geburtsdatum wird gezielt nachgelesen (Datumszeile vergrößert, nur Ziffern). Weichen die zwei Lesungen voneinander ab, zeigt das Prüffenster beide zur Auswahl, statt still eine zu wählen",
+  "Ausweis ohne beschriftetes Geburtsdatum: Ausstellungs- oder Ablaufdatum wird nicht mehr als Geburtsdatum geraten"]},
+ {v:"3.3",d:"04.10.2026",items:[
+
+  "Füllzeichen < in der Maschinenlesezeile hinterlassen keine Buchstaben mehr im Namen („Vzor K K“); mögliche Namenstrennung bei „K“ wird zum Antippen vorgeschlagen"]},
+ {v:"3.2",d:"04.10.2026",items:[
+  "Auswahl nach Qualität: ein schlecht gelesener Durchgang kann einen guten nicht mehr blockieren (z. B. „Fr“ statt „Martin“)",
+  "OCR-Fehler in Großbuchstaben werden korrigiert (KOWALSK! → KOWALSKI); falsch gelesene Beschriftungen („URNAME“, „Provincia“) werden nicht mehr als Name genommen",
+  "Beschriftung und Wert in einer Zeile („JMENO / GIVEN NAMES: VZOR“) wird richtig gelesen; Datum wird über mehrere Durchgänge abgestimmt",
+  "Hinweis, wenn die Prüfziffer der Maschinenlesezeile nicht bestätigt werden konnte; Ausstellungsdatum wird nicht mehr als Geburtsdatum geraten"]},
+ {v:"3.1",d:"04.10.2026",items:[
+  "Maschinenlesezeile (Ausweis-Rückseite, Pass) wird mit einem Spezialleser gelesen und über die Prüfziffer abgesichert; Füllzeichen < werden nicht mehr als Buchstaben im Namen gelesen",
+  "Neuer Durchgang liest nur die dunkle Schrift und blendet Hintergrundmuster, Wasserzeichen und Hologramme aus (Polen, Frankreich u. a.)",
+  "EHIC in jeder Sprache: nummerierte Felder 3/4/5 werden erkannt; Namenszeilen aus Kopfzeilen und Beschriftungen werden strenger ausgeschlossen",
+  "Niederländische Monate (MAA), Geschlecht V/F, italienische und osteuropäische Beschriftungen; bessere Auswahl des Namens bei mehreren Treffern"]},
  {v:"3.0",d:"04.10.2026",items:[
   "Ausweis-Vorderseite: Feldkennungen wie „[a]“ stören nicht mehr; Geburtsort, Staatsangehörigkeit und andere Werte werden nicht mehr als Nachname genommen",
   "Krankenkarte: Beschriftungen wie „Geburtsdatum“ werden nicht mehr als Name gelesen; Name in einer Zeile („Vorname Nachname“) wird richtig geteilt",
@@ -1542,6 +1565,14 @@ function loadTess(){
     sc.onload=res;sc.onerror=()=>{tessP=null;rej(new Error("offline"))};document.head.appendChild(sc);
   }));
 }
+let tessWorkerM=null;
+async function getWorkerMRZ(){ // eigener Leser für die Maschinenlesezeile: nur A–Z, 0–9 und <
+  if(tessWorkerM)return tessWorkerM;
+  await loadTess();
+  tessWorkerM=await Tesseract.createWorker("eng",1,{langPath:"https://tessdata.projectnaptha.com/4.0.0_fast",logger:m=>{if(scanProg)scanProg(m)}});
+  await tessWorkerM.setParameters({tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<",preserve_interword_spaces:"0",user_defined_dpi:"300"});
+  return tessWorkerM;
+}
 let tessWorker2=null;
 async function getWorker2(){ // zusätzliche Sprachen (schnelle, kleine Modelle) – nur bei Bedarf
   if(tessWorker2)return tessWorker2;
@@ -1557,9 +1588,14 @@ async function getWorker(){
   await tessWorker.setParameters({preserve_interword_spaces:"1",user_defined_dpi:"300"});
   return tessWorker;
 }
-const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesund|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b|\bbig\b|direkt|classic|viactiv|\bmkk\b|salus|vivida|svlfg|landwirtschaft|bundesrepublik|personalausweis|identity|ausweis|staatsangeh|nationality|surname|given|vornamen|geburtsname|geburtsort|place of|date of|\bsex\b|geschlecht|signature|unterschrift|augenfarbe|gr[oö][sß]e|height|anschrift|address|beh[oö]rde|authority|versicherung|kranken|krankheit|bkk|ikk|\bnom\b|pr[eé]nom|cognome|\bnome\b|apellid|\bnombre|nazwisko|imi[eę]|imiona|p[rř][ií]jmen|jm[eé]no|achternaam|voornam|efternamn|f[oö]rnamn|etternavn|sukunimi|etunimi|prezime|\bime\b|priimek|\bnume\b|prenume|vezet[eé]k|keresztn|naissance|nascita|nacimiento|urodzenia|narozen|geboortedatum|syntym|sz[uü]let|nationalit|nazionalit|nacionalidad|obywatelstwo|st[aá]tn[ií]|\bsexe\b|\bsesso\b|\bsexo\b|poh?laví|p[lł][eé]ć|document|identit|r[eé]publi|repubblica|rzeczpospolita|polska|\bcarte\b|\btessera\b|tarjeta|europ|\bunion\b|\bunie\b|\bpassport|\bpass\b|\bpas\b|geburt|ablauf|kennnummer|pers[oö]nliche|tr[aä]ger|\bdatum\b|\bdate\b|\bvalid|\bnumber\b|heilbehandlung|selbstbehalt|zusatz|privat|\br\+v\b|krankenversichertennummer|versicherungsnummer|beginn|\bende\b|expir|\bplace\b|\blieu\b|doktorgrad|k[uü]nstlername|ordensname)/i;
+const LABEL_VOCAB="surname given names birth sex nationality nationalite signature expiry issue place document number holder nazwisko imiona obywatelstwo urodzenia plec termin waznosci podpis prijmeni jmeno narozeni pohlavi obcanstvi platnost vydani prenoms prenom sexe naissance usage cognome nascita luogo provincia sesso scadenza apellidos nombre nacimiento sexo nacionalidad firma validez achternaam voornamen geboortedatum geslacht nationaliteit geldig handtekening afgifte vorname vornamen nachname geburtsdatum geburtsort staatsangehoerigkeit unterschrift gueltig ausstellung behoerde".split(" ");
+const isLabelish=t=>{
+  const toks=fold(t).split(" ").filter(w=>w.length>=3);if(!toks.length)return false;
+  return toks.every(w=>w.length>=4&&LABEL_VOCAB.some(v=>Math.abs(v.length-w.length)<=2&&lev(v,w)<=(w.length>7?2:1)));
+};
+const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesund|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b|\bbig\b|direkt|classic|viactiv|\bmkk\b|salus|vivida|svlfg|landwirtschaft|bundesrepublik|personalausweis|identity|ausweis|staatsangeh|nationality|surname|given|vornamen|geburtsname|geburtsort|place of|date of|\bsex\b|geschlecht|signature|unterschrift|augenfarbe|gr[oö][sß]e|height|anschrift|address|beh[oö]rde|authority|versicherung|kranken|krankheit|bkk|ikk|\bnom\b|pr[eé]nom|cognome|\bnome\b|apellid|\bnombre|nazwisko|imi[eę]|imiona|p[rř][ií]jmen|jm[eé]no|achternaam|voornam|efternamn|f[oö]rnamn|etternavn|sukunimi|etunimi|prezime|\bime\b|priimek|\bnume\b|prenume|vezet[eé]k|keresztn|naissance|nascita|nacimiento|urodzenia|narozen|geboortedatum|syntym|sz[uü]let|nationalit|nazionalit|nacionalidad|obywatelstwo|st[aá]tn[ií]|\bsexe\b|\bsesso\b|\bsexo\b|poh?laví|p[lł][eé]ć|document|identit|r[eé]publi|repubblica|rzeczpospolita|polska|\bcarte\b|\btessera\b|tarjeta|europ|\bunion\b|\bunie\b|\bpassport|\bpass\b|\bpas\b|geburt|ablauf|kennnummer|pers[oö]nliche|tr[aä]ger|\bdatum\b|\bdate\b|\bvalid|\bnumber\b|heilbehandlung|selbstbehalt|zusatz|privat|\br\+v\b|krankenversichertennummer|versicherungsnummer|beginn|\bende\b|expir|\bplace\b|\blieu\b|doktorgrad|k[uü]nstlername|ordensname|republik|republic|r[eé]publique|repubblica|rep[uú]blica|rzeczpospolita|polska|polskie|dow[oó]d|osobisty|\bcard\b|karta|kartica|zdravstven|zavarovanja|evropsk|ob[cč]ansk|pr[uů]kaz|koninkrijk|nederland|belg|luogo|provincia|scadenza|sanitari|codice|fiscale|\bdata\b|sesso|cittadin|ministero|priimek|rojstva|identiteit|naam\b|voornamen)/i;
 const titleCase=t=>t&&t===t.toUpperCase()?t.toLowerCase().replace(/(^|[\s\-'’])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):t;
-const MONTHS={jan:1,feb:2,"fév":2,fev:2,mar:3,"mär":3,mrt:3,apr:4,avr:4,abr:4,mai:5,may:5,mei:5,maj:5,mag:5,jun:6,juin:6,giu:6,jul:7,juil:7,lug:7,aug:8,ago:8,sep:9,set:9,okt:10,oct:10,ott:10,nov:11,dez:12,dec:12,dic:12,ene:1,gen:1,sty:1,lut:2,kwi:4,cze:6,lip:7,sie:8,wrz:9,"paź":10,paz:10,lis:11,gru:12,led:1,"úno":2,uno:2,"bře":3,bre:3,dub:4,kve:5,"čvn":6,cvn:6,"čvc":7,cvc:7,srp:8,"zář":9,zar:9,"říj":10,rij:10,pro:12};
+const MONTHS={maa:3,jan:1,feb:2,"fév":2,fev:2,mar:3,"mär":3,mrt:3,apr:4,avr:4,abr:4,mai:5,may:5,mei:5,maj:5,mag:5,jun:6,juin:6,giu:6,jul:7,juil:7,lug:7,aug:8,ago:8,sep:9,set:9,okt:10,oct:10,ott:10,nov:11,dez:12,dec:12,dic:12,ene:1,gen:1,sty:1,lut:2,kwi:4,cze:6,lip:7,sie:8,wrz:9,"paź":10,paz:10,lis:11,gru:12,led:1,"úno":2,uno:2,"bře":3,bre:3,dub:4,kve:5,"čvn":6,cvn:6,"čvc":7,cvc:7,srp:8,"zář":9,zar:9,"říj":10,rij:10,pro:12};
 const MON_RE=new RegExp("(\\d{1,2})\\s*[.\\-\\/]?\\s*("+Object.keys(MONTHS).sort((a,b)=>b.length-a.length).join("|")+")[a-zäöéûúóíáěščřžýů]*\\.?\\s*(?:\\/\\s*[a-z]{3,}\\s*)?(\\d{2,4})","i");
 const digitFix=t=>t.replace(/[Oo]/g,"0").replace(/[Il|]/g,"1").replace(/S/g,"5").replace(/B/g,"8");
 function findDate(l,loose){
@@ -1569,7 +1605,7 @@ function findDate(l,loose){
   if(m){const d=+digitFix(m[1]),mo=+digitFix(m[2]),y=+digitFix(m[3]);if(ok(d,mo,y))return `${pad(d)}.${pad(mo)}.${y}`}
   m=l.match(MON_RE);
   if(m){let y=+m[3];if(y<100)y=y>now%100?1900+y:2000+y;const d=+m[1],mo=MONTHS[m[2].toLowerCase()];if(mo&&ok(d,mo,y))return `${pad(d)}.${pad(mo)}.${y}`}
-  if(loose||/geb|birth|datum|naissance|nascita|nacimiento/i.test(l)){m=l.match(/(\d{1,2})\s+(\d{1,2})\s+(\d{4})/);if(m&&ok(+m[1],+m[2],+m[3]))return `${pad(+m[1])}.${pad(+m[2])}.${m[3]}`}
+  if(loose||/geb|birth|datum|naissance|nascita|nacimiento/i.test(l)){m=l.match(/(\d{1,2})\s+(\d{1,2})\s+(\d{4})/)||(loose?l.match(/(?:^|\D)(\d{2})\s*(\d{2})\s*(\d{4})(?!\d)/):null);if(m&&ok(+m[1],+m[2],+m[3]))return `${pad(+m[1])}.${pad(+m[2])}.${m[3]}`}
   return "";
 }
 const FIRSTN=new Set("Peter Michael Thomas Andreas Wolfgang Klaus Juergen Guenter Stefan Christian Uwe Bernd Dieter Manfred Horst Hans Heinz Walter Werner Helmut Karl Rainer Frank Joerg Ulrich Markus Matthias Martin Alexander Sven Oliver Dirk Holger Ralf Jens Torsten Thorsten Jan Tobias Daniel Sebastian Florian Patrick Felix Lukas Jonas Leon Paul Maximilian Johannes Josef Franz Georg Anton Otto Fritz Hermann Gerhard Erich Kurt Rolf Siegfried Joachim Lothar Norbert Herbert Heinrich Wilhelm Friedrich Ernst Albert Rudolf Max Moritz Elias Noah Ben Finn Niklas Philipp Simon David Julian Fabian Benjamin Jonathan Tim Marco Mario Dominik Kevin Marcel Nico Timo Lars Sascha Marc Robert Roland Bernhard Gustav Emil Karlheinz Detlef Eberhard Burkhard Egon Gerd Jochen Hubert Konrad Leo Theo Henry Henri Hannes Jakob Matthias Mathias Tom Erwin Willi Alfred Bruno Harald Gunter Reinhard Reiner Axel Ingo Kai Nils Jannik Marvin Luca Luis Louis Anna Maria Ursula Monika Petra Sabine Susanne Andrea Claudia Birgit Karin Renate Gisela Brigitte Helga Ingrid Christa Elisabeth Angelika Barbara Gabriele Heike Martina Katrin Stefanie Nicole Sandra Melanie Julia Sarah Laura Lisa Lena Lea Hannah Sophie Sophia Emma Mia Emilia Marie Charlotte Johanna Clara Klara Anja Silke Kerstin Jutta Doris Rita Ilse Erika Hildegard Gertrud Margarete Margot Waltraud Irmgard Elfriede Edith Hannelore Marianne Ruth Eva Christine Katharina Nina Jennifer Jessica Vanessa Franziska Jana Jasmin Tanja Daniela Simone Manuela Nadine Carina Lara Leonie Lilly Lina Greta Frieda Ida Helene Luise Louisa Paula Pauline Mathilde Agnes Berta Dora Hedwig Kaethe Lieselotte Liselotte Gudrun Annemarie Rosemarie Marlies Marlene Roswitha Herta Hertha Inge Ingeborg Irene Ilona Evelyn Cornelia Beate Bettina Carola Dagmar Diana Dorothea Doreen Gaby Gabi Heidi Hanna Jacqueline Jule Katja Kristina Larissa Linda Mandy Margit Miriam Natalie Olga Patricia Regina Romy Sigrid Steffi Svenja Tina Ute Vera Verena Viola Yvonne Mehmet Mustafa Ahmet Ali Hasan Hueseyin Ibrahim Ismail Yusuf Murat Emre Burak Can Cem Kemal Osman Oemer Omer Selim Serkan Fatma Ayse Emine Hatice Zeynep Elif Merve Buesra Esra Oezlem Sevgi Leyla Aylin Derya Guel Gulay Nurcan Mohammed Muhammad Mohamed Ahmad Omar Khaled Hassan Hussein Samir Karim Youssef Amir Fatima Aisha Layla Samira Nadia Mariam Rania Piotr Krzysztof Tomasz Marek Jerzy Zbigniew Andrzej Stanislaw Wladimir Vladimir Sergej Sergey Alexej Dmitri Dmitrij Igor Oleg Nikolai Boris Viktor Juri Natalia Tatjana Irina Svetlana Swetlana Elena Jelena Marija Ivana Milan Goran Zoran Dragan Marko Nenad Ivan Josip Mirko Stjepan Ana Mira Snezana Dejan Darko Branko Giuseppe Giovanni Antonio Francesco Salvatore Luigi Carlo Paolo Angelo Vincenzo Michele Roberto Carmen Rosa Giulia Francesca Konstantin Dimitrios Georgios Nikos Nikolaos Panagiotis Vasilios Christos Eleni Sofia Despina Adam Eric Erik Jonas Linus Anton Valentin Vincent Rafael Raphael Samuel Stephan Steffen Christoph Christof Carsten Karsten Bjoern Sascha Pascal Dennis Denis Marcus Marius Mike Ronny Rene Rico Danny Enrico Benedikt Fabienne Lucia Lucie Melina Mara Marta Martha Maja Maya Nora Nele Pia Rebecca Rike Ronja Sina Stella Tabea Theresa Therese Ulrike Wiebke Wilma Zoe".toLowerCase().split(/\s+/).map(n=>n.replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u")));
@@ -1650,46 +1686,74 @@ function natIds(text){
   return res;
 }
 /* Maschinenlesezeile (MRZ) von Ausweisen und Pässen: Name, Geburtsdatum, Geschlecht – sprachunabhängig */
+const MRZ_V=c=>c>="0"&&c<="9"?+c:c>="A"&&c<="Z"?c.charCodeAt(0)-55:0;
+const mrzCheck=t=>{const w=[7,3,1];let n=0;for(let i=0;i<t.length;i++)n+=MRZ_V(t[i])*w[i%3];return n%10};
+const mrzDigits=t=>t.replace(/O/g,"0").replace(/[IL]/g,"1").replace(/B/g,"8").replace(/S/g,"5").replace(/Z/g,"2").replace(/G/g,"6");
+function cleanMrzName(part){ // Füllzeichen "<" werden oft als Z, E, L, K, S … gelesen: solche Blöcke abschneiden
+  if(!part)return "";
+  const out=[];
+  for(const t of part.split(/[<\s]+/).filter(Boolean)){
+    const junk=/^([KCELSXZ])\1*$/.test(t)||(t.length>=4&&/^[KCELSXZ]+$/.test(t)&&/(.)\1/.test(t));
+    if(junk||/\d/.test(t))break;
+    if(t.length<2)continue;
+    out.push(t);
+  }
+  return out.join(" ");
+}
 function parseMRZ(text){
   const lines=text.split(/\n+/).map(l=>l.replace(/[«‹〈＜]/g,"<").replace(/\s+/g,"").toUpperCase()).filter(l=>l.length>=14);
-  let first="",last="",dob="",sex="";
+  let first="",last="",dob="",sex="",verified=false;
+  const rx=/([0-9OIBSZL]{6})([0-9OIBSZL])([MF<])([0-9OIBSZL]{6})([0-9OIBSZL])/;
   for(let l of lines){
-    if(!l.includes("<")&&/[KC(\[{E]{4,}$/.test(l))l=l.replace(/K{2,}/g,m=>"<".repeat(m.length)); // Füllzeichen < wird oft als K gelesen
-    l=l.replace(/[KC(\[{E]{4,}$/,m=>"<".repeat(m.length)); // … oder als C oder (
-    if(!last&&/<</.test(l)&&/^[A-Z<]{8,}$/.test(l)){
-      let s=l;if(/^[PIAC][A-Z<]?<?[A-Z]{1,3}<*/.test(s)&&/^[PIAC]</.test(s))s=s.slice(5);
-      const parts=s.split("<<").filter(Boolean);
-      if(parts.length&&parts[0].replace(/</g,"").length>=2){last=parts[0].replace(/</g," ").trim();first=(parts[1]||"").replace(/</g," ").trim()}
+    if(!l.includes("<")&&/[KC(\[{E]{4,}$/.test(l))l=l.replace(/K{2,}/g,m=>"<".repeat(m.length));
+    l=l.replace(/[KC(\[{E]{4,}$/,m=>"<".repeat(m.length));
+    // Geburtsdatum + Prüfziffer
+    const m=l.match(rx);
+    if(m){
+      const d=mrzDigits(m[1]),chk=+mrzDigits(m[2]);
+      const ok=mrzCheck(d)===chk,y=yy4(+d.slice(0,2)),mm=+d.slice(2,4),dd=+d.slice(4,6);
+      if(validD(dd,mm,y)&&(!dob||(ok&&!verified))){dob=fmtD(dd,mm,y);sex=m[3]==="M"?"M":m[3]==="F"?"W":"";verified=ok}
     }
-    const m=l.replace(/O/g,"0").match(/(\d{2})(\d{2})(\d{2})\d([MF<])\d{6}\d?/);
-    if(m&&!dob){const y=yy4(+m[1]),mm=+m[2],dd=+m[3];if(validD(dd,mm,y)){dob=fmtD(dd,mm,y);sex=m[4]==="M"?"M":m[4]==="F"?"W":""}}
+    // Namenszeile
+    const letters=l.replace(/[^A-Z]/g,"").length;
+    if(!last&&/<</.test(l)&&letters>=6&&(l.match(/\d/g)||[]).length<=2){
+      let s=l;if(/^[PIAC][A-Z<]</.test(s))s=s.slice(5);
+      const parts=s.split("<<").filter(Boolean);
+      const sn=cleanMrzName(parts[0]);
+      if(sn.length>=2){last=sn;first=cleanMrzName(parts.slice(1).join("<<"))}
+    }
   }
-  return {first,last,dob,sex};
+  return {first,last,dob,sex,verified};
 }
 /* EHIC (Rückseite der Krankenversichertenkarte, europaweit einheitlich): 3 Name, 4 Vorname, 5 Geburtsdatum */
 function parseEHIC(lines){
   let last="",first="",dob="";
   lines.forEach(l=>{
     let m;
-    if(!last&&(m=l.match(/^3\s*[.)]?\s*([A-Za-zÀ-ÖØ-öø-ÿ'’\- .]{2,40})$/)))last=m[1].trim();
-    else if(!first&&(m=l.match(/^4\s*[.)]?\s*([A-Za-zÀ-ÖØ-öø-ÿ'’\- .]{2,40})$/)))first=m[1].trim();
+    if(!last&&(m=l.match(/^3\s*[.)]?\s*([A-Za-zÀ-ÖØ-öø-ÿ'’\- .]{2,40})$/))&&!NOTNAME.test(m[1]))last=m[1].trim();
+    else if(!first&&(m=l.match(/^4\s*[.)]?\s*([A-Za-zÀ-ÖØ-öø-ÿ'’\- .]{2,40})$/))&&!NOTNAME.test(m[1]))first=m[1].trim();
     else if(!dob&&(m=l.match(/^5\s*[.)]?\s*(.{6,14})$/)))dob=findDate(m[1])||dob;
   });
   return ((last?1:0)+(first?1:0)+(dob?1:0))>=2?{last,first,dob}:null;
 }
 
+const fixOcr=t=>{
+  if(/\d{4,}/.test(t))return t; // Zahlen nicht anfassen
+  const L=(t.match(/[A-Za-zÀ-ÿ]/g)||[]).length;if(L<t.length*.6)return t;
+  return t.replace(/([A-ZÄÖÜ])[!|](?=[A-ZÄÖÜ]|$|\s)/g,"$1I").replace(/([A-ZÄÖÜ])0(?=[A-ZÄÖÜ])/g,"$1O").replace(/([A-ZÄÖÜ])1(?=[A-ZÄÖÜ])/g,"$1I").replace(/([A-ZÄÖÜ])5(?=[A-ZÄÖÜ])/g,"$1S").replace(/([A-ZÄÖÜ])8(?=[A-ZÄÖÜ])/g,"$1B");
+};
 const stripMark=t=>t.replace(/^[\[\(\{|]\s*[A-Za-z0-9]\s*[\]\)\}|lI1]\s*/,"").replace(/^[3-9]\s*[.)]?\s*(?=(name|nachname|vornamen?|geburtsdatum|pers[oö]nliche|kennnummer|ablaufdatum|surname|given|nom\b|pr[eé]nom|date\s*of|cognome|apellid)\b)/i,"").trim(); // Feldkennung auf dem Ausweis, z. B. "[a] Name" oder "[a]KÖHLER"
 function lineObjs(d){
-  const L=(d.lines||[]).map(l=>({t:stripMark((l.text||"").replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim()),c:l.confidence,h:l.bbox?l.bbox.y1-l.bbox.y0:0,y:l.bbox?l.bbox.y0:0,x:l.bbox?l.bbox.x0:0,x1:l.bbox?l.bbox.x1:0})).filter(l=>l.t.length>1);
+  const L=(d.lines||[]).map(l=>({t:fixOcr(stripMark((l.text||"").replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim())),c:l.confidence,h:l.bbox?l.bbox.y1-l.bbox.y0:0,y:l.bbox?l.bbox.y0:0,x:l.bbox?l.bbox.x0:0,x1:l.bbox?l.bbox.x1:0})).filter(l=>l.t.length>1);
   if(L.length)return L;
-  return (d.text||"").split(/\n+/).map((t,i)=>({t:stripMark(t.replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim()),c:80,h:0,y:i*10,x:0,x1:0})).filter(l=>l.t.length>1);
+  return (d.text||"").split(/\n+/).map((t,i)=>({t:fixOcr(stripMark(t.replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim())),c:80,h:0,y:i*10,x:0,x1:0})).filter(l=>l.t.length>1);
 }
 function parseCard(text,lobjs){
   lobjs=lobjs||lineObjs({text});
   const lines=lobjs.map(l=>l.t);
   const now=new Date().getFullYear(),pad=n=>String(n).padStart(2,"0");
-  let dob="",dIdx=-1,sex="",first="",last="",labelled=false,src="",yob=0;
-  const DOB_LBL=/geburt|birth|naissance|nascita|nacimiento|urodzenia|narozen|geboorte|f[oö]delse|syntym|sz[uü]let|na[sş]terii|ro[dđ]enja|nascimento|data\s*nar/i;
+  let dob="",dIdx=-1,sex="",first="",last="",labelled=false,src="",yob=0,dobLine=null,dobFallback=false;
+  const DOB_LBL=/geburt|birth|naiss|nasc|\bnato\b|\bnata\b|naissance|nascita|nacimiento|urodzenia|narozen|geboorte|f[oö]delse|syntym|sz[uü]let|na[sş]terii|ro[dđ]enja|nascimento|data\s*nar/i;
   const dateKey=d=>{const [a,b,c]=d.split(".");return +c*10000+ +b*100+ +a};
   const dateHits=[];lines.forEach((l,i)=>{const d=findDate(l);if(d)dateHits.push({d,i})});
   {
@@ -1699,11 +1763,12 @@ function parseCard(text,lobjs){
       const L=lobjs[i];let best=null;
       lobjs.forEach((o,k)=>{if(k===i)return;const dy=o.y-L.y;if(L.h>0&&(dy<L.h*.4||dy>Math.max(L.h*7,140)||Math.abs(o.x-L.x)>Math.max(90,L.h*6)))return;if(L.h<=0&&(k<i||k>i+2))return;const d=findDate(o.t,true);if(d&&(!best||dy<best.dy))best={d,i:k,dy:L.h>0?dy:k-i}});
       if(best)pick=best});
-    if(!pick&&dateHits.length)pick=dateHits.reduce((a,b)=>dateKey(b.d)<dateKey(a.d)?b:a); // ohne Beschriftung: das früheste Datum (Ausstellung/Ablauf liegen später)
-    if(pick){dob=pick.d;dIdx=pick.i;src=src||"Datum auf der Karte"}
+    let viaEarliest=false;
+    if(!pick&&dateHits.length){pick=dateHits.reduce((a,b)=>dateKey(b.d)<dateKey(a.d)?b:a);viaEarliest=true} // ohne Beschriftung: das früheste Datum (Ausstellung/Ablauf liegen später)
+    if(pick){dob=pick.d;dIdx=pick.i;dobLine=lobjs[pick.i];dobFallback=viaEarliest;src=src||"Datum auf der Karte"}
   }
   const NATION=/^(deutsch|deutsche|deutscher|german|d|de|ce|eu|rf|a|b|ch|name|vorname|vornamen|nachname|surname|ablaufdatum|geburtsdatum|unterschrift)\.?$/i;
-  const alpha=l=>/^[A-Za-zÄÖÜäöüß'’\-., ]{2,}$/.test(l)&&!NOTNAME.test(l)&&!NATION.test(l.trim());
+  const alpha=l=>/^[A-Za-zÀ-ÖØ-öø-ÿŁłŠšČčŘřŽžŞşĞğİıȘșȚț'’\-., ]{2,}$/.test(l)&&!NOTNAME.test(l)&&!NATION.test(l.trim())&&!isLabelish(l);
   const isIdDoc=/personalausweis|identity\s*card|bundesrepublik|aufenthaltstitel|reisepass|passport/i.test(text)||lines.some(l=>/vornamen|given\s*names?/i.test(l));
   const LAST_W="name|nachname|familienname|surname|nom|cognome|apellidos?|apelido|nazwisko|p[rř][ií]jmen[ií]|priezvisko|achternaam|efternamn|etternavn|efternavn|sukunimi|vezet[eé]kn[eé]v|prezime|priimek|nume|uzv[aā]rds|pavard[eė]|perekonnanimi";
   const FIRST_W="vornamen?|given\\s*names?|pr[eé]noms?|nome|nombres?|nome\\s*pr[oó]prio|imi[eę]|imiona|jm[eé]no|jm[eé]na|meno|voornamen|f[oö]rnamn|fornavn|etunimet|keresztn[eé]v|ime|prenume|krstn[eo]|v[aā]rds|vārdi|eesnimi|vardas|ime\\b";
@@ -1721,9 +1786,14 @@ function parseCard(text,lobjs){
       lobjs.forEach((l,k)=>{if(k===i)return;const dy=L.y-l.y;if(dy<L.h*.4||dy>Math.max(L.h*7,140)||!aligned(L,l)||!alpha(l.t))return;if(!best||dy<best.dy)best={t:l.t,dy}});
       if(best)return best.t}
     for(let k=i-1;k>=Math.max(0,i-3);k--)if(alpha(lines[k]))return lines[k];return ""};
-  const sameLine=(l,W,anywhere)=>{ // Beschriftung und Wert in einer Zeile, z. B. „Nom DUPONT“
-    const mm=l.match(new RegExp((anywhere?"(?:^|[^a-zäöüß])":"^")+"(?:"+W+")\\s*[:.\\/\\-]?\\s+(.{2,40})$","i"));
-    return mm&&alpha(mm[1].trim())&&!isFirstLbl(mm[1])?mm[1].trim():"";
+  const sameLine=(l,W,anywhere)=>{ // Beschriftung und Wert in einer Zeile, z. B. „Nom DUPONT“ oder „JMENO / GIVEN NAMES: VZOR“
+    const re=new RegExp((anywhere?"(?:^|[^a-zäöüß])":"^")+"(?:"+W+")\\s*[:.\\/\\-]?\\s+(.{2,40})$","ig");
+    let m;const seen=new Set();
+    for(const sub of [l,...l.split(/[\/:]/).map((_,k,a)=>a.slice(k).join(" "))]){
+      if(seen.has(sub))continue;seen.add(sub);re.lastIndex=0;
+      while((m=re.exec(sub))){const v=m[1].trim();if(alpha(v)&&!isFirstLbl(v))return v;if(m.index===re.lastIndex)re.lastIndex++}
+    }
+    return "";
   };
   lines.forEach((l,i)=>{
     if(!last&&isLastLbl(l))last=sameLine(l,LAST_W)||nextVal(i);
@@ -1731,17 +1801,40 @@ function parseCard(text,lobjs){
   });
   if(first&&!last){const fi=lines.findIndex(isFirstLbl);if(fi>=0)last=prevVal(fi)}
   if(last||first)labelled=true,src=src&&src!=="Datum auf der Karte"?src:"Beschriftung";
+  const idMarks=/personalausweis|identity\s*card|carte\s*nationale|bundesrepublik|aufenthaltstitel|reisepass|passport|dow[oó]d|obcansk|ob[cč]ansk|identiteit|carta\s*d.identit|documento\s*nacional/i.test(text)||lines.some(l=>/<{2,}/.test(l));
+  if(dobFallback&&idMarks){dob="";dobLine=null;dobFallback=false;if(src==="Datum auf der Karte")src=""} // Ausweis ohne beschriftetes Geburtsdatum: Ausstellungs-/Ablaufdatum nicht raten
   const eh=parseEHIC(lines);
   if(eh){if(!last)last=eh.last;if(!first)first=eh.first;if(eh.dob)dob=eh.dob;labelled=true;src="EHIC-Felder (Nr. 3/4/5)"}
   const mz=parseMRZ(text);
   if(mz.last){last=mz.last;first=mz.first||first;labelled=true;src="Maschinenlesezeile (MRZ)"}
   if(mz.dob){dob=mz.dob;if(mz.sex)sex=mz.sex;src=src||"Maschinenlesezeile (MRZ)"}
+  // EHIC mit nummerierten Feldern: Beschriftung "3 …" / "4 …" / "5 …" in beliebiger Sprache, Wert steht darunter
+  {
+    const numLbl=n=>lines.findIndex(l=>new RegExp("^"+n+"\\s*[.)]?\\s+[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ \\-]{1,30}$").test(l));
+    const i3=numLbl(3),i4=numLbl(4),i5=numLbl(5);
+    if(i3>=0&&i4>=0&&i3<i4){
+      const v3=nextVal(i3),v4=nextVal(i4);
+      if(v3&&v4&&fold(v3)!==fold(v4)&&!last){last=v3;first=v4;labelled=true;src="EHIC (nummerierte Felder)";
+        if(i5>=0){const L=lobjs[i5];let b=null;lobjs.forEach((o,k)=>{if(k===i5)return;const dy=o.y-L.y;if(geo&&(dy<L.h*.4||dy>Math.max(L.h*7,140)||Math.abs(o.x-L.x)>Math.max(90,L.h*8)))return;if(!geo&&(k<i5||k>i5+2))return;const d=findDate(o.t,true);if(d&&(!b||dy<b.dy))b={d,dy}});if(b)dob=b.d}}
+    }
+  }
+  // Europäische Krankenversicherungskarte: kleine Beschriftungen werden oft nicht gelesen – dann gilt die feste Feldreihenfolge (1. Zeile Name, 2. Zeile Vorname)
+  const EHIC_HDR=/krankenversicherungskarte|kartica\s*zdravstven|zdravstvenega\s*zavarovanja|carte\s*europ[eé]enne|europeiska\s*sjukf|health\s*insurance\s*card|assurance\s*maladie|tessera\s*europea|tarjeta\s*sanitaria\s*europea|ziektekosten|zdravotn[ií]\s*poji|ubezpieczenia\s*zdrowotnego/i;
+  if(EHIC_HDR.test(text)&&!(last&&first)){
+    const SIG=/unterschrift|signature|[uü]bertragbar|transferable|handtekening|firma|podpis/i;
+    let minY=-1,startI=-1;
+    lobjs.forEach((l,i)=>{if(EHIC_HDR.test(l.t)||SIG.test(l.t)){minY=Math.max(minY,l.y);startI=Math.max(startI,i)}});
+    const cl=t=>t.replace(/^[^A-Za-zÀ-ÿ]+|[^A-Za-zÀ-ÿ.]+$/g,"").trim();
+    const rows=lobjs.map((l,i)=>({l,i,t:cl(l.t)})).filter(o=>(geo&&minY>=0?o.l.y>minY:o.i>startI)&&o.t.replace(/[^A-Za-zÀ-ÿ]/g,"").length>=2&&alpha(o.t)&&o.t.length<=34).sort((a,b)=>geo?a.l.y-b.l.y:a.i-b.i);
+    if(rows.length>=2){last=rows[0].t;first=rows[1].t;labelled=true;src="EHIC (feste Feldreihenfolge)"}
+    else if(rows.length===1){if(isFirst(rows[0].t)){first=rows[0].t}else last=rows[0].t;labelled=true;src="EHIC (feste Feldreihenfolge)"}
+  }
   const raw=text.split(/\n+/).map(l=>l.trim()).filter(Boolean);
   raw.forEach((l,i)=>{
-    if(!sex&&/(geschlecht|\bsex[eo]?\b|\bsesso\b|p[lł1i]e[cćčé]|\bplec\b|poh?lav[ií]e?|geslacht|\bk[oö]n\b|sukupuoli|\bnem\b|\bspol\b)/i.test(l)){const m=(l+" "+(raw[i+1]||"")).match(/(?:^|[\s\/])([MFWHK])(?=[\s\/]|$)/);if(m)sex=(m[1]==="M"||m[1]==="H")?"M":"W"}
+    if(!sex&&/(geschlecht|\bsex[eo]?\b|\bsesso\b|p[lł1i]e[cćčé]|\bplec\b|poh?lav[ií]e?|geslacht|\bk[oö]n\b|sukupuoli|\bnem\b|\bspol\b)/i.test(l)){const m=(l+" "+(raw[i+1]||"")).match(/(?:^|[\s\/])([MFWHKV])(?=[\s\/]|$)/);if(m)sex=(m[1]==="M"||m[1]==="H")?"M":"W"}
   });
   if(!sex&&(isIdDoc||lines.some(isFirstLbl))){ // Beschriftung schlecht gelesen: alleinstehender Buchstabe M/F/W (auch „M/M“) ist auf Ausweisen das Geschlecht
-    const one=raw.find(l=>/^[MFWKH](?:\s*\/\s*[MFWKH])?$/.test(l.trim()));
+    const one=raw.find(l=>/^[MFWKHV](?:\s*\/\s*[MFWKHV])?$/.test(l.trim()));
     if(one){const c=one.trim()[0];sex=(c==="M"||c==="H")?"M":"W"}
   }
   if(!dob||!sex){
@@ -1768,6 +1861,7 @@ function parseCard(text,lobjs){
   // Kandidaten für Namenszeilen bewerten (Krankenversichertenkarte u. ä.)
   const cands=[];
   if(true){
+    const ymaxAll=Math.max(0,...lobjs.map(l=>l.y+l.h));
     const hs=lobjs.map(l=>l.h).filter(x=>x>0).sort((a,b)=>a-b),med=hs.length?hs[Math.floor(hs.length/2)]:0;
     const anchors=[];
     lobjs.forEach((l,i)=>{if(/versicherten|vers\.?\s*-?\s*nr/i.test(l.t)||/(?:^|\s)[A-Z]\s?[0-9OIlSB]{9}(?:\s|$)/.test(l.t))anchors.push(i)});
@@ -1777,6 +1871,7 @@ function parseCard(text,lobjs){
       if(!t||!alpha(t)||t.length>36||(l.c!=null&&l.c<55))return;
       const words=t.split(/[\s,]+/).filter(w=>w.replace(/\./g,"").length>=1);
       if(words.length<1||words.length>4)return;
+      if(!words.some(w=>w.replace(/\./g,"").length>=3))return; // nur Kurzwörter ("De en nn") sind Rauschen
       const short=words.filter(w=>w.replace(/\./g,"").length<=2&&!/^(dr|von|van|de|zu)\.?$/i.test(w)).length;
       let sc=1;
       if(isFirst(t))sc+=4;
@@ -1784,16 +1879,19 @@ function parseCard(text,lobjs){
       anchors.forEach(a=>{const d=a-i;if(d>=1&&d<=3)sc+=5-d;else if(d<0&&d>=-2)sc+=1});
       if(!anchors.length&&dIdx>=0&&Math.abs(i-dIdx)<=3)sc+=2;
       if(med>0){if(l.h>=med*1.15)sc+=2;else if(l.h<med*.7)sc-=2}
+      if(geo&&ymaxAll>0&&l.y/ymaxAll<.2)sc-=3; // Kopfzeile des Dokuments
       if(l.c!=null&&l.c>85)sc+=1;
       sc-=2*short;
       cands.push({t,score:sc,y:l.y,hit:isFirst(t)});
     });
   }
-  return {first:titleCase(first),last:titleCase(last),dob,sex,cands,labelled,src,yob};
+  const lineConf=t=>{const o=lobjs.find(l=>l.t===t||l.t.indexOf(t)>=0);return o&&o.c!=null?o.c:50};
+  const qOf=(role,t)=>{if(!t)return -99;const L=t.replace(/[^A-Za-zÀ-ÿ]/g,"").length;let q=10+lineConf(t)/20;if(L<3)q-=7;if(role==="first"&&isFirst(t))q+=3;if(/EHIC|MRZ/.test(src))q+=2;return q};
+  return {first:titleCase(first),last:titleCase(last),dob,sex,cands,labelled,src,yob,dobLine:(dob&&dobLine&&findDate(dobLine.t,true)===dob)?dobLine:null,idLike:idMarks,rl:{last:qOf("last",last),first:qOf("first",first)}};
 }
 const cleanName=t=>t.replace(/\b(dr|prof|med|dipl|ing|mag)\b\.?/gi,"").replace(/\s+/g," ").trim();
-function pickNames(agg){
-  const arr=[...agg.values()].filter(o=>o.score>=4).sort((a,b)=>b.score-a.score);
+function pickNames(agg,idLike){
+  const arr=[...agg.values()].filter(o=>o.score>=5).sort((a,b)=>b.score-a.score);
   if(!arr.length)return {first:"",last:""};
   if(arr.length===1||arr[1].score<arr[0].score*.45){
     const raw=arr[0].t;
@@ -1803,9 +1901,11 @@ function pickNames(agg){
       if(isFirst(w[w.length-1])&&!isFirst(w[0]))return {last:titleCase(w.slice(0,-1).join(" ")),first:titleCase(w[w.length-1])};
       return {first:titleCase(w.slice(0,-1).join(" ")),last:titleCase(w[w.length-1])};
     }
+    if(w.length===1&&isFirst(w[0]))return {first:titleCase(w[0]),last:""};
     return {first:"",last:titleCase(w.join(" "))};
   }
   const two=arr.slice(0,2).sort((a,b)=>a.y-b.y),a=cleanName(two[0].t),b=cleanName(two[1].t);
+  if(idLike)return {last:titleCase(a),first:titleCase(b)}; // Ausweise und EHIC: erst Nachname, dann Vorname
   if(isFirst(b)&&!isFirst(a))return {last:titleCase(a),first:titleCase(b)};
   return {first:titleCase(a),last:titleCase(b)};
 }
@@ -1833,6 +1933,15 @@ function grayContrast(src){
   const k=255/Math.max(40,hi-lo);
   for(let i=0,j=0;i<d.length;i+=4,j++){const v=Math.max(0,Math.min(255,(g[j]-lo)*k));d[i]=d[i+1]=d[i+2]=v}
   cx.putImageData(im,0,0);return cv;
+}
+function darkText(src){ // nur sehr dunkle Pixel (gedruckte Schrift) behalten: entfernt Guilloche, Wasserzeichen und Hologramm-Muster
+  const c=document.createElement("canvas");c.width=src.width;c.height=src.height;const cx=c.getContext("2d");cx.drawImage(src,0,0);
+  const im=cx.getImageData(0,0,c.width,c.height),d=im.data,n=d.length/4,g=new Uint8Array(n),hist=new Uint32Array(256);
+  for(let i=0,j=0;i<d.length;i+=4,j++){const v=Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2]);g[j]=v;hist[v]++}
+  let acc=0,T=0;for(let v=0;v<256;v++){acc+=hist[v];if(acc>=n*.10){T=v;break}}
+  T=Math.min(125,Math.max(70,T+30));
+  for(let i=0,j=0;i<d.length;i+=4,j++){const v=g[j]<T?0:255;d[i]=d[i+1]=d[i+2]=v}
+  cx.putImageData(im,0,0);return c;
 }
 function adaptive(src){ // lokale Schwelle: hilft bei Glanz, Farbverläufen und Hintergrundmuster
   const w=src.width,h=src.height,cv=document.createElement("canvas");cv.width=w;cv.height=h;
@@ -1876,26 +1985,71 @@ async function scanCard(file){
     }
     // 2) mehrere Durchgänge mit unterschiedlicher Aufbereitung, Ergebnisse zusammenführen
     const big=scaled(rotCanvas(base,bestDeg),2200);
-    const passes=[["Durchgang 1/3",()=>grayContrast(big),11],["Durchgang 2/3",()=>adaptive(big),11],["Durchgang 3/3",()=>grayContrast(big),6]];
+    const passes=[["Durchgang 1/4",()=>grayContrast(big),11],["Durchgang 2/4",()=>darkText(big),11],["Durchgang 3/4",()=>adaptive(big),11],["Durchgang 4/4",()=>grayContrast(big),6]];
     let res={first:"",last:"",dob:"",sex:"",yob:0,src:""},lines=[],labelledDone=false;
-    const agg=new Map();
+    let dobSrc=null,idLikeAny=false;
+    const agg=new Map(),dobVotes=new Map(),roleAgg={last:new Map(),first:new Map()};
     const runPass=async(wk,label,mk,psm)=>{
       setMsg(label);setBar(0);
-      const d=await rec(wk,mk(),psm);
+      const cv=mk();const d=await rec(wk,cv,psm);
       const lo=lineObjs(d),r=parseCard(d.text||"",lo);
+      if(r.dobLine&&r.dob&&!dobSrc)dobSrc={canvas:cv,line:r.dobLine,date:r.dob};
       for(const k of ["dob","sex","yob"])if(!res[k]&&r[k])res[k]=r[k];
+      if(r.dob)dobVotes.set(r.dob,(dobVotes.get(r.dob)||0)+1);
       if(r.src&&!res.src)res.src=r.src;
-      if(r.labelled){if(!labelledDone)labelledDone=true;if(!res.first&&r.first)res.first=r.first;if(!res.last&&r.last)res.last=r.last}
-      r.cands.forEach(c=>{const key=fold(c.t),o=agg.get(key)||{t:c.t,score:0,y:c.y,hit:c.hit};o.score+=c.score;agg.set(key,o)});
+      if(r.idLike)idLikeAny=true;
+      if(r.labelled){labelledDone=true;["last","first"].forEach(role=>{const t=r[role];if(!t)return;const k=fold(t),m=roleAgg[role],o=m.get(k)||{t,q:-99,n:0};o.q=Math.max(o.q,r.rl[role]);o.n++;m.set(k,o)})}
+      r.cands.forEach(c=>{const key=fold(c.t),o=agg.get(key)||{t:c.t,best:-99,n:0,score:0,y:c.y,hit:c.hit};o.best=Math.max(o.best,c.score);o.n++;o.score=o.best+.5*(o.n-1);agg.set(key,o)});
       lo.map(l=>l.t).forEach(l=>{if(!lines.some(x=>x.toLowerCase()===l.toLowerCase()))lines.push(l)});
     };
+    const bestRole=role=>{let b=null;for(const o of roleAgg[role].values()){const q=o.q+.5*(o.n-1);if(!b||q>b.q)b={t:o.t,q}}return b&&b.q>=9?b.t:""};
     const topScore=()=>Math.max(0,...[...agg.values()].map(o=>o.score));
     for(const [label,mk,psm] of passes){
       await runPass(worker,label,mk,psm);
-      if((res.dob||res.yob)&&(labelledDone||topScore()>=12))break;
+      if((res.dob||res.yob)&&((bestRole("last")&&bestRole("first"))||(!labelledDone&&topScore()>=9)))break; // erst aufhören, wenn Nachname UND Vorname sauber gelesen sind
     }
+    // Auswahl nach Qualität statt „wer zuerst kommt“
+    res.last=bestRole("last");res.first=bestRole("first");labelledDone=!!(res.last||res.first);
+    if(dobVotes.size){let bd="",bc=0;dobVotes.forEach((c,d)=>{if(c>bc){bc=c;bd=d}});res.dob=bd}
+    // Maschinenlesezeile erkennbar? Dann gezielt den unteren Kartenteil mit einem Spezialleser lesen (Prüfziffern sichern Geburtsdatum)
+    const mrzHint=lines.some(l=>/^[A-Z0-9<«]{20,}$/.test(l.replace(/\s/g,""))&&(l.match(/[<«]/g)||[]).length>=3)||lines.some(l=>/^(IDD|P<|I<|ID[A-Z]{3}|AC[A-Z]{3})/.test(l.replace(/\s/g,"")));
+    if(mrzHint){
+      try{
+        setMsg("Maschinenlesezeile wird genau gelesen");setBar(0);
+        const wm=await getWorkerMRZ();
+        const crop=document.createElement("canvas"),sy=Math.round(big.height*.55);crop.width=big.width;crop.height=big.height-sy;crop.getContext("2d").drawImage(big,0,sy,big.width,big.height-sy,0,0,big.width,big.height-sy);
+        let mr=null;
+        for(const mk of [()=>darkText(crop),()=>grayContrast(crop)]){
+          await wm.setParameters({tessedit_pageseg_mode:"6"});
+          const dm=await wm.recognize(mk());
+          const p=parseMRZ(dm.data.text||"");
+          if(p.dob&&(!mr||(p.verified&&!mr.verified)))mr=p;
+          if(mr&&mr.verified&&mr.last)break;
+        }
+        if(mr){
+          if(mr.dob){res.dob=mr.dob;res.sex=mr.sex||res.sex;res.src="Maschinenlesezeile (MRZ)"+(mr.verified?", Prüfziffer ok":"");res.yob=0}
+          if(mr.last){res.last=titleCase(mr.last);res.first=titleCase(mr.first||res.first);labelledDone=true}
+        }
+      }catch(_){}
+    }
+    if(mrzHint&&!/MRZ/.test(res.src||"")&&res.src==="Datum auf der Karte"){res.dob="";res.src="";dobSrc=null}
+    // Geburtsdatum ist entscheidend (Alter): Datumszeile vergrößern und nur Ziffern lesen
+    if(dobSrc&&!/Prüfziffer ok/.test(res.src||"")){
+      try{
+        setMsg("Geburtsdatum wird genau nachgelesen");setBar(0);
+        const L=dobSrc.line,cvs=dobSrc.canvas,pad=Math.round(L.h*.5);
+        const sx=Math.max(0,L.x-pad),sy=Math.max(0,L.y-pad),sw=Math.min(cvs.width-sx,(L.x1>L.x?L.x1-L.x:L.h*12)+pad*2),sh=Math.min(cvs.height-sy,L.h+pad*2);
+        const c=document.createElement("canvas"),k=Math.max(1,170/sh);c.width=Math.round(sw*k);c.height=Math.round(sh*k);
+        c.getContext("2d").drawImage(cvs,sx,sy,sw,sh,0,0,c.width,c.height);
+        await worker.setParameters({tessedit_char_whitelist:"0123456789./- ",tessedit_pageseg_mode:"7"});
+        const dd=await worker.recognize(c);
+        await worker.setParameters({tessedit_char_whitelist:""});
+        const fd=findDate((dd.data.text||"").replace(/\n/g," ").trim(),true);
+        if(fd&&fd!==res.dob)res.dobAlt=fd; // zwei unterschiedliche Lesungen: beide anbieten, der Nutzer entscheidet
+      }catch(_){try{await worker.setParameters({tessedit_char_whitelist:""})}catch(__){}}
+    } // Rückseite ohne lesbare Zeile: kein Raten
     // Reicht das nicht (andere Sprache, Akzente wie ł č ș ñ): weitere europäische Sprachen einmalig nachladen
-    const haveName=()=>res.last||(pickNames(agg).last||"");
+    const haveName=()=>res.last||(pickNames(agg,idLikeAny).last||"");
     if(!haveName()){ // Krankenkarten-Vorderseiten haben oft kein Geburtsdatum – dafür nicht extra nachladen
       try{
         setMsg("Weitere europäische Sprachen werden geladen (einmalig ca. 10 MB)");setBar(0);
@@ -1904,12 +2058,14 @@ async function scanCard(file){
         if(!haveName())await runPass(w2,"Europäische Sprachen 2/2",()=>adaptive(big),11);
       }catch(_){}
     }
-    if(!labelledDone){const nm=pickNames(agg);res.first=nm.first;res.last=nm.last}
+    if(!labelledDone){const nm=pickNames(agg,idLikeAny);res.first=nm.first;res.last=nm.last}
     else if(!res.last||!res.first){ // nur Teile über Beschriftungen gefunden: Rest aus den bewerteten Zeilen
-      const nm=pickNames(agg),have=fold(res.first||res.last||"");
-      if(!res.last&&nm.last&&fold(nm.last)!==have)res.last=nm.last;
-      if(!res.first&&nm.first&&fold(nm.first)!==fold(res.last||""))res.first=nm.first;
+      const known=new Set([fold(res.first||""),fold(res.last||"")].filter(Boolean));
+      const others=[...agg.values()].filter(o=>o.score>=5&&!known.has(fold(o.t))).sort((a,b)=>b.score-a.score);
+      if(!res.last){const o=others.find(o=>!isFirst(o.t))||others[0];if(o)res.last=titleCase(cleanName(o.t))}
+      if(!res.first){const o=others.find(o=>fold(o.t)!==fold(res.last||""));if(o)res.first=titleCase(cleanName(o.t))}
     }
+    const tidy=t=>(t||"").replace(/\s*-\s*/g,"-").replace(/\s+/g," ").trim();res.first=tidy(res.first);res.last=tidy(res.last);
     // wahrscheinlichste Namenszeilen zuerst in die Antippliste
     const best=[...agg.values()].sort((a,b)=>b.score-a.score).map(o=>o.t);
     lines=[...new Set([...best.slice(0,6),...lines])];
@@ -1917,7 +2073,7 @@ async function scanCard(file){
     const thumb=scaled(rotCanvas(base,bestDeg),Math.min(1000,Math.max(base.width,base.height))).toDataURL("image/jpeg",.85);
     let msex=res.sex||state.sex||"",focus="scLast";
     const chips=lines.filter(l=>!/^[\W\d_]+$/.test(l)&&l.length<=44).slice(0,18).map(l=>`<button class="chip" data-line="${esc(l)}">${esc(l)}</button>`).join("");
-    openModal(`<h2>Gelesen – bitte prüfen</h2>${res.src?`<div class="vv">Erkannt über: ${esc(res.src)}</div>`:""}
+    openModal(`<h2>Gelesen – bitte prüfen</h2>${res.src?`<div class="vv">Erkannt über: ${esc(res.src)}</div>`:""}${res.dobAlt?`<div class="warnbox">⚠ Geburtsdatum unsicher gelesen: bitte mit der Karte vergleichen.<div class="chips" style="margin-top:8px"><button class="chip" data-dob="${esc(res.dob)}">${esc(res.dob)}</button><button class="chip" data-dob="${esc(res.dobAlt)}">${esc(res.dobAlt)}</button></div></div>`:""}${/MRZ/.test(res.src||"")&&!/Prüfziffer ok/.test(res.src||"")?'<div class="warnbox">⚠ Prüfziffer nicht bestätigt – Geburtsdatum und Name bitte genau prüfen.</div>':""}
       ${sharpV<SHARP_BAD?'<div class="warnbox">⚠ Das Foto ist unscharf – das Lesen kann ungenau sein. Besser nochmal fotografieren (ruhig halten, Antippen = scharfstellen).</div>':""}
       <img src="${thumb}" alt="" style="width:100%;border-radius:10px;margin:6px 0 4px;image-rendering:auto">
       <div class="fld"><label>Nachname</label><input class="inp" id="scLast" value="${esc(res.last)}"></div>
@@ -1934,6 +2090,7 @@ async function scanCard(file){
     const umlaut=t=>t.replace(/ae/gi,m=>m[0]==="A"?"Ä":"ä").replace(/oe/gi,m=>m[0]==="O"?"Ö":"ö").replace(/ue/gi,m=>m[0]==="U"?"Ü":"ü");
     if(/MRZ/.test(res.src||"")){
       const ch=[];[["scLast","Nachname"],["scFirst","Vorname"]].forEach(([id,l])=>{const v=$(id).value;if(/ae|oe|ue/i.test(v)){const u=umlaut(v);ch.push(`<button class="chip" data-uml="${id}" data-to="${esc(u)}">${l}: ${esc(v)} → ${esc(u)}?</button>`)}});
+      [["scLast","Nachname"],["scFirst","Vorname"]].forEach(([id,l])=>{const v=$(id).value;for(const w of v.split(" ")){if(w.length>=9){const i=w.slice(3,-3).search(/K/);if(i>=0){const a=w.slice(0,i+3),b=w.slice(i+4);ch.push(`<button class="chip" data-uml="${id}" data-to="${esc(v.replace(w,a+" "+b))}">${l}: ${esc(w)} → ${esc(a+" "+b)}?</button>`);break}}}});
       $("umlChips").innerHTML=ch.join("");
       $("umlChips").onclick=e=>{const b=e.target.closest("[data-uml]");if(b){$(b.dataset.uml).value=b.dataset.to;b.remove()}};
     }
@@ -1944,6 +2101,7 @@ async function scanCard(file){
       $(focus).value=v;
     });
     $("modal").querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>{msex=msex===b.dataset.ms?"":b.dataset.ms;$("modal").querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms===msex))});
+    $("modal").querySelectorAll("[data-dob]").forEach(b=>b.onclick=()=>{$("scDob").value=b.dataset.dob;$("modal").querySelectorAll("[data-dob]").forEach(x=>x.classList.toggle("on",x===b))});
     $("scNo").onclick=closeModal;
     $("scAgain").onclick=()=>{closeModal();openCam()};
     $("scOk").onclick=()=>{

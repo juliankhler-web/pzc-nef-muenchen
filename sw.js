@@ -1,6 +1,6 @@
 // Offline-Cache: App läuft nach dem ersten Laden auch ohne Netz.
 // Bei jeder Änderung an den Dateien die Versionsnummer erhöhen.
-const V = "pzc-v3.0";
+const V = "pzc-v3.7";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
