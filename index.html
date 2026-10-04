@@ -588,8 +588,13 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="2.9";
+const APP_VERSION="3.0";
 const CHANGELOG=[
+ {v:"3.0",d:"04.10.2026",items:[
+  "Ausweis-Vorderseite: Feldkennungen wie „[a]“ stören nicht mehr; Geburtsort, Staatsangehörigkeit und andere Werte werden nicht mehr als Nachname genommen",
+  "Krankenkarte: Beschriftungen wie „Geburtsdatum“ werden nicht mehr als Name gelesen; Name in einer Zeile („Vorname Nachname“) wird richtig geteilt",
+  "„Nochmal fotografieren“: Kamera startet jetzt sauber neu, das Bild füllt den Rahmen und der Ausschnitt stimmt wieder",
+  "Ausweis-Rückseite (MRZ): Vorschlag zum Antippen für Umlaute, z. B. Koehler → Köhler"]},
  {v:"2.9",d:"04.10.2026",items:[
   "Ausweise und Krankenkassenkarten aus ganz Europa: liest die Maschinenlesezeile (<<<) auf Ausweis-Rückseiten und Pässen, die EHIC-Felder 3/4/5 auf der Rückseite der Krankenkarte und Beschriftungen in vielen Sprachen (Surname/Nom/Cognome/Apellidos/Nazwisko …)",
   "Geburtsdatum und Geschlecht auch aus Personennummern: Polen (PESEL), Italien (Codice fiscale), Frankreich (nur Jahr), Tschechien/Slowakei, Dänemark, Schweden, Finnland, Rumänien, Estland/Litauen, Belgien, Österreich",
@@ -1552,7 +1557,7 @@ async function getWorker(){
   await tessWorker.setParameters({preserve_interword_spaces:"1",user_defined_dpi:"300"});
   return tessWorker;
 }
-const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesund|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b|\bbig\b|direkt|classic|viactiv|\bmkk\b|salus|vivida|svlfg|landwirtschaft|bundesrepublik|personalausweis|identity|ausweis|staatsangeh|nationality|surname|given|vornamen|geburtsname|geburtsort|place of|date of|\bsex\b|geschlecht|signature|unterschrift|augenfarbe|gr[oö][sß]e|height|anschrift|address|beh[oö]rde|authority|versicherung|kranken|krankheit|bkk|ikk|\bnom\b|pr[eé]nom|cognome|\bnome\b|apellid|\bnombre|nazwisko|imi[eę]|imiona|p[rř][ií]jmen|jm[eé]no|achternaam|voornam|efternamn|f[oö]rnamn|etternavn|sukunimi|etunimi|prezime|\bime\b|priimek|\bnume\b|prenume|vezet[eé]k|keresztn|naissance|nascita|nacimiento|urodzenia|narozen|geboortedatum|syntym|sz[uü]let|nationalit|nazionalit|nacionalidad|obywatelstwo|st[aá]tn[ií]|\bsexe\b|\bsesso\b|\bsexo\b|poh?laví|p[lł][eé]ć|document|identit|r[eé]publi|repubblica|rzeczpospolita|polska|\bcarte\b|\btessera\b|tarjeta|europ|\bunion\b|\bunie\b|\bpassport|\bpass\b|\bpas\b)/i;
+const NOTNAME=/(karte|krankenkasse|krankenversicherung|aok|techniker|barmer|\bdak\b|\bikk\b|\bbkk\b|knappschaft|versicherten|g[uü]ltig|gesund|nummer|\bgeb\b|geboren|bayern|\bplus\b|\bhkk\b|mobil|\bhek\b|kkh|novitas|vigo|kasse|card|deutschland|german|ersatz|innung|\bnr\b|\bkv\b|\bbig\b|direkt|classic|viactiv|\bmkk\b|salus|vivida|svlfg|landwirtschaft|bundesrepublik|personalausweis|identity|ausweis|staatsangeh|nationality|surname|given|vornamen|geburtsname|geburtsort|place of|date of|\bsex\b|geschlecht|signature|unterschrift|augenfarbe|gr[oö][sß]e|height|anschrift|address|beh[oö]rde|authority|versicherung|kranken|krankheit|bkk|ikk|\bnom\b|pr[eé]nom|cognome|\bnome\b|apellid|\bnombre|nazwisko|imi[eę]|imiona|p[rř][ií]jmen|jm[eé]no|achternaam|voornam|efternamn|f[oö]rnamn|etternavn|sukunimi|etunimi|prezime|\bime\b|priimek|\bnume\b|prenume|vezet[eé]k|keresztn|naissance|nascita|nacimiento|urodzenia|narozen|geboortedatum|syntym|sz[uü]let|nationalit|nazionalit|nacionalidad|obywatelstwo|st[aá]tn[ií]|\bsexe\b|\bsesso\b|\bsexo\b|poh?laví|p[lł][eé]ć|document|identit|r[eé]publi|repubblica|rzeczpospolita|polska|\bcarte\b|\btessera\b|tarjeta|europ|\bunion\b|\bunie\b|\bpassport|\bpass\b|\bpas\b|geburt|ablauf|kennnummer|pers[oö]nliche|tr[aä]ger|\bdatum\b|\bdate\b|\bvalid|\bnumber\b|heilbehandlung|selbstbehalt|zusatz|privat|\br\+v\b|krankenversichertennummer|versicherungsnummer|beginn|\bende\b|expir|\bplace\b|\blieu\b|doktorgrad|k[uü]nstlername|ordensname)/i;
 const titleCase=t=>t&&t===t.toUpperCase()?t.toLowerCase().replace(/(^|[\s\-'’])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()):t;
 const MONTHS={jan:1,feb:2,"fév":2,fev:2,mar:3,"mär":3,mrt:3,apr:4,avr:4,abr:4,mai:5,may:5,mei:5,maj:5,mag:5,jun:6,juin:6,giu:6,jul:7,juil:7,lug:7,aug:8,ago:8,sep:9,set:9,okt:10,oct:10,ott:10,nov:11,dez:12,dec:12,dic:12,ene:1,gen:1,sty:1,lut:2,kwi:4,cze:6,lip:7,sie:8,wrz:9,"paź":10,paz:10,lis:11,gru:12,led:1,"úno":2,uno:2,"bře":3,bre:3,dub:4,kve:5,"čvn":6,cvn:6,"čvc":7,cvc:7,srp:8,"zář":9,zar:9,"říj":10,rij:10,pro:12};
 const MON_RE=new RegExp("(\\d{1,2})\\s*[.\\-\\/]?\\s*("+Object.keys(MONTHS).sort((a,b)=>b.length-a.length).join("|")+")[a-zäöéûúóíáěščřžýů]*\\.?\\s*(?:\\/\\s*[a-z]{3,}\\s*)?(\\d{2,4})","i");
@@ -1673,10 +1678,11 @@ function parseEHIC(lines){
   return ((last?1:0)+(first?1:0)+(dob?1:0))>=2?{last,first,dob}:null;
 }
 
+const stripMark=t=>t.replace(/^[\[\(\{|]\s*[A-Za-z0-9]\s*[\]\)\}|lI1]\s*/,"").replace(/^[3-9]\s*[.)]?\s*(?=(name|nachname|vornamen?|geburtsdatum|pers[oö]nliche|kennnummer|ablaufdatum|surname|given|nom\b|pr[eé]nom|date\s*of|cognome|apellid)\b)/i,"").trim(); // Feldkennung auf dem Ausweis, z. B. "[a] Name" oder "[a]KÖHLER"
 function lineObjs(d){
-  const L=(d.lines||[]).map(l=>({t:(l.text||"").replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim(),c:l.confidence,h:l.bbox?l.bbox.y1-l.bbox.y0:0,y:l.bbox?l.bbox.y0:0,x:l.bbox?l.bbox.x0:0,x1:l.bbox?l.bbox.x1:0})).filter(l=>l.t.length>1);
+  const L=(d.lines||[]).map(l=>({t:stripMark((l.text||"").replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim()),c:l.confidence,h:l.bbox?l.bbox.y1-l.bbox.y0:0,y:l.bbox?l.bbox.y0:0,x:l.bbox?l.bbox.x0:0,x1:l.bbox?l.bbox.x1:0})).filter(l=>l.t.length>1);
   if(L.length)return L;
-  return (d.text||"").split(/\n+/).map((t,i)=>({t:t.replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim(),c:80,h:0,y:i*10,x:0,x1:0})).filter(l=>l.t.length>1);
+  return (d.text||"").split(/\n+/).map((t,i)=>({t:stripMark(t.replace(/[|_\\]+/g," ").replace(/\s+/g," ").trim()),c:80,h:0,y:i*10,x:0,x1:0})).filter(l=>l.t.length>1);
 }
 function parseCard(text,lobjs){
   lobjs=lobjs||lineObjs({text});
@@ -1696,7 +1702,7 @@ function parseCard(text,lobjs){
     if(!pick&&dateHits.length)pick=dateHits.reduce((a,b)=>dateKey(b.d)<dateKey(a.d)?b:a); // ohne Beschriftung: das früheste Datum (Ausstellung/Ablauf liegen später)
     if(pick){dob=pick.d;dIdx=pick.i;src=src||"Datum auf der Karte"}
   }
-  const NATION=/^(deutsch|deutsche|deutscher|german|d)\.?$/i;
+  const NATION=/^(deutsch|deutsche|deutscher|german|d|de|ce|eu|rf|a|b|ch|name|vorname|vornamen|nachname|surname|ablaufdatum|geburtsdatum|unterschrift)\.?$/i;
   const alpha=l=>/^[A-Za-zÄÖÜäöüß'’\-., ]{2,}$/.test(l)&&!NOTNAME.test(l)&&!NATION.test(l.trim());
   const isIdDoc=/personalausweis|identity\s*card|bundesrepublik|aufenthaltstitel|reisepass|passport/i.test(text)||lines.some(l=>/vornamen|given\s*names?/i.test(l));
   const LAST_W="name|nachname|familienname|surname|nom|cognome|apellidos?|apelido|nazwisko|p[rř][ií]jmen[ií]|priezvisko|achternaam|efternamn|etternavn|efternavn|sukunimi|vezet[eé]kn[eé]v|prezime|priimek|nume|uzv[aā]rds|pavard[eė]|perekonnanimi";
@@ -1748,6 +1754,17 @@ function parseCard(text,lobjs){
     const ni=natIds(text)[0];
     if(ni){if(!dob){if(ni.dob){dob=ni.dob;src=ni.src.includes("(")?ni.src:"Personennummer ("+ni.src+")"}else if(ni.yob){yob=ni.yob;src=ni.src}}if(!sex&&ni.sex)sex=ni.sex}
   }
+  const NONNAME_LBL=/geburtsort|place\s*of\s*birth|lieu\s*de\s*naissance|staatsangeh|nationality|nationalit|ausgestellt|beh[oö]rde|authority|gr[oö][sß]e|height|augenfarbe|anschrift|address|geburtsname|name\s*at\s*birth|g[uü]ltig\s*bis|date\s*of\s*expiry|unterschrift|signature|doktorgrad|k[uü]nstlername|versicherungsnummer|krankenversichertennummer/i;
+  const excl=new Set();
+  lobjs.forEach((L,i)=>{
+    if(!NONNAME_LBL.test(L.t))return;
+    let best=-1,bd=1e9;
+    lobjs.forEach((o,k)=>{if(k===i)return;let dy;
+      if(geo){dy=o.y-L.y;if(dy<L.h*.4||dy>Math.max(L.h*7,140)||Math.abs(o.x-L.x)>Math.max(90,L.h*6))return}
+      else{if(k<=i||k>i+1)return;dy=k-i}
+      if(dy<bd){bd=dy;best=k}});
+    if(best>=0)excl.add(best);
+  });
   // Kandidaten für Namenszeilen bewerten (Krankenversichertenkarte u. ä.)
   const cands=[];
   if(true){
@@ -1755,6 +1772,7 @@ function parseCard(text,lobjs){
     const anchors=[];
     lobjs.forEach((l,i)=>{if(/versicherten|vers\.?\s*-?\s*nr/i.test(l.t)||/(?:^|\s)[A-Z]\s?[0-9OIlSB]{9}(?:\s|$)/.test(l.t))anchors.push(i)});
     lobjs.forEach((l,i)=>{
+      if(excl.has(i))return;
       const t=l.t.replace(/^[^A-Za-zÄÖÜäöüß]+|[^A-Za-zÄÖÜäöüß.]+$/g,"").trim();
       if(!t||!alpha(t)||t.length>36||(l.c!=null&&l.c<55))return;
       const words=t.split(/[\s,]+/).filter(w=>w.replace(/\./g,"").length>=1);
@@ -1907,10 +1925,18 @@ async function scanCard(file){
       <div class="fld"><label>Geburtsdatum (TT.MM.JJJJ)</label><input class="inp" id="scDob" inputmode="decimal" value="${esc(res.dob||(res.yob?String(res.yob):""))}" placeholder="TT.MM.JJJJ oder nur Jahr"></div>
       <div class="fld"><label>Geschlecht</label><div class="sx"><button class="sxb ${msex==="M"?"on":""}" data-ms="M">M</button><button class="sxb ${msex==="W"?"on":""}" data-ms="W">W</button></div></div>
       ${chips?`<div class="fld"><label>Falsch erkannt? Feld antippen, dann die richtige Zeile hier antippen:</label><div class="chips" id="scChips">${chips}</div></div>`:""}
+      <div class="chips" id="umlChips"></div>
       <div class="warn">Bleibt auf diesem Gerät. Aus dem Geburtsdatum wird das Alter berechnet; der Name erscheint in der Zusammenfassung buchstabiert und wird mit dem Einsatz im Archiv gespeichert.</div>
       <div class="acts" style="grid-template-columns:1fr 1fr"><button class="btn sec" id="scNo">Abbrechen</button><button class="btn" id="scOk">Übernehmen</button></div>
       <button class="mini" id="scAgain" style="width:100%;margin-top:10px;padding:14px">📷 Nochmal fotografieren</button>`);
     ["scLast","scFirst","scDob"].forEach(id=>$(id).addEventListener("focus",()=>focus=id));
+    // In der Maschinenlesezeile steht Ä/Ö/Ü als AE/OE/UE – als Vorschlag zum Antippen anbieten
+    const umlaut=t=>t.replace(/ae/gi,m=>m[0]==="A"?"Ä":"ä").replace(/oe/gi,m=>m[0]==="O"?"Ö":"ö").replace(/ue/gi,m=>m[0]==="U"?"Ü":"ü");
+    if(/MRZ/.test(res.src||"")){
+      const ch=[];[["scLast","Nachname"],["scFirst","Vorname"]].forEach(([id,l])=>{const v=$(id).value;if(/ae|oe|ue/i.test(v)){const u=umlaut(v);ch.push(`<button class="chip" data-uml="${id}" data-to="${esc(u)}">${l}: ${esc(v)} → ${esc(u)}?</button>`)}});
+      $("umlChips").innerHTML=ch.join("");
+      $("umlChips").onclick=e=>{const b=e.target.closest("[data-uml]");if(b){$(b.dataset.uml).value=b.dataset.to;b.remove()}};
+    }
     $("scChips")?.addEventListener("click",e=>{
       const b=e.target.closest("[data-line]");if(!b)return;
       let v=b.dataset.line;
@@ -1953,7 +1979,8 @@ let camBuf=[];
 function frameCrop(){ // Bildausschnitt im Video, der dem Rahmen auf dem Bildschirm entspricht
   const v=$("camVid"),fr=document.querySelector(".camframe").getBoundingClientRect(),vr=v.getBoundingClientRect();
   const vw=v.videoWidth,vh=v.videoHeight,W=vr.width,H=vr.height;
-  const k=Math.max(W/vw,H/vh),ox=(vw*k-W)/2,oy=(vh*k-H)/2,pad=.05;
+  const fit=getComputedStyle(v).objectFit;
+  const k=fit==="contain"?Math.min(W/vw,H/vh):Math.max(W/vw,H/vh),ox=(vw*k-W)/2,oy=(vh*k-H)/2,pad=.05; // gilt für cover (ox>0) und contain (ox<0)
   let w=fr.width/k,h=fr.height/k,x=(fr.left-vr.left+ox)/k,y=(fr.top-vr.top+oy)/k;
   x-=w*pad;y-=h*pad;w*=1+2*pad;h*=1+2*pad;
   x=Math.max(0,x);y=Math.max(0,y);w=Math.min(vw-x,w);h=Math.min(vh-y,h);
@@ -1979,7 +2006,13 @@ async function openCam(){
   try{
     camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:3840},height:{ideal:2160}},audio:false});
   }catch(e){camStream=null;$("scanFile").click();return}
-  const v=$("camVid");v.srcObject=camStream;try{await v.play()}catch(_){}
+  // frisches Video-Element: verhindert, dass beim zweiten Öffnen Reste des ersten Starts das Bild verkleinern
+  const old=$("camVid"),v=old.cloneNode(false);v.removeAttribute("src");old.replaceWith(v);
+  v.setAttribute("playsinline","");v.muted=true;v.autoplay=true;
+  v.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";
+  v.addEventListener("click",camFocus);
+  v.srcObject=camStream;try{await v.play()}catch(_){}
+  if(!v.videoWidth)await new Promise(r=>{v.onloadedmetadata=r;setTimeout(r,1500)});
   const tr=camStream.getVideoTracks()[0],cap=tr.getCapabilities?tr.getCapabilities():{};
   try{if(cap.focusMode&&cap.focusMode.includes("continuous"))await tr.applyConstraints({advanced:[{focusMode:"continuous"}]})}catch(_){}
   camTorchOn=false;$("camTorch").classList.toggle("hidden",!cap.torch);
@@ -1990,9 +2023,8 @@ async function openCam(){
 function closeCam(){
   clearInterval(camTimer);camTimer=null;
   if(camStream)camStream.getTracks().forEach(t=>t.stop());
-  camStream=null;camBuf=[];$("camVid").srcObject=null;$("cam").classList.add("hidden");
+  camStream=null;camBuf=[];try{$("camVid").pause()}catch(_){};$("camVid").srcObject=null;$("cam").classList.add("hidden");
 }
-$("camVid").addEventListener("click",camFocus);
 $("camX").onclick=closeCam;
 $("camPick").onclick=()=>{closeCam();$("scanPick").click()};
 $("camTorch").onclick=async()=>{const tr=camStream&&camStream.getVideoTracks()[0];if(!tr)return;camTorchOn=!camTorchOn;try{await tr.applyConstraints({advanced:[{torch:camTorchOn}]})}catch(_){camTorchOn=!camTorchOn}};
