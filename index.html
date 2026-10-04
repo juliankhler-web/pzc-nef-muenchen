@@ -588,8 +588,13 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="3.7";
+const APP_VERSION="3.9";
 const CHANGELOG=[
+ {v:"3.9",d:"04.10.2026",items:[
+  "Steht der Wert rechts neben der Beschriftung statt darunter (tschechischer Ausweis), wird er trotzdem gefunden"]},
+ {v:"3.8",d:"04.10.2026",items:[
+  "EHIC-Foto vom Handy: war der Wert unter „3. Name“ nicht lesbar, nahm die App den Vornamen als Nachnamen („Wiebke / Wiebke“). Die Suche hält jetzt an der nächsten Beschriftung an und überspringt kein Feld mehr",
+  "Falsch gelesenes „ı“ (türkisches i ohne Punkt) in Namen wird zu „i“ (Wıebke → Wiebke)"]},
  {v:"3.7",d:"04.10.2026",items:[
   "Die Texterkennung hört erst auf, wenn Nachname und Vorname sauber gelesen sind – vorher blieb ein verrauschter erster Durchgang hängen und der saubere Durchgang lief nicht mehr (französischer Ausweis)"]},
  {v:"3.6",d:"04.10.2026",items:[
@@ -1738,6 +1743,7 @@ function parseEHIC(lines){
 }
 
 const fixOcr=t=>{
+  t=t.replace(/ı/g,"i").replace(/İ/g,"I");
   if(/\d{4,}/.test(t))return t; // Zahlen nicht anfassen
   const L=(t.match(/[A-Za-zÀ-ÿ]/g)||[]).length;if(L<t.length*.6)return t;
   return t.replace(/([A-ZÄÖÜ])[!|](?=[A-ZÄÖÜ]|$|\s)/g,"$1I").replace(/([A-ZÄÖÜ])0(?=[A-ZÄÖÜ])/g,"$1O").replace(/([A-ZÄÖÜ])1(?=[A-ZÄÖÜ])/g,"$1I").replace(/([A-ZÄÖÜ])5(?=[A-ZÄÖÜ])/g,"$1S").replace(/([A-ZÄÖÜ])8(?=[A-ZÄÖÜ])/g,"$1B");
@@ -1776,16 +1782,26 @@ function parseCard(text,lobjs){
   const isLastLbl=t=>t.length<=48&&new RegExp("^("+LAST_W+")(?![a-zäöüß])","i").test(t.trim())&&!isFirstLbl(t)&&!/geburtsname|name\s*at\s*birth|nom\s*de\s*naissance|apellido\s*de\s*soltera/i.test(t)||/sur\s?-?\s?name|surnam/i.test(t)&&!isFirstLbl(t);
   const geo=lobjs.some(l=>l.h>0);
   const aligned=(L,l)=>Math.abs(l.x-L.x)<=Math.max(90,L.h*6);
-  const nextVal=i=>{ // Wert unter einer Beschriftung: bevorzugt nach Position (gleiche Spalte, direkt darunter)
-    if(geo){const L=lobjs[i];let best=null;
-      lobjs.forEach((l,k)=>{if(k===i)return;const dy=l.y-L.y;if(dy<L.h*.4||dy>Math.max(L.h*7,140)||!aligned(L,l)||!alpha(l.t))return;if(!best||dy<best.dy)best={t:l.t,dy}});
-      if(best)return best.t}
-    for(let k=i+1;k<Math.min(lines.length,i+3);k++)if(alpha(lines[k]))return lines[k];return ""};
-  const prevVal=i=>{ // Wert direkt über einer Beschriftung (Name steht auf Ausweisen über den Vornamen)
-    if(geo){const L=lobjs[i];let best=null;
-      lobjs.forEach((l,k)=>{if(k===i)return;const dy=L.y-l.y;if(dy<L.h*.4||dy>Math.max(L.h*7,140)||!aligned(L,l)||!alpha(l.t))return;if(!best||dy<best.dy)best={t:l.t,dy}});
-      if(best)return best.t}
-    for(let k=i-1;k>=Math.max(0,i-3);k--)if(alpha(lines[k]))return lines[k];return ""};
+  const isLblLine=t=>NOTNAME.test(t)||isLabelish(t)||isLastLbl(t)||isFirstLbl(t)||/^[3-9]\s*[.)]?\s+[A-Za-zÀ-ÿ]/.test(t);
+  // Wert unter bzw. über einer Beschriftung: nächste Zeile in derselben Spalte; an der nächsten Beschriftung ist Schluss
+  // (sonst würde bei unleserlichem Wert der Wert des NÄCHSTEN Feldes genommen, z. B. Vorname als Nachname)
+  const nearVal=(i,dir)=>{
+    if(geo){const L=lobjs[i],c=[];
+      lobjs.forEach((l,k)=>{if(k===i)return;const dy=dir>0?l.y-L.y:L.y-l.y;if(dy<L.h*.4||dy>Math.max(L.h*7,140)||!aligned(L,l))return;c.push({t:l.t,dy})});
+      c.sort((a,b)=>a.dy-b.dy);
+      for(const o of c){if(alpha(o.t))return o.t;if(isLblLine(o.t))break}
+      if(dir>0){ // kein Wert darunter: Wert steht rechts neben der Beschriftung (z. B. tschechischer Ausweis)
+        const R=lobjs.filter((l,k)=>k!==i&&Math.abs(l.y-L.y)<Math.max(L.h*.9,14)&&l.x>=(L.x1||L.x)-5&&l.x-(L.x1||L.x)<Math.max(L.h*25,400)).sort((p,q)=>p.x-q.x);
+        for(const o of R){if(alpha(o.t))return o.t;if(isLblLine(o.t))break}
+      }
+      return "";
+    }
+    const n=dir>0?3:4;
+    for(let d=1;d<n;d++){const k=i+dir*d;if(k<0||k>=lines.length)break;if(alpha(lines[k]))return lines[k];if(isLblLine(lines[k]))break}
+    return "";
+  };
+  const nextVal=i=>nearVal(i,1);
+  const prevVal=i=>nearVal(i,-1);
   const sameLine=(l,W,anywhere)=>{ // Beschriftung und Wert in einer Zeile, z. B. „Nom DUPONT“ oder „JMENO / GIVEN NAMES: VZOR“
     const re=new RegExp((anywhere?"(?:^|[^a-zäöüß])":"^")+"(?:"+W+")\\s*[:.\\/\\-]?\\s+(.{2,40})$","ig");
     let m;const seen=new Set();
