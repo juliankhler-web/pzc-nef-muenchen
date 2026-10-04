@@ -23,4 +23,4 @@ Die Such-Begriffe (Alltagswörter, Körperteile, Fachrichtungen) sind eine eigen
 
 ## Offen / prüfen
 - Krankenhausliste fehlt bewusst (keine verifizierte Quelle)
-- Foto-Auslesen (Karte/Ausweis) ist mit echten Karten noch zu testen
+- Foto-Auslesen (Karte/Ausweis, Europa) wurde mit selbst erzeugten Testbildern geprüft und ist mit echten Karten weiter zu testen; griechische/kyrillische Schrift wird nicht gelesen, Akzente können verloren gehen
