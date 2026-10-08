@@ -588,8 +588,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="4.2";
+const APP_VERSION="4.3";
 const CHANGELOG=[
+ {v:"4.3",d:"08.10.2026",items:[
+  "Zusammenfassung: ganz oben über dem PZC steht jetzt der Funkspruch – BD1: TMO SK_1_Bett_M, Status 0, Kurzwahl 2515; BD2: TMO RD_BETTEN_M, Kurzwahl 2512, Status 5 – direkt darunter Funkrufname und Funkkanal"]},
  {v:"4.2",d:"08.10.2026",items:[
   "Zusammenfassung (BD1 und BD2): neue Felder Funkrufname und Kanal bei den Nummern – werden für den nächsten Einsatz gemerkt und im Archiv gespeichert"]},
  {v:"4.1",d:"08.10.2026",items:[
@@ -1360,7 +1362,7 @@ function entryText(e){
   if(e.patNr) t+=`\nPatientennummer: ${e.patNr}`;
   if(e.nefNr) t+=`\nNEF-Nummer: ${e.nefNr}`;
   if(e.funk) t+=`\nFunkrufname: ${e.funk}`;
-  if(e.kanal) t+=`\nKanal: ${e.kanal}`;
+  if(e.kanal) t+=`\nFunkkanal: ${e.kanal}`;
   if(e.sb) t+=`\nSonderbett: ${e.sb}`;
   (e.answers||[]).forEach(([k,v])=>t+=`\n${k}: ${v}`);
   if(e.note) t+=`\nNotiz: ${e.note}`;
@@ -1417,7 +1419,7 @@ function renderArc(){
     <div class="ti">${esc(e.title)}${e.sb?` · <b>${esc(e.sb)}</b>`:""}</div>
     ${e.name?`<div class="ti">👤 ${esc(e.name)}</div>`:""}
     ${e.note?`<div class="ti" style="color:var(--mute)">📝 ${esc(e.note)}</div>`:""}
-    <div class="det">${e.patNr?`<div><b>Patientennummer:</b> ${esc(e.patNr)}</div>`:""}${e.nefNr?`<div><b>NEF-Nummer:</b> ${esc(e.nefNr)}</div>`:""}${e.funk?`<div><b>Funkrufname:</b> ${esc(e.funk)}</div>`:""}${e.kanal?`<div><b>Kanal:</b> ${esc(e.kanal)}</div>`:""}${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
+    <div class="det">${e.patNr?`<div><b>Patientennummer:</b> ${esc(e.patNr)}</div>`:""}${e.nefNr?`<div><b>NEF-Nummer:</b> ${esc(e.nefNr)}</div>`:""}${e.funk?`<div><b>Funkrufname:</b> ${esc(e.funk)}</div>`:""}${e.kanal?`<div><b>Funkkanal:</b> ${esc(e.kanal)}</div>`:""}${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
       <div class="row"><button class="mini" data-act="copy">Kopieren</button><button class="mini del" data-act="del">Löschen</button></div></div>
   </div>`).join(""):'<div class="empty">Noch keine Einträge</div>';
 }
@@ -1538,6 +1540,9 @@ function openSummary(){
   const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
+    <div class="say">${bd2?"TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"TMO: SK_1_Bett_M · Status „0“ · Kurzwahl 2515 (Sonderbett weg, PZC)"}</div>
+    <div style="display:flex;gap:10px"><div class="fld" style="flex:2;margin-top:0"><label>Funkrufname</label><input class="inp namebox" id="fFunk" autocomplete="off" placeholder="z. B. Florian München 82/1" value="${esc(state.funk)}"></div>
+    <div class="fld" style="flex:1;margin-top:0"><label>Funkkanal</label><input class="inp namebox" id="fKanal" autocomplete="off" placeholder="z. B. 12" value="${esc(state.kanal)}"></div></div>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
     ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
@@ -1553,9 +1558,7 @@ function openSummary(){
   <div class="blk"><h3>Nummern</h3>
     <div class="fld" style="margin-top:0"><label>Patientennummer</label><input class="inp namebox" id="fPatNr" inputmode="numeric" autocomplete="off" value="${esc(state.patNr)}"></div>
     <div class="fld"><label>NEF-Nummer</label><input class="inp namebox" id="fNefNr" autocomplete="off" placeholder="z. B. 12/1" value="${esc(state.nefNr)}"></div>
-    <div class="fld"><label>Funkrufname</label><input class="inp namebox" id="fFunk" autocomplete="off" placeholder="z. B. Florian München 82/1" value="${esc(state.funk)}"></div>
-    <div class="fld"><label>Kanal</label><input class="inp namebox" id="fKanal" autocomplete="off" placeholder="z. B. 12" value="${esc(state.kanal)}"></div>
-    <div class="warn">NEF-Nummer, Funkrufname und Kanal werden für den nächsten Einsatz gemerkt.</div></div>
+    <div class="warn">NEF-Nummer, Funkrufname und Funkkanal werden für den nächsten Einsatz gemerkt.</div></div>
   <button class="btn" id="sSave" style="padding:20px;font-size:19px">Speichern ins Archiv</button>
   <div class="warn" style="text-align:center">Wird nur auf diesem Gerät gespeichert.</div>`;
   renderSpell();$("sum").scrollTop=0;push({v:"sum"});
