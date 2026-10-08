@@ -157,6 +157,17 @@ textarea.inp{min-height:84px;resize:vertical}
 .mscrim{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .mscrim.open{display:flex}
 .modal{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto}
+.modal.big{max-width:560px;max-height:90vh}
+.srbtn{width:100%;margin:0 0 14px;border:2px solid var(--d1,#d33);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font-size:18px;font-weight:800;text-align:left}
+.srbtn small{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-top:2px}
+.srtabs{display:flex;gap:8px;margin:8px 0 10px}.srtabs button{flex:1;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:14px 8px;font-size:16px;font-weight:800}.srtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.srres{position:sticky;top:-20px;z-index:2;margin:0 0 10px;padding:12px 14px;border-radius:12px;font-weight:800;font-size:16px;background:var(--bg);border:2px solid var(--line)}
+.srres.a{background:#d33;border-color:#d33;color:#fff}.srres.b{background:#e8890c;border-color:#e8890c;color:#fff}
+.srg{margin:14px 0 4px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mute)}
+.sri{display:flex;width:100%;align-items:center;gap:10px;text-align:left;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:12px 14px;margin:0 0 6px;font-size:16px;font-weight:600;min-height:50px}
+.sri.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sri i{font-style:normal;font-size:12px;font-weight:800;border-radius:6px;padding:2px 6px;background:var(--line);color:var(--ink);flex:none}
+.sri.on i{background:#fff3;color:#fff}
 .modal h2{margin:0 0 4px;font-size:22px}
 .modal .vv{color:var(--mute);font-size:13px;margin-bottom:12px}
 .modal h3{margin:14px 0 4px;font-size:15px}
@@ -257,6 +268,7 @@ textarea.inp{min-height:84px;resize:vertical}
 
   <div class="chips sugg" id="sugg"></div>
   <div id="home" style="margin-top:12px">
+    <button class="srbtn" id="srOpen">🚨 Schockraum-Indikation prüfen<small>Trauma und Non-Trauma · Kriterien zum Antippen</small></button>
     <div class="lbl"><span>Häufig · passt sich dem Archiv an</span><span id="tileCtl"></span></div>
     <div class="tiles" id="quick"></div>
     <div class="warn" id="tileHint">Gedrückt halten zum Verschieben oder Entfernen</div>
@@ -595,8 +607,11 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="4.9";
+const APP_VERSION="5.0";
 const CHANGELOG=[
+ {v:"5.0",d:"08.10.2026",items:[
+  "Neu: Schockraum-Indikation (Knopf oben auf der Startseite). Trauma und Non-Trauma mit allen Kriterien zum Antippen; die Anzeige oben zeigt sofort „Schockraumteam SOLL (GoR A)“ bzw. „SOLLTE (GoR B)“ beziehungsweise „Indikation erfüllt“",
+  "Quelle: Rettungsdienst-Factsheets „Schockraum-Indikation bei Trauma / Non-Trauma“, Stand 06/2025 (Trauma nach S3-Leitlinie Polytrauma)"]},
  {v:"4.9",d:"08.10.2026",items:[
   "Altersfeld: grauer Hinweistext wird im leeren Feld jetzt komplett angezeigt (kleinere Schrift, solange nichts drin steht)"]},
  {v:"4.8",d:"08.10.2026",items:[
@@ -1309,7 +1324,7 @@ try{history.replaceState({},"")}catch(_){histOK=false}
 addEventListener("popstate",back);
 function resetAll(){
   Object.assign(state,{vorname:"",nachname:"",patNr:"",note:"",sex:null,age:null,code:null,urg:null,cat:null});
-  sk={};searching=false;$("q").value="";$("year").value="";
+  sk={};searching=false;$("q").value="";$("year").value="";srSel.clear();
   document.querySelectorAll(".sxb").forEach(x=>x.classList.remove("on"));
   document.querySelectorAll(".u").forEach(x=>x.classList.remove("sel"));
   setAge(null);updActs();try{refreshScanRes()}catch(_){}
@@ -1632,8 +1647,62 @@ renderHome();render();
 if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("sw.js").catch(()=>{});
 
 
+/* ---- Schockraum-Indikation: Kriterien aus den Rettungsdienst-Factsheets (Stand 06/2025), Trauma nach S3-Leitlinie Polytrauma ---- */
+const SR={
+ trauma:[
+  ["Pathologische Befunde nach Trauma · A/B-Problem","A",["Atemstörung (SpO2 <90 %)","Erforderliche Atemwegssicherung","Atemfrequenz <10 oder >29/min"]],
+  ["Pathologische Befunde nach Trauma · C-Problem","A",["sysRR <90 mmHg","HF >120/min","Schockindex >0,9","Positiver eFAST"]],
+  ["Pathologische Befunde nach Trauma · D/E-Problem","A",["GCS ≤12","Hypothermie (<35 °C)"]],
+  ["Verletzungsmuster","A",["Instabiler Thorax","Mechanisch instabile Beckenverletzung","Penetrierende Verletzung der Rumpf-Hals-Region","Sensomotorisches Defizit nach Wirbelsäulenverletzung"]],
+  ["Verletzungsmuster","B",["Frakturen von mind. 2 großen Röhrenknochen","Verbrennungen >20 % und Grad ≥2b"]],
+  ["Prähospitale Maßnahmen","A",["Erforderliche Atemwegssicherung","Thoraxentlastung","Perikardpunktion","Katecholamingabe","Anlage Tourniquet"]],
+  ["Unfallmechanismen","B",["Sturz / Absturz aus über 3 m Höhe","Verkehrsunfall mit Ejektion aus dem Fahrzeug","Verkehrsunfall mit Fraktur langer Röhrenknochen"]],
+  ["Geriatrische Patienten","B",["RRsys <100 mmHg","Bekanntes oder vermutetes Schädel-Hirn-Trauma und GCS ≤14","2 oder mehr verletzte Körperregionen"]]
+ ],
+ non:[
+  ["A · Airway","",["(Drohende) Atemwegsverlegung","Bedrohung durch fehlende Schutzreflexe"]],
+  ["B · Breathing","",["Initiales SpO2 ≤85 % (Raumluft) oder ≤89 % (unter 6 l/min O2)","Atemfrequenz ≤6/min oder ≥30/min","Drohende respiratorische Erschöpfung","Inhalationstrauma (thermisch / toxisch / chemisch)"]],
+  ["C · Circulation","",["Niedrigster gemessener Blutdruck systolisch <80 mmHg","Herzfrequenz ≤40/min oder ≥180/min","Reanimation / Cardiac Arrest / ROSC","ST-Hebungsinfarkt (regionale Vorgabe beachten, ggf. direkt HKL)"]],
+  ["D · Disability","",["Unklare Bewusstlosigkeit","Neu aufgetretene oder progrediente Vigilanzstörung GCS ≤9","Status epilepticus","Akutes neurologisches Defizit"]],
+  ["E · Environment","",["Kritischer Gesamtzustand","NEWS ≥7 Punkte","qSOFA ≥2 Punkte","Metabolische Störung (z. B. Ketoazidose, Elektrolytstörung)","Hypothermie ≤32 °C / Hyperthermie ≥40 °C","Liegetrauma"]],
+  ["Prähospitale Maßnahmen · A-Problem","",["Atemwegssicherung"]],
+  ["Prähospitale Maßnahmen · B-Problem","",["Invasive Beatmung","Nicht-invasive Beatmung","Highflow-O2-Gabe","Thoraxdrainage / Entlastungspunktion"]],
+  ["Prähospitale Maßnahmen · C-Problem","",["Reanimation (laufend / erfolgreich)","Katecholamingabe"]]
+ ]
+};
+let srTab="trauma",srSel=new Set();
+function srHTML(){
+  let nA=0,nB=0,n=0,body="";
+  SR[srTab].forEach((g,gi)=>{
+    body+=`<div class="srg">${esc(g[0])}</div>`;
+    g[2].forEach((t,ti)=>{
+      const k=srTab+gi+"_"+ti,on=srSel.has(k);
+      if(on){n++;if(g[1]==="A")nA++;if(g[1]==="B")nB++}
+      body+=`<button class="sri ${on?"on":""}" data-sr="${k}">${g[1]?`<i>${g[1]}</i>`:""}<span>${esc(t)}</span></button>`;
+    });
+  });
+  const res=srTab==="trauma"
+    ?(nA?`<div class="srres a">Schockraumteam SOLL (GoR A) · ${nA} Kriterium${nA>1?"en":""}${nB?` + ${nB}× B`:""}</div>`:nB?`<div class="srres b">Schockraumteam SOLLTE (GoR B) · ${nB} Kriterium${nB>1?"en":""}</div>`:`<div class="srres">Noch kein Kriterium gewählt</div>`)
+    :(n?`<div class="srres a">Schockraum-Indikation erfüllt · ${n} Kriterium${n>1?"en":""}</div>`:`<div class="srres">Noch kein Kriterium gewählt</div>`);
+  return `<h2>🚨 Schockraum-Indikation</h2>
+  <div class="srtabs"><button class="${srTab==="trauma"?"on":""}" data-srt="trauma">Trauma</button><button class="${srTab==="non"?"on":""}" data-srt="non">Non-Trauma</button></div>
+  ${res}${body}
+  <div class="warn">Der Rettungsdienst kann das Schockraumteam auch aktivieren, wenn kein Kriterium erfüllt ist, der Patient aber als kritisch eingeschätzt wird.${srTab==="trauma"?" A = „soll“, B = „sollte“ (Grade of Recommendation, S3-Leitlinie Polytrauma / Schwerverletzten-Behandlung).":""}</div>
+  <div class="warn">Quelle: Rettungsdienst-Factsheets „Schockraum-Indikation bei ${srTab==="trauma"?"Trauma":"Non-Trauma"}“, Stand 06/2025 (rd-factsheets.de). Eingabehilfe – regionale Vorgaben und die Leitstelle gehen vor.</div>
+  <div class="chips" style="margin-top:12px"><button class="mini" id="srClear">Auswahl löschen</button><button class="mini" id="srClose">Schließen</button></div>`;
+}
+function openSR(){openModal(srHTML());$("modal").classList.add("big")}
+$("srOpen").onclick=openSR;
+$("modal").addEventListener("click",e=>{
+  const b=e.target.closest("[data-sr]");
+  if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);const y=$("modal").scrollTop;$("modal").innerHTML=srHTML();$("modal").scrollTop=y;return}
+  const t=e.target.closest("[data-srt]");if(t){srTab=t.dataset.srt;$("modal").innerHTML=srHTML();$("modal").scrollTop=0;return}
+  if(e.target.id==="srClear"){srSel.clear();$("modal").innerHTML=srHTML();return}
+  if(e.target.id==="srClose")closeModal();
+});
+
 /* ---- Karte / Ausweis scannen: Texterkennung läuft komplett im Gerät, Foto wird nicht gespeichert ---- */
-const closeModal=()=>$("mscrim").classList.remove("open");
+const closeModal=()=>{$("mscrim").classList.remove("open");$("modal").classList.remove("big")};
 const openModal=h=>{$("modal").innerHTML=h;$("mscrim").classList.add("open")};
 let tessP=null,tessWorker=null,scanProg=null;
 function loadTess(){
