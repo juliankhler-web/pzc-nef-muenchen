@@ -588,8 +588,10 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="4.4";
+const APP_VERSION="4.5";
 const CHANGELOG=[
+ {v:"4.5",d:"08.10.2026",items:[
+  "Zusammenfassung: oben steht der feste Kanal – BD1: SK_1_Bett_M, Kurzwahl 2515; BD2: RD_BETTEN_M, Kurzwahl 2512"]},
  {v:"4.4",d:"08.10.2026",items:[
   "Zusammenfassung: Eingabefelder Funkrufname und Funkkanal entfernt – oben steht nur noch der Funkspruch mit TMO, Kurzwahl und Status"]},
  {v:"4.3",d:"08.10.2026",items:[
@@ -1539,7 +1541,7 @@ function openSummary(){
   const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
-    <div class="say">${bd2?"TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"TMO: SK_1_Bett_M · Status „0“ · Kurzwahl 2515 (Sonderbett weg, PZC)"}</div>
+    <div class="say">${bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
     ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
