@@ -160,6 +160,7 @@ textarea.inp{min-height:84px;resize:vertical}
 .modal.big{max-width:560px;max-height:90vh}
 .srbtn{width:100%;margin:0 0 14px;border:2px solid var(--d1,#d33);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font-size:18px;font-weight:800;text-align:left}
 .srbtn small{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-top:2px}
+.srx{width:46px;height:46px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;font-weight:900;line-height:1;box-shadow:0 2px 8px #0004}
 .srtabs{display:flex;gap:8px;margin:8px 0 10px}.srtabs button{flex:1;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:14px 8px;font-size:16px;font-weight:800}.srtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .srres{position:sticky;top:-20px;z-index:2;margin:0 0 10px;padding:12px 14px;border-radius:12px;font-weight:800;font-size:16px;background:var(--bg);border:2px solid var(--line)}
 .srres.a{background:#d33;border-color:#d33;color:#fff}.srres.b{background:#e8890c;border-color:#e8890c;color:#fff}
@@ -616,8 +617,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.3";
+const APP_VERSION="5.4";
 const CHANGELOG=[
+ {v:"5.4",d:"08.10.2026",items:[
+  "Schockraum-Indikation: großes ✕ oben rechts zum Schließen (bleibt beim Scrollen sichtbar) – die gewählten Kriterien werden dabei übernommen"]},
  {v:"5.3",d:"08.10.2026",items:[
   "Schockraum-Indikation: die angetippten Kriterien erscheinen jetzt direkt unter dem Knopf in der IVENA-Abfrage (mit Ergebnis „SOLL / SOLLTE“), in der Zusammenfassung und im Archiv"]},
  {v:"5.2",d:"08.10.2026",items:[
@@ -1706,7 +1709,7 @@ function srHTML(){
   const res=srTab==="trauma"
     ?(nA?`<div class="srres a">Schockraumteam SOLL (GoR A) · ${nA} Kriterium${nA>1?"en":""}${nB?` + ${nB}× B`:""}</div>`:nB?`<div class="srres b">Schockraumteam SOLLTE (GoR B) · ${nB} Kriterium${nB>1?"en":""}</div>`:`<div class="srres">Noch kein Kriterium gewählt</div>`)
     :(n?`<div class="srres a">Schockraum-Indikation erfüllt · ${n} Kriterium${n>1?"en":""}</div>`:`<div class="srres">Noch kein Kriterium gewählt</div>`);
-  return `<h2>🚨 Schockraum-Indikation</h2>
+  return `<div style="position:sticky;top:-8px;height:0;z-index:5;text-align:right"><button class="srx" id="srClose" aria-label="Schließen">✕</button></div><h2 style="padding-right:54px">🚨 Schockraum-Indikation</h2>
   <div class="srtabs"><button class="${srTab==="trauma"?"on":""}" data-srt="trauma">Trauma</button><button class="${srTab==="non"?"on":""}" data-srt="non">Non-Trauma</button></div>
   ${res}${body}
   <div class="warn">Der Rettungsdienst kann das Schockraumteam auch aktivieren, wenn kein Kriterium erfüllt ist, der Patient aber als kritisch eingeschätzt wird.${srTab==="trauma"?" A = „soll“, B = „sollte“ (Grade of Recommendation, S3-Leitlinie Polytrauma / Schwerverletzten-Behandlung).":""}</div>
