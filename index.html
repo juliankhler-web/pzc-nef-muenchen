@@ -268,7 +268,6 @@ textarea.inp{min-height:84px;resize:vertical}
 
   <div class="chips sugg" id="sugg"></div>
   <div id="home" style="margin-top:12px">
-    <button class="srbtn" id="srOpen">🚨 Schockraum-Indikation prüfen<small>Trauma und Non-Trauma · Kriterien zum Antippen</small></button>
     <div class="lbl"><span>Häufig · passt sich dem Archiv an</span><span id="tileCtl"></span></div>
     <div class="tiles" id="quick"></div>
     <div class="warn" id="tileHint">Gedrückt halten zum Verschieben oder Entfernen</div>
@@ -578,7 +577,7 @@ const SBD={
  gi:{n:"GI-Blutung akut",f:[["Kaffeesatzerbrechen","s",JN],["Frischbluterbrechen","s",JN],["Teerstuhl","s",JN],["Frischblutabgang","s",JN],["Blutverdünner","s",["Nein","ASS","Clopidogrel","Marcumar","NOAK","Mehrere"]],["Besonderheiten","t"]]},
  stroke:{n:"Stroke Unit",f:[["Zeitlicher Beginn (onset)","t","z. B. 14:20 (LKW) oder unbekannt"],["Paresen","s",["Nein","Arm","Bein","Arm + Bein","Fazial"]],["Sprachstörung","s",JN],["Sehstörung","s",JN],["Besonderheiten","t"]]},
  schock:{n:"Schockraum Chirurgisch",f:[["Unfallhergang / Mechanismus","s",["Verkehrsunfall PKW","Motorrad","Fahrrad / E-Scooter","Fußgänger","Sturz aus Höhe","Sturz ebenerdig","Stich / Schnitt","Schuss","Einklemmung"]],["Betroffene Körperregion","m",["Kopf","HWS / WS","Thorax","Abdomen","Becken","Arm","Bein"]],["Blutverdünner","s",["Nein","Ja","Unbekannt"]],["Besonderheiten","t"]]},
- rea:{n:"REANIMATION / Cardiac Arrest Zentrum / eCPR",f:[["eCPR geeignet (PZC 144!)","s",JN],["Initialer Rhythmus","s",["VF / pVT","Asystolie","PEA","Unbekannt"]],["Besonderheiten","t"]]},
+ rea:{n:"REANIMATION / Cardiac Arrest Zentrum / eCPR",f:[["eCPR geeignet (PZC 144!)","s",JN,"eCPR = extrakorporale Reanimation mit ECMO (VA-ECMO)"],["Initialer Rhythmus","s",["VF / pVT","Asystolie","PEA","Unbekannt"]],["Besonderheiten","t"]]},
  verbr:{n:"Verbrennung / Verbrühung",f:[["Unfallhergang","s",["Feuer / Flamme","Verbrühung","Explosion","Strom","Chemisch"]],["Inhalationstrauma","s",["Ja","Nein","Verdacht"]],["Verbrannte Körperoberfläche (KOF)","t","% KOF"],["Besonderheiten","t"]]},
  kreis:{n:"Kreißsaal",f:[["SSW","t","z. B. 38+2"],["Wehenabstand","t","z. B. 3 min"],["Blasensprung","s",JN],["KH-Voranmeldung vorhanden","s",JN],["Besonderheiten","t"]]}
 };
@@ -604,11 +603,26 @@ const IV=[
  ["Geschlecht","s",["M","W"]],
  ["Schwanger","s",JN]
 ];
+const SRW=["Welcher Schockraum?","s",["Trauma","Non-Trauma"],"Vorschlag nach Sonderbett – antippen zum Ändern, nochmal antippen zum Abwählen"];
+const srSuggest=k=>({schock:"Trauma",verbr:"Trauma",rea:"Non-Trauma",chest:"Non-Trauma",stroke:"Non-Trauma",sepsis:"Non-Trauma",gi:"Non-Trauma",imc:"Non-Trauma"})[k]||"";
+function srWhichRender(){
+  const box=$("srWhich");if(!box)return;
+  const ja=sk.iv_0&&sk.iv_0.v==="Ja";
+  if(!ja){box.innerHTML="";delete sk.iv_sr;return}
+  if(box.innerHTML&&!box.dataset.auto)return;
+  box.innerHTML=fieldHTML("iv",SRW,"sr")+'<button class="mini" id="srKrit" style="margin:-2px 0 12px">🚨 Indikations-Kriterien ansehen ›</button>';box.dataset.auto="1";
+  const sg=srSuggest(sk.sb);const b=sg&&box.querySelector(`.opt[data-v="${sg}"]`);if(b)b.click();
+}
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.0";
+const APP_VERSION="5.2";
 const CHANGELOG=[
+ {v:"5.2",d:"08.10.2026",items:[
+  "Schockraum-Knopf von der Startseite entfernt – die Indikations-Kriterien (Trauma / Non-Trauma) öffnest du jetzt in der IVENA-Abfrage über „Indikations-Kriterien ansehen“, sobald du bei Schockraum „Ja“ wählst"]},
+ {v:"5.1",d:"08.10.2026",items:[
+  "IVENA-Abfrage: wählst du bei „Schockraum“ Ja, fragt die App „Welcher Schockraum?“ (Trauma / Non-Trauma) und schlägt anhand des gewählten Sonderbetts schon einen vor – jederzeit abwählbar, dann bleibt es leer",
+  "Beim eCPR-Feld steht jetzt die Kurzerklärung „extrakorporale Reanimation mit ECMO (VA-ECMO)“"]},
  {v:"5.0",d:"08.10.2026",items:[
   "Neu: Schockraum-Indikation (Knopf oben auf der Startseite). Trauma und Non-Trauma mit allen Kriterien zum Antippen; die Anzeige oben zeigt sofort „Schockraumteam SOLL (GoR A)“ bzw. „SOLLTE (GoR B)“ beziehungsweise „Indikation erfüllt“",
   "Quelle: Rettungsdienst-Factsheets „Schockraum-Indikation bei Trauma / Non-Trauma“, Stand 06/2025 (Trauma nach S3-Leitlinie Polytrauma)"]},
@@ -1488,11 +1502,12 @@ $("saveOnly").onclick=()=>{saveEntry({});goBack();$("saveOnly").textContent="✓
 /* ---- SK 1 Panel ---- */
 let sk={},skBd=1; // Antworten, BD-Modus der Anmeldung
 function fieldHTML(sec,f,i){
-  const [l,t,o]=f, id=`${sec}_${i}`;
+  const [l,t,o,hn]=f, id=`${sec}_${i}`;
+  const hint=hn?`<span class="hint" style="margin:0 0 8px;font-size:14px">${esc(hn)}</span>`:"";
   if(t==="t") return `<div class="fld"><label>${l}</label><input class="inp" data-k="${id}" data-l="${esc(l)}" placeholder="${esc(o||"")}"></div>`;
   if(t==="l"){ const g=Object.keys(GRP).map(n=>`<button class="chip" data-grp="${n}" data-k="${id}" data-l="${esc(l)}">${n}</button>`).join("");
     return `<div class="fld"><label>${l}</label><div class="chips" style="margin:0 0 8px">${g}</div><div class="opts">${LEADS.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="1" data-v="${v}">${v}</button>`).join("")}</div></div>`}
-  return `<div class="fld"><label>${l}</label><div class="opts">${o.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="${t==="m"?1:0}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div></div>`;
+  return `<div class="fld"><label>${l}</label>${hint}<div class="opts">${o.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="${t==="m"?1:0}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div></div>`;
 }
 function openPanel(){
   sk={}; skBd=state.urg===2?2:1; const k0=skBd===1?sbKey(state.code):null;
@@ -1524,7 +1539,7 @@ function openPanel(){
     <div class="opts" id="sbOpts">${sbOpts}</div>
     <div class="warn">Vorauswahl nach PZC – bei Bedarf ändern.</div></div>
   <div class="blk" id="zus"></div>
-  <div class="blk"><h3><span class="step">4</span>IVENA-Abfrage</h3>${IV.map((f,i)=>fieldHTML("iv",f,i)).join("")}</div>
+  <div class="blk"><h3><span class="step">4</span>IVENA-Abfrage</h3>${IV.map((f,i)=>fieldHTML("iv",f,i)+(i===0?'<div id="srWhich"></div>':"")).join("")}</div>
   <div class="blk"><h3>📝 Notiz</h3>
     <div class="opts" style="margin-bottom:8px">${NOTE_CHIPS.map(c=>`<button class="chip" data-nc="${esc(c)}">${esc(c)}</button>`).join("")}</div>
     <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
@@ -1546,10 +1561,13 @@ function syncGrp(box){
   fld.querySelectorAll("[data-grp]").forEach(c=>{const want=GRP[c.dataset.grp];c.classList.toggle("on",want.every(v=>{const b=btns.find(x=>x.dataset.v===v);return b&&b.classList.contains("on")}))});
 }
 $("flow").addEventListener("click",e=>{
+  if(e.target.id==="srKrit"){openSR(sk.iv_sr&&sk.iv_sr.v==="Non-Trauma"?"non":"trauma");return}
   const sbk=e.target.closest("[data-sbk]"); if(sbk){
     const on=sbk.classList.contains("on");
     document.querySelectorAll("[data-sbk]").forEach(x=>x.classList.remove("on"));
-    if(!on)sbk.classList.add("on"); renderZus(on?null:sbk.dataset.sbk); return}
+    if(!on)sbk.classList.add("on"); renderZus(on?null:sbk.dataset.sbk);
+    const bx=$("srWhich");if(bx&&bx.innerHTML&&!bx.dataset.touched){bx.innerHTML="";delete bx.dataset.auto;delete sk.iv_sr;srWhichRender()}
+    return}
   const gp=e.target.closest("[data-grp]"); if(gp){
     const box=gp.closest(".fld").querySelector(".opts"), want=GRP[gp.dataset.grp];
     const btns=[...box.querySelectorAll(".opt")], allOn=want.every(v=>btns.find(b=>b.dataset.v===v).classList.contains("on"));
@@ -1566,6 +1584,8 @@ $("flow").addEventListener("click",e=>{
       syncGrp(o.parentNode)}
     else{const was=o.classList.contains("on");o.parentNode.querySelectorAll(".opt").forEach(x=>x.classList.remove("on"));
       if(was)delete sk[k];else{o.classList.add("on");sk[k]={l:o.dataset.l,v}}}
+    if(k==="iv_0"){const bx=$("srWhich");if(bx){bx.innerHTML="";delete bx.dataset.auto;delete sk.iv_sr;srWhichRender()}}
+    else if(k==="iv_sr"&&$("srWhich"))$("srWhich").dataset.touched="1";
   }
 });
 $("flow").addEventListener("input",e=>{const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
@@ -1590,7 +1610,7 @@ function openSummary(){
   const row=(l,v)=>`<div class="srow"><span>${esc(l)}</span><b class="${v?"":"nil"}">${v?esc(v):"–"}</b></div>`;
   const bd2=skBd===2;
   const zus=(sk.sb&&!bd2?SBD[sk.sb].f:[]).map((f,i)=>row(f[0],sk["zus_"+i]&&sk["zus_"+i].v)).join("");
-  const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)).join("");
+  const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)+(i===0&&sk.iv_sr?row("Welcher Schockraum",sk.iv_sr.v):"")).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
     <div class="say">${bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
@@ -1691,8 +1711,7 @@ function srHTML(){
   <div class="warn">Quelle: Rettungsdienst-Factsheets „Schockraum-Indikation bei ${srTab==="trauma"?"Trauma":"Non-Trauma"}“, Stand 06/2025 (rd-factsheets.de). Eingabehilfe – regionale Vorgaben und die Leitstelle gehen vor.</div>
   <div class="chips" style="margin-top:12px"><button class="mini" id="srClear">Auswahl löschen</button><button class="mini" id="srClose">Schließen</button></div>`;
 }
-function openSR(){openModal(srHTML());$("modal").classList.add("big")}
-$("srOpen").onclick=openSR;
+function openSR(tab){if(tab)srTab=tab;openModal(srHTML());$("modal").classList.add("big")}
 $("modal").addEventListener("click",e=>{
   const b=e.target.closest("[data-sr]");
   if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);const y=$("modal").scrollTop;$("modal").innerHTML=srHTML();$("modal").scrollTop=y;return}
