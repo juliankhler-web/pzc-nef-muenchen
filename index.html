@@ -588,8 +588,12 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="4.0";
+const APP_VERSION="4.1";
 const CHANGELOG=[
+ {v:"4.1",d:"08.10.2026",items:[
+  "Neu: BD2-Anmeldung – TMO: RD_BETTEN_M, Kurzwahl 2512, Status 5, danach PZC durchgeben, Geschlecht und Notiz, dann weiter zur Zusammenfassung mit Namen im Funkalphabet und Nummern (ohne Zusatzdaten und ohne IVENA-Abfrage)",
+  "BD1-Anmeldung: neuer Schritt „Kurzwahl 2515 – Sonderbett weg, PZC durchgeben“",
+  "Der Button oben passt sich der gewählten BD an (BD1-Anmeldung / BD2-Anmeldung); bei BD3 gibt es keine Anmeldung, nur „Nur speichern“"]},
  {v:"4.0",d:"04.10.2026",items:[
   "Europäische Krankenversicherungskarte (Rückseite): die Zeilen Name und Vorname werden jetzt gezielt ausgeschnitten, vergrößert und einzeln gelesen – vorher kamen bei Handyfotos Fantasienamen heraus („Lte / Ylein“, „NaME KETTE“)",
   "Die Karte wird nicht mehr nach nur einem Durchgang abgehakt, solange die Beschriftungen „Name“ / „Vornamen“ nicht gefunden wurden"]},
@@ -1329,8 +1333,8 @@ function openSheet(c){
   updActs();
   render();push({v:"sheet"});
 }
-const updActs=()=>{const ok=!!(state.sex&&state.code&&state.urg&&state.age!=null);$("goSK").disabled=!ok;$("saveOnly").disabled=!ok;
-  $("goSK").textContent=!state.sex?"Erst Geschlecht wählen":state.age==null?"Erst Alter eingeben":"BD1-Anmeldung ›"};
+const updActs=()=>{const ok=!!(state.sex&&state.code&&state.urg&&state.age!=null);$("goSK").disabled=!ok||state.urg===3;$("saveOnly").disabled=!ok;
+  $("goSK").textContent=!state.sex?"Erst Geschlecht wählen":state.age==null?"Erst Alter eingeben":!state.urg?"Erst BD wählen":state.urg===3?"BD3: keine Anmeldung":"BD"+state.urg+"-Anmeldung ›"};
 document.querySelectorAll(".u").forEach(b=>b.onclick=()=>{
   state.urg=+b.dataset.u; document.querySelectorAll(".u").forEach(x=>x.classList.toggle("sel",x===b)); render(); updActs();
 });
@@ -1425,7 +1429,7 @@ $("tabMain").onclick=goHome;$("tabArc").onclick=()=>{window.scrollTo(0,0);push({
 $("saveOnly").onclick=()=>{saveEntry({});goBack();$("saveOnly").textContent="✓ gespeichert";setTimeout(()=>$("saveOnly").textContent="Nur speichern",1500)};
 
 /* ---- SK 1 Panel ---- */
-let sk={}; // Antworten
+let sk={},skBd=1; // Antworten, BD-Modus der Anmeldung
 function fieldHTML(sec,f,i){
   const [l,t,o]=f, id=`${sec}_${i}`;
   if(t==="t") return `<div class="fld"><label>${l}</label><input class="inp" data-k="${id}" data-l="${esc(l)}" placeholder="${esc(o||"")}"></div>`;
@@ -1434,9 +1438,27 @@ function fieldHTML(sec,f,i){
   return `<div class="fld"><label>${l}</label><div class="opts">${o.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="${t==="m"?1:0}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div></div>`;
 }
 function openPanel(){
-  sk={}; const k0=sbKey(state.code);
+  sk={}; skBd=state.urg===2?2:1; const k0=skBd===1?sbKey(state.code):null;
   $("pPzc").textContent=pzcStr(state.code,state.age,state.urg);
   const sbOpts=Object.entries(SBD).map(([k,v])=>`<button class="opt ${k===k0?"on":""}" data-sbk="${k}">${v.n}</button>`).join("");
+  const noteBlk=`<div class="blk"><h3>📝 Notiz</h3>
+    <div class="opts" style="margin-bottom:8px">${NOTE_CHIPS.map(c=>`<button class="chip" data-nc="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+    <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
+  <div class="warn" style="text-align:center">Name im Funkalphabet und Nummern folgen in der Zusammenfassung.</div>
+  <button class="btn" id="pNext" style="padding:20px;font-size:19px">Weiter zur Zusammenfassung ›</button>`;
+  if(skBd===2){
+    $("flow").innerHTML=`
+  <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
+    <div class="say">TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5</div>
+    <div class="warn" style="margin:0">Bei Funkausfall ausschließlich über Notruf „112".</div></div>
+  <div class="blk"><h3><span class="step">2</span>PZC durchgeben</h3>
+    <div class="say" style="font:800 28px ui-monospace,Menlo,monospace">${pzcStr(state.code,state.age,state.urg)}</div>
+    <div class="warn" style="margin:0">${esc(byCode[state.code][1])}</div></div>
+  <div class="blk"><h3><span class="step">3</span>Geschlecht</h3>${fieldHTML("iv",IV[7],7)}</div>
+  ${noteBlk}`;
+    const g2=$("flow").querySelector(`.opt[data-l="Geschlecht"][data-v="${state.sex}"]`); if(g2)g2.click();
+    $("panel").scrollTop=0; push({v:"panel"}); return;
+  }
   $("flow").innerHTML=`
   <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
     <div class="say">TMO: SK_1_Bett_M · Status „0"</div>
@@ -1444,7 +1466,8 @@ function openPanel(){
   <div class="blk"><h3><span class="step">2</span>Nennung Sonderbett</h3>
     <div class="opts" id="sbOpts">${sbOpts}</div>
     <div class="warn">Vorauswahl nach PZC – bei Bedarf ändern.</div></div>
-  <div class="blk"><h3><span class="step">3</span>PZC durchgeben</h3>
+  <div class="blk"><h3><span class="step">3</span>Sonderbett weg · PZC durchgeben</h3>
+    <div class="say">Kurzwahl 2515</div>
     <div class="say" style="font:800 28px ui-monospace,Menlo,monospace">${pzcStr(state.code,state.age,state.urg)}</div>
     <div class="warn" style="margin:0">${esc(byCode[state.code][1])}</div></div>
   <div class="blk" id="zus"></div>
@@ -1505,16 +1528,17 @@ function openSummary(){
   state.note=$("note").value.trim();
   $("sPzc").textContent=pzcStr(state.code,state.age,state.urg);
   const row=(l,v)=>`<div class="srow"><span>${esc(l)}</span><b class="${v?"":"nil"}">${v?esc(v):"–"}</b></div>`;
-  const zus=(sk.sb?SBD[sk.sb].f:[]).map((f,i)=>row(f[0],sk["zus_"+i]&&sk["zus_"+i].v)).join("");
-  const iv=IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)).join("");
+  const bd2=skBd===2;
+  const zus=(sk.sb&&!bd2?SBD[sk.sb].f:[]).map((f,i)=>row(f[0],sk["zus_"+i]&&sk["zus_"+i].v)).join("");
+  const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
     ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
-    ${row("Sonderbett",sk.sb?SBD[sk.sb].n:"")}
+    ${bd2?"":row("Sonderbett",sk.sb?SBD[sk.sb].n:"")}
     ${zus?`<div class="sh">Zusatzdaten</div>${zus}`:""}
-    <div class="sh">IVENA-Abfrage</div>${iv}
+    ${bd2?iv:`<div class="sh">IVENA-Abfrage</div>${iv}`}
     ${state.note?`<div class="sh">Notiz</div><div style="padding:6px 0">${esc(state.note)}</div>`:""}
   </div>
   <div class="blk"><h3>Name · Leitstelle fragt ab</h3>
