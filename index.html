@@ -41,6 +41,7 @@ h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 /* Alter */
 .age{display:flex;gap:10px;align-items:center}
 .age input{width:190px;font-size:30px;font-weight:700;padding:8px 12px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--ink);text-align:center;letter-spacing:.04em}
+.age input::placeholder{font-size:16px;font-weight:600;letter-spacing:0;color:var(--mute)}
 .age input:focus{outline:none;border-color:var(--accent)}
 .age .out{flex:1;font-size:14px;color:var(--mute)}
 .age .out b{display:block;font-size:30px;color:var(--ink);line-height:1}
@@ -242,6 +243,11 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="lbl" style="margin-top:2px">oder Name von Hand eintragen</div>
   <div class="namerow"><input id="hNach" placeholder="Nachname" autocomplete="off" autocapitalize="words"><input id="hVor" placeholder="Vorname" autocomplete="off" autocapitalize="words"></div>
   <div class="scanres hidden" id="scanRes"></div>
+  <div class="lbl">Alter · Zahl, Geburtsjahr oder -datum</div>
+  <div class="age" style="margin-bottom:14px">
+    <input id="yearH" inputmode="decimal" maxlength="10" placeholder="Alter / Jahr" autocomplete="off">
+    <div class="out"><b id="ageOutH">––</b><span id="ageNoteH">Alter für den PZC</span></div>
+  </div>
   <div class="lbl">Geschlecht (steht vor dem PZC)</div>
   <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
   <!-- 1 PZC -->
@@ -301,7 +307,7 @@ textarea.inp{min-height:84px;resize:vertical}
   <!-- 2 Alter -->
   <div class="lbl"><span><span class="step">2</span>Alter · Geburtsjahr oder -datum</span></div>
   <div class="age">
-    <input id="year" inputmode="decimal" maxlength="10" placeholder="Alter 72 · Jahr 1952 · Datum" autocomplete="off">
+    <input id="year" inputmode="decimal" maxlength="10" placeholder="Alter / Jahr" autocomplete="off">
     <div class="out"><b id="ageOut">––</b><span id="ageNote">Alter für den PZC</span></div>
   </div>
   <div class="chips" id="ageChips" style="margin-bottom:12px"></div>
@@ -588,8 +594,12 @@ const IV=[
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="4.6";
+const APP_VERSION="4.8";
 const CHANGELOG=[
+ {v:"4.8",d:"08.10.2026",items:[
+  "Altersfeld: Hinweistext im leeren Feld ist jetzt klein und gut lesbar (nur noch „Alter / Jahr“)"]},
+ {v:"4.7",d:"08.10.2026",items:[
+  "Startseite: Altersfeld jetzt ganz oben, direkt über dem Geschlecht – Alter, Geburtsjahr oder Geburtsdatum eingeben, das Alter erscheint sofort"]},
  {v:"4.6",d:"08.10.2026",items:[
   "Neuer Knopf „↺ Neu“ (oben und in der unteren Leiste): löscht alles und beginnt von vorne – das Archiv bleibt",
   "Alter kann jetzt direkt eingegeben werden (z. B. 72), zusätzlich zu Geburtsjahr und Geburtsdatum",
@@ -729,9 +739,12 @@ function setAge(a,note){
   state.age=a;
   $("ageOut").textContent=a==null?"––":String(a).padStart(2,"0");
   $("ageNote").textContent=note||"Alter für den PZC";
+  $("ageOutH").textContent=$("ageOut").textContent;$("ageNoteH").textContent=$("ageNote").textContent;
+  if(document.activeElement!==$("yearH"))$("yearH").value=$("year").value;
   document.querySelectorAll("#ageChips .chip").forEach(c=>c.classList.toggle("on",c.dataset.a!==undefined&&+c.dataset.a===a&&!$("year").value));
   render();
 }
+$("yearH").addEventListener("input",e=>{const y=$("year");y.value=e.target.value;y.dispatchEvent(new Event("input"));e.target.value=y.value});
 $("year").addEventListener("input",e=>{
   const v=e.target.value.replace(/[^\d.]/g,"").slice(0,10); e.target.value=v;
   let m;
