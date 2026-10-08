@@ -608,16 +608,18 @@ const srSuggest=k=>({schock:"Trauma",verbr:"Trauma",rea:"Non-Trauma",chest:"Non-
 function srWhichRender(){
   const box=$("srWhich");if(!box)return;
   const ja=sk.iv_0&&sk.iv_0.v==="Ja";
-  if(!ja){box.innerHTML="";delete sk.iv_sr;return}
+  if(!ja){box.innerHTML="";delete sk.iv_sr;srSel.clear();delete sk.iv_srk;return}
   if(box.innerHTML&&!box.dataset.auto)return;
-  box.innerHTML=fieldHTML("iv",SRW,"sr")+'<button class="mini" id="srKrit" style="margin:-2px 0 12px">🚨 Indikations-Kriterien ansehen ›</button>';box.dataset.auto="1";
+  box.innerHTML=fieldHTML("iv",SRW,"sr")+'<button class="mini" id="srKrit" style="margin:-2px 0 12px">🚨 Indikations-Kriterien ansehen ›</button><div id="srSelBox" class="hint" style="margin:-4px 0 12px;font-size:14px;font-weight:700;color:var(--ink)"></div>';box.dataset.auto="1";srStore();
   const sg=srSuggest(sk.sb);const b=sg&&box.querySelector(`.opt[data-v="${sg}"]`);if(b)b.click();
 }
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.2";
+const APP_VERSION="5.3";
 const CHANGELOG=[
+ {v:"5.3",d:"08.10.2026",items:[
+  "Schockraum-Indikation: die angetippten Kriterien erscheinen jetzt direkt unter dem Knopf in der IVENA-Abfrage (mit Ergebnis „SOLL / SOLLTE“), in der Zusammenfassung und im Archiv"]},
  {v:"5.2",d:"08.10.2026",items:[
   "Schockraum-Knopf von der Startseite entfernt – die Indikations-Kriterien (Trauma / Non-Trauma) öffnest du jetzt in der IVENA-Abfrage über „Indikations-Kriterien ansehen“, sobald du bei Schockraum „Ja“ wählst"]},
  {v:"5.1",d:"08.10.2026",items:[
@@ -1510,7 +1512,7 @@ function fieldHTML(sec,f,i){
   return `<div class="fld"><label>${l}</label>${hint}<div class="opts">${o.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="${t==="m"?1:0}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div></div>`;
 }
 function openPanel(){
-  sk={}; skBd=state.urg===2?2:1; const k0=skBd===1?sbKey(state.code):null;
+  sk={}; srSel.clear(); skBd=state.urg===2?2:1; const k0=skBd===1?sbKey(state.code):null;
   $("pPzc").textContent=pzcStr(state.code,state.age,state.urg);
   const sbOpts=Object.entries(SBD).map(([k,v])=>`<button class="opt ${k===k0?"on":""}" data-sbk="${k}">${v.n}</button>`).join("");
   const noteBlk=`<div class="blk"><h3>📝 Notiz</h3>
@@ -1610,7 +1612,7 @@ function openSummary(){
   const row=(l,v)=>`<div class="srow"><span>${esc(l)}</span><b class="${v?"":"nil"}">${v?esc(v):"–"}</b></div>`;
   const bd2=skBd===2;
   const zus=(sk.sb&&!bd2?SBD[sk.sb].f:[]).map((f,i)=>row(f[0],sk["zus_"+i]&&sk["zus_"+i].v)).join("");
-  const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)+(i===0&&sk.iv_sr?row("Welcher Schockraum",sk.iv_sr.v):"")).join("");
+  const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)+(i===0&&sk.iv_sr?row("Welcher Schockraum",sk.iv_sr.v):"")+(i===0&&sk.iv_srk?row("Schockraum-Kriterien",sk.iv_srk.v):"")).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
     <div class="say">${bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
@@ -1711,12 +1713,29 @@ function srHTML(){
   <div class="warn">Quelle: Rettungsdienst-Factsheets „Schockraum-Indikation bei ${srTab==="trauma"?"Trauma":"Non-Trauma"}“, Stand 06/2025 (rd-factsheets.de). Eingabehilfe – regionale Vorgaben und die Leitstelle gehen vor.</div>
   <div class="chips" style="margin-top:12px"><button class="mini" id="srClear">Auswahl löschen</button><button class="mini" id="srClose">Schließen</button></div>`;
 }
+function srSummary(){
+  const parts=[];
+  [["trauma","Trauma"],["non","Non-Trauma"]].forEach(([t,n])=>{
+    let a=[],b=[],o=[];
+    SR[t].forEach((g,gi)=>g[2].forEach((x,ti)=>{if(srSel.has(t+gi+"_"+ti)){(g[1]==="A"?a:g[1]==="B"?b:o).push(x)}}));
+    if(!(a.length||b.length||o.length))return;
+    let h=n+": ";
+    if(t==="trauma")h+=a.length?"Schockraumteam SOLL (GoR A)":"Schockraumteam SOLLTE (GoR B)";else h+="Indikation erfüllt";
+    parts.push(h+" – "+[...a,...b,...o].join("; "));
+  });
+  return parts.join(" | ");
+}
+function srStore(){
+  const t=srSummary();
+  if(t)sk.iv_srk={l:"Schockraum-Kriterien",v:t};else delete sk.iv_srk;
+  const bx=$("srSelBox");if(bx)bx.textContent=t;
+}
 function openSR(tab){if(tab)srTab=tab;openModal(srHTML());$("modal").classList.add("big")}
 $("modal").addEventListener("click",e=>{
   const b=e.target.closest("[data-sr]");
-  if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);const y=$("modal").scrollTop;$("modal").innerHTML=srHTML();$("modal").scrollTop=y;return}
+  if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);srStore();const y=$("modal").scrollTop;$("modal").innerHTML=srHTML();$("modal").scrollTop=y;return}
   const t=e.target.closest("[data-srt]");if(t){srTab=t.dataset.srt;$("modal").innerHTML=srHTML();$("modal").scrollTop=0;return}
-  if(e.target.id==="srClear"){srSel.clear();$("modal").innerHTML=srHTML();return}
+  if(e.target.id==="srClear"){srSel.clear();srStore();$("modal").innerHTML=srHTML();return}
   if(e.target.id==="srClose")closeModal();
 });
 
