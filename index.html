@@ -50,7 +50,9 @@ h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:12px 16px;min-height:44px;border-radius:999px;font-size:14px;font-weight:600}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip[data-grp].on{background:var(--accent);border-color:var(--accent);color:#fff}
-.reset{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:800;font-size:14px;margin-right:8px}
+.top>div{display:flex;gap:6px;flex:none}
+.top h1{min-width:0}
+.reset{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:800;font-size:14px;margin-right:0;white-space:nowrap}
 
 /* Suche */
 .search{width:100%;font-size:18px;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
@@ -237,6 +239,7 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="top"><h1>PZC · NEF München <button class="ver" id="verBtn"></button></h1><div><button class="reset" id="resetBtn">↺ Neu</button><button class="theme" id="themeBtn">◐ Auto</button></div></div>
   <div class="tabs">
     <button class="tab on" id="tabMain">PZC finden</button>
+    <button class="tab" id="tabName">Nur Name</button>
     <button class="tab" id="tabArc">Archiv <span id="arcCount"></span></button>
   </div>
 
@@ -248,6 +251,19 @@ textarea.inp{min-height:84px;resize:vertical}
     <div class="chips"><button class="mini" id="repShare">Meldungen teilen / kopieren</button><button class="mini del" id="repClear">Meldungen leeren</button></div>
     <p class="note">Die Meldungen enthalten nur Suchbegriffe und Codes, keine Patientendaten. Sie helfen, die Suche zu verbessern.</p>
     <p class="note">Alles (auch Name und Nummern) wird nur in diesem Browser auf diesem Gerät gespeichert und nirgends hochgeladen. Gerät mit Sperrcode schützen. Daten gehen verloren, wenn der Browser-Speicher gelöscht wird.</p>
+  </div>
+
+  <div id="nameView" class="hidden">
+    <button class="scanhero" id="nvScan"><b>📷 FOTO: Ausweis / Karte</b><small>Name wird gelesen – oder unten von Hand eintragen</small></button>
+    <div class="namerow"><input id="nvNach" placeholder="Nachname" autocomplete="off" autocapitalize="words"><input id="nvVor" placeholder="Vorname" autocomplete="off" autocapitalize="words"></div>
+    <div class="lbl" style="margin-top:14px">Name zum Funken · deutsches Buchstabieralphabet</div>
+    <div id="nvSpell"></div>
+    <div class="fld"><label>Patientennummer</label><input class="inp namebox" id="nvPat" inputmode="numeric" autocomplete="off"></div>
+    <div class="fld"><label>NEF-Nummer</label><input class="inp namebox" id="nvNef" autocomplete="off"></div>
+    <div class="fld"><label>Weitere Fahrzeuge vor Ort</label><input class="inp namebox" id="nvFzg" autocomplete="off"></div>
+    <div class="fld"><label>Notiz</label><textarea class="inp" id="nvNote" placeholder="Freitext – bleibt im Archiv"></textarea></div>
+    <button class="btn" id="nvSave" style="padding:20px;font-size:19px;margin-top:8px">Speichern ins Archiv</button>
+    <div class="warn" style="text-align:center">Ohne PZC · wird nur auf diesem Gerät gespeichert.</div>
   </div>
 
   <div id="mainView">
@@ -267,7 +283,6 @@ textarea.inp{min-height:84px;resize:vertical}
   <div class="lbl"><span><span class="step">1</span>PZC · Was ist los?</span></div>
   <input class="search" id="q" type="search" placeholder="Suchen: Herzinfarkt, Krampf, Unterzucker, 332 …" autocomplete="off">
 
-  <div class="chips sugg" id="sugg"></div>
   <div id="home" style="margin-top:12px">
     <div class="lbl"><span>Häufig · passt sich dem Archiv an</span><span id="tileCtl"></span></div>
     <div class="tiles" id="quick"></div>
@@ -617,8 +632,11 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.6";
+const APP_VERSION="5.7";
 const CHANGELOG=[
+ {v:"5.7",d:"12.10.2026",items:[
+  "Neuer Reiter „Nur Name“ neben „PZC finden“: für Fälle ohne PZC (z. B. eine verstorbene Person) – Ausweis fotografieren oder Name eintragen, Name im Funkalphabet, Patientennummer, NEF-Nummer, weitere Fahrzeuge, Notiz, dann ins Archiv speichern",
+  "Die Themen-Vorschläge unter der Suche (Herzinfarkt, Schlaganfall …) sind entfernt – mehr Platz"]},
  {v:"5.6",d:"12.10.2026",items:[
   "Die NEF-Nummer wird jetzt beim Speichern ins Archiv und bei „↺ Neu“ mit gelöscht und nicht mehr für den nächsten Einsatz gemerkt"]},
  {v:"5.5",d:"12.10.2026",items:[
@@ -1306,7 +1324,6 @@ function dots(l){return `<span class="dots">${[1,2,3].map(n=>l.includes(n)?`<i c
 function itemHTML(d,hint){return `<button class="item" data-c="${d[0]}"><span class="n">${d[0]}</span><span class="t">${d[1]}${hint?`<small class="hint">gefunden über „${esc(hint)}“</small>`:""}</span>${dots(d[2])}</button>`}
 
 function renderHome(){
-  $("sugg").innerHTML=["Herzinfarkt","Schlaganfall","Krampf","Unterzucker","Atemnot","Sturz","Verkehrsunfall","Vergiftung","Kollaps","Geburt"].map(t=>`<button class="chip" data-s="${t}">${t}</button>`).join("");
   renderTiles();
   $("cats").innerHTML=CATS.map(c=>`<button class="cat" style="--c:${c.c}" data-cat="${c.id}">${c.n}<small>${c.s}</small></button>`).join("");
 }
@@ -1321,9 +1338,10 @@ function showList(items,withSub,hints){fillList(items,withSub,hints);push({v:"li
 /* ---- Navigation: Zurück / Vor / Start, auch per Wischen ---- */
 let cur={v:"home"}, stack=[], fwd=[], histOK=true, searching=false;
 function apply(){
-  const v=cur.v, arc=v==="arc";
-  $("mainView").classList.toggle("hidden",arc);$("arcView").classList.toggle("hidden",!arc);
-  $("tabMain").classList.toggle("on",!arc);$("tabArc").classList.toggle("on",arc);
+  const v=cur.v, arc=v==="arc", nm=v==="name";
+  $("mainView").classList.toggle("hidden",arc||nm);$("arcView").classList.toggle("hidden",!arc);$("nameView").classList.toggle("hidden",!nm);
+  $("tabMain").classList.toggle("on",!arc&&!nm);$("tabArc").classList.toggle("on",arc);$("tabName").classList.toggle("on",nm);
+  if(nm)nvSync();
   setBase();
   $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
   $("panel").classList.toggle("open",v==="panel");$("sum").classList.toggle("open",v==="sum");
@@ -1439,7 +1457,7 @@ function saveEntry(extra){
   a.unshift(e); store(a); state.vorname=state.nachname=state.patNr=state.fzg=state.nefNr="";try{localStorage.removeItem("pzc_nef")}catch(_){}refreshScanRes();renderArc(); return e;
 }
 function entryText(e){
-  let t=`${fmt(e.ts)}\nPZC ${e.pzc} – ${e.title}`;
+  let t=e.noPzc?`${fmt(e.ts)}\n${e.title}`:`${fmt(e.ts)}\nPZC ${e.pzc} – ${e.title}`;
   if(e.name) t+=`\nName: ${e.name}`;
   if(e.patNr) t+=`\nPatientennummer: ${e.patNr}`;
   if(e.nefNr) t+=`\nNEF-Nummer: ${e.nefNr}`;
@@ -2468,10 +2486,37 @@ $("camShot").onclick=()=>{
 };
 $("scanPick").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scanCard(f)};
 
+/* ---- Reiter „Nur Name“ (ohne PZC, z. B. bei einer verstorbenen Person) ---- */
+function nvSpellRender(){
+  const n=state.nachname.trim(),v=state.vorname.trim();
+  $("nvSpell").innerHTML=(n?`<div class="spellh">Nachname · ${esc(n)}</div>${spellHTML(n)}`:"")+(v?`<div class="spellh">Vorname · ${esc(v)}</div>${spellHTML(v)}`:"")||'<div class="warn">Name eintragen oder Ausweis fotografieren – wird dann buchstabiert angezeigt.</div>';
+}
+function nvSync(){
+  const set=(id,v)=>{const e=$(id);if(document.activeElement!==e)e.value=v};
+  set("nvNach",state.nachname);set("nvVor",state.vorname);set("nvPat",state.patNr);set("nvNef",state.nefNr);set("nvFzg",state.fzg);set("nvNote",state.note||"");
+  nvSpellRender();
+}
+$("nvScan").onclick=()=>openCam();
+$("nameView").addEventListener("input",e=>{
+  const id=e.target.id;
+  if(id==="nvNach")state.nachname=e.target.value;else if(id==="nvVor")state.vorname=e.target.value;
+  else if(id==="nvPat")state.patNr=e.target.value;else if(id==="nvFzg")state.fzg=e.target.value;else if(id==="nvNote")state.note=e.target.value;
+  else if(id==="nvNef"){state.nefNr=e.target.value;try{localStorage.setItem("pzc_nef",state.nefNr)}catch(_){}}
+  nvSpellRender();syncNames();
+});
+$("tabName").onclick=()=>{window.scrollTo(0,0);push({v:"name"})};
+$("nvSave").onclick=()=>{
+  const a=load(),nm=[state.nachname.trim(),state.vorname.trim()].filter(Boolean).join(", ");
+  a.unshift({code:null,id:Date.now(),ts:Date.now(),pzc:"–",noPzc:true,title:"Nur Name (ohne PZC)",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim(),fzg:state.fzg.trim(),note:(state.note||"").trim(),answers:[]});
+  store(a);
+  state.vorname=state.nachname=state.patNr=state.fzg=state.nefNr="";state.note="";try{localStorage.removeItem("pzc_nef")}catch(_){}
+  refreshScanRes();renderArc();stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();window.scrollTo(0,0);
+};
 function syncNames(){
   const a=$("hNach"),b=$("hVor");
   if(document.activeElement!==a)a.value=state.nachname;
   if(document.activeElement!==b)b.value=state.vorname;
+  if(typeof nvSync==="function"&&cur&&cur.v==="name")nvSync();
 }
 $("hNach").addEventListener("input",e=>{state.nachname=e.target.value;refreshScanRes()});
 $("hVor").addEventListener("input",e=>{state.vorname=e.target.value;refreshScanRes()});
