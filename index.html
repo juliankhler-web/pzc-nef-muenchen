@@ -617,8 +617,12 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.4";
+const APP_VERSION="5.5";
 const CHANGELOG=[
+ {v:"5.5",d:"12.10.2026",items:[
+  "Alter / Geburtsdatum: Komma, Bindestrich, Schrägstrich oder Leerzeichen zählen als Punkt; das Datum geht auch ganz ohne Punkte (04081984 oder 040884)",
+  "Archiv: Einträge lassen sich jetzt über „✎ Bearbeiten“ ändern (Name, Nummern, Notiz, Antworten)",
+  "Neues Feld „Weitere Fahrzeuge vor Ort“ in der Zusammenfassung und im Archiv"]},
  {v:"5.4",d:"08.10.2026",items:[
   "Schockraum-Indikation: großes ✕ oben rechts zum Schließen (bleibt beim Scrollen sichtbar) – die gewählten Kriterien werden dabei übernommen"]},
  {v:"5.3",d:"08.10.2026",items:[
@@ -768,7 +772,7 @@ const CHANGELOG=[
   "Offline nutzbar"]}
 ];
 const $=id=>document.getElementById(id);
-const state={vorname:"",nachname:"",patNr:"",nefNr:(()=>{try{return localStorage.getItem("pzc_nef")||""}catch(_){return ""}})(),note:"",sex:null,age:null,code:null,urg:null,cat:null};
+const state={vorname:"",nachname:"",patNr:"",fzg:"",nefNr:(()=>{try{return localStorage.getItem("pzc_nef")||""}catch(_){return ""}})(),note:"",sex:null,age:null,code:null,urg:null,cat:null};
 const NOW=new Date().getFullYear();
 
 /* ---- Alter ---- */
@@ -783,8 +787,12 @@ function setAge(a,note){
 }
 $("yearH").addEventListener("input",e=>{const y=$("year");y.value=e.target.value;y.dispatchEvent(new Event("input"));e.target.value=y.value});
 $("year").addEventListener("input",e=>{
-  const v=e.target.value.replace(/[^\d.]/g,"").slice(0,10); e.target.value=v;
+  let v=e.target.value.replace(/[,\-\/ ]/g,".").replace(/[^\d.]/g,"").slice(0,10);
+  if(/^\d{8}$/.test(v))v=v.slice(0,2)+"."+v.slice(2,4)+"."+v.slice(4);   // 04081984 → 04.08.1984
+  e.target.value=v;
   let m;
+  if(/^\d{6}$/.test(v)){const yy=+v.slice(4);v=v.slice(0,2)+"."+v.slice(2,4)+"."+((yy<=NOW%100?2000:1900)+yy)}   // 040884 → 04.08.1984 (Feld bleibt unverändert)
+  {const t2=v.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2})$/);if(t2){const yy=+t2[3];v=t2[1]+"."+t2[2]+"."+((yy<=NOW%100?2000:1900)+yy)}}
   if(/^\d{1,3}$/.test(v)){          // Alter direkt eingegeben
     const a=+v;
     if(a>99) setAge(null,"Alter prüfen (max. 99)");
@@ -1342,7 +1350,7 @@ function goHome(){
 try{history.replaceState({},"")}catch(_){histOK=false}
 addEventListener("popstate",back);
 function resetAll(){
-  Object.assign(state,{vorname:"",nachname:"",patNr:"",note:"",sex:null,age:null,code:null,urg:null,cat:null});
+  Object.assign(state,{vorname:"",nachname:"",patNr:"",fzg:"",note:"",sex:null,age:null,code:null,urg:null,cat:null});
   sk={};searching=false;$("q").value="";$("year").value="";srSel.clear();
   document.querySelectorAll(".sxb").forEach(x=>x.classList.remove("on"));
   document.querySelectorAll(".u").forEach(x=>x.classList.remove("sel"));
@@ -1425,13 +1433,14 @@ const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 function saveEntry(extra){
   const a=load();
   const e={code:state.code,id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
-  a.unshift(e); store(a); state.vorname=state.nachname=state.patNr="";refreshScanRes();renderArc(); return e;
+  a.unshift(e); store(a); state.vorname=state.nachname=state.patNr=state.fzg="";refreshScanRes();renderArc(); return e;
 }
 function entryText(e){
   let t=`${fmt(e.ts)}\nPZC ${e.pzc} – ${e.title}`;
   if(e.name) t+=`\nName: ${e.name}`;
   if(e.patNr) t+=`\nPatientennummer: ${e.patNr}`;
   if(e.nefNr) t+=`\nNEF-Nummer: ${e.nefNr}`;
+  if(e.fzg) t+=`\nWeitere Fahrzeuge: ${e.fzg}`;
   if(e.sb) t+=`\nSonderbett: ${e.sb}`;
   (e.answers||[]).forEach(([k,v])=>t+=`\n${k}: ${v}`);
   if(e.note) t+=`\nNotiz: ${e.note}`;
@@ -1488,16 +1497,37 @@ function renderArc(){
     <div class="ti">${esc(e.title)}${e.sb?` · <b>${esc(e.sb)}</b>`:""}</div>
     ${e.name?`<div class="ti">👤 ${esc(e.name)}</div>`:""}
     ${e.note?`<div class="ti" style="color:var(--mute)">📝 ${esc(e.note)}</div>`:""}
-    <div class="det">${e.patNr?`<div><b>Patientennummer:</b> ${esc(e.patNr)}</div>`:""}${e.nefNr?`<div><b>NEF-Nummer:</b> ${esc(e.nefNr)}</div>`:""}${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
-      <div class="row"><button class="mini" data-act="copy">Kopieren</button><button class="mini del" data-act="del">Löschen</button></div></div>
+    <div class="det">${e.patNr?`<div><b>Patientennummer:</b> ${esc(e.patNr)}</div>`:""}${e.nefNr?`<div><b>NEF-Nummer:</b> ${esc(e.nefNr)}</div>`:""}${e.fzg?`<div><b>Weitere Fahrzeuge:</b> ${esc(e.fzg)}</div>`:""}${(e.answers||[]).map(([k,v])=>`<div><b>${esc(k)}:</b> ${esc(v)}</div>`).join("")||"<div>Nur PZC gespeichert.</div>"}
+      <div class="row"><button class="mini" data-act="edit">✎ Bearbeiten</button><button class="mini" data-act="copy">Kopieren</button><button class="mini del" data-act="del">Löschen</button></div></div>
   </div>`).join(""):'<div class="empty">Noch keine Einträge</div>';
 }
 $("arcList").addEventListener("click",e=>{
   const card=e.target.closest(".arc"); if(!card)return;
   const act=e.target.closest("[data-act]")?.dataset.act, id=+card.dataset.id;
   if(act==="del"){if(confirm("Eintrag löschen?")){store(load().filter(x=>x.id!==id));renderArc()}return}
+  if(act==="edit"){openEdit(id);return}
   if(act==="copy"){const x=load().find(x=>x.id===id);navigator.clipboard?.writeText(entryText(x));e.target.textContent="✓ kopiert";return}
   card.classList.toggle("open");
+});
+function openEdit(id){
+  const x=load().find(x=>x.id===id);if(!x)return;
+  const f=(lab,i,v)=>`<div class="fld"><label>${esc(lab)}</label><input class="inp" id="${i}" autocomplete="off" value="${esc(v||"")}"></div>`;
+  openModal(`<h2>Eintrag bearbeiten</h2><div class="vv">${esc(x.pzc)} · ${fmt(x.ts)}</div>
+    ${f("Name","edName",x.name)}${f("Patientennummer","edPat",x.patNr)}${f("NEF-Nummer","edNef",x.nefNr)}${f("Weitere Fahrzeuge vor Ort","edFzg",x.fzg)}
+    <div class="fld"><label>Notiz</label><textarea class="inp" id="edNote">${esc(x.note||"")}</textarea></div>
+    ${(x.answers||[]).map(([k,v],i)=>f(k,"edA"+i,v)).join("")}
+    <div class="chips" style="margin-top:12px"><button class="mini" id="edSave" data-id="${id}">✓ Speichern</button><button class="mini" id="edCancel">Abbrechen</button></div>`);
+  $("modal").classList.add("big");
+}
+$("modal").addEventListener("click",e=>{
+  if(e.target.id==="edCancel"){closeModal();return}
+  if(e.target.id==="edSave"){
+    const id=+e.target.dataset.id,a=load(),x=a.find(x=>x.id===id);if(!x)return;
+    const g=i=>($(i)?$(i).value.trim():"");
+    x.name=g("edName");x.patNr=g("edPat");x.nefNr=g("edNef");x.fzg=g("edFzg");x.note=g("edNote");
+    x.answers=(x.answers||[]).map(([k,v],i)=>[k,$("edA"+i)?$("edA"+i).value.trim():v]).filter(([k,v])=>v);
+    store(a);closeModal();renderArc();
+  }
 });
 $("arcExport").onclick=()=>{navigator.clipboard?.writeText(load().map(entryText).join("\n\n———\n\n"));$("arcExport").textContent="✓ kopiert"};
 $("arcClear").onclick=()=>{if(confirm("Gesamtes Archiv löschen?")){store([]);renderArc()}};
@@ -1634,6 +1664,7 @@ function openSummary(){
   <div class="blk"><h3>Nummern</h3>
     <div class="fld" style="margin-top:0"><label>Patientennummer</label><input class="inp namebox" id="fPatNr" inputmode="numeric" autocomplete="off" value="${esc(state.patNr)}"></div>
     <div class="fld"><label>NEF-Nummer</label><input class="inp namebox" id="fNefNr" autocomplete="off" value="${esc(state.nefNr)}"></div>
+    <div class="fld"><label>Weitere Fahrzeuge vor Ort</label><input class="inp namebox" id="fFzg" autocomplete="off"></div>
     <div class="warn">Die NEF-Nummer wird für den nächsten Einsatz gemerkt.</div></div>
   <button class="btn" id="sSave" style="padding:20px;font-size:19px">Speichern ins Archiv</button>
   <div class="warn" style="text-align:center">Wird nur auf diesem Gerät gespeichert.</div>`;
@@ -1644,12 +1675,13 @@ $("sumFlow").addEventListener("input",e=>{
   if(id==="fNach"){state.nachname=e.target.value;renderSpell();syncNames()}
   else if(id==="fVor"){state.vorname=e.target.value;renderSpell();syncNames()}
   else if(id==="fPatNr")state.patNr=e.target.value;
+  else if(id==="fFzg")state.fzg=e.target.value;
   else if(id==="fNefNr"){state.nefNr=e.target.value;try{localStorage.setItem("pzc_nef",state.nefNr)}catch(_){}}
 });
 function savePanel(){
   const answers=Object.keys(sk).filter(k=>k!=="sb"&&sk[k].v).map(k=>[sk[k].l,sk[k].v]);
   const nm=[state.nachname.trim(),state.vorname.trim()].filter(Boolean).join(", ");
-  saveEntry({sb:sk.sb?SBD[sk.sb].n:"",answers,note:state.note||"",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim()});
+  saveEntry({sb:sk.sb?SBD[sk.sb].n:"",answers,note:state.note||"",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim(),fzg:state.fzg.trim()});
   stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();window.scrollTo(0,0);
 }
 document.querySelectorAll(".sxb").forEach(b=>b.onclick=()=>{
