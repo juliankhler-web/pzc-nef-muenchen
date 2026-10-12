@@ -632,8 +632,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.7";
+const APP_VERSION="5.8";
 const CHANGELOG=[
+ {v:"5.8",d:"12.10.2026",items:[
+  "Archiv bearbeiten: unter dem Namen steht wieder das Funkalphabet (Nachname, dann Vorname) und passt sich beim Tippen an"]},
  {v:"5.7",d:"12.10.2026",items:[
   "Neuer Reiter „Nur Name“ neben „PZC finden“: für Fälle ohne PZC (z. B. eine verstorbene Person) – Ausweis fotografieren oder Name eintragen, Name im Funkalphabet, Patientennummer, NEF-Nummer, weitere Fahrzeuge, Notiz, dann ins Archiv speichern",
   "Die Themen-Vorschläge unter der Suche (Herzinfarkt, Schlaganfall …) sind entfernt – mehr Platz"]},
@@ -1534,12 +1536,18 @@ function openEdit(id){
   const x=load().find(x=>x.id===id);if(!x)return;
   const f=(lab,i,v)=>`<div class="fld"><label>${esc(lab)}</label><input class="inp" id="${i}" autocomplete="off" value="${esc(v||"")}"></div>`;
   openModal(`<h2>Eintrag bearbeiten</h2><div class="vv">${esc(x.pzc)} · ${fmt(x.ts)}</div>
-    ${f("Name","edName",x.name)}${f("Patientennummer","edPat",x.patNr)}${f("NEF-Nummer","edNef",x.nefNr)}${f("Weitere Fahrzeuge vor Ort","edFzg",x.fzg)}
+    ${f("Name (Nachname, Vorname)","edName",x.name)}<div id="edSpell"></div>${f("Patientennummer","edPat",x.patNr)}${f("NEF-Nummer","edNef",x.nefNr)}${f("Weitere Fahrzeuge vor Ort","edFzg",x.fzg)}
     <div class="fld"><label>Notiz</label><textarea class="inp" id="edNote">${esc(x.note||"")}</textarea></div>
     ${(x.answers||[]).map(([k,v],i)=>f(k,"edA"+i,v)).join("")}
     <div class="chips" style="margin-top:12px"><button class="mini" id="edSave" data-id="${id}">✓ Speichern</button><button class="mini" id="edCancel">Abbrechen</button></div>`);
-  $("modal").classList.add("big");
+  $("modal").classList.add("big");edSpellRender();
 }
+function edSpellRender(){
+  const el=$("edSpell");if(!el||!$("edName"))return;
+  const raw=$("edName").value,i=raw.indexOf(","),n=(i<0?raw:raw.slice(0,i)).trim(),v=(i<0?"":raw.slice(i+1)).trim();
+  el.innerHTML=(n?`<div class="spellh">Nachname · ${esc(n)}</div>${spellHTML(n)}`:"")+(v?`<div class="spellh">Vorname · ${esc(v)}</div>${spellHTML(v)}`:"");
+}
+$("modal").addEventListener("input",e=>{if(e.target.id==="edName")edSpellRender()});
 $("modal").addEventListener("click",e=>{
   if(e.target.id==="edCancel"){closeModal();return}
   if(e.target.id==="edSave"){
