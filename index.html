@@ -617,8 +617,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.5";
+const APP_VERSION="5.6";
 const CHANGELOG=[
+ {v:"5.6",d:"12.10.2026",items:[
+  "Die NEF-Nummer wird jetzt beim Speichern ins Archiv und bei „↺ Neu“ mit gelöscht und nicht mehr für den nächsten Einsatz gemerkt"]},
  {v:"5.5",d:"12.10.2026",items:[
   "Alter / Geburtsdatum: Komma, Bindestrich, Schrägstrich oder Leerzeichen zählen als Punkt; das Datum geht auch ganz ohne Punkte (04081984 oder 040884)",
   "Archiv: Einträge lassen sich jetzt über „✎ Bearbeiten“ ändern (Name, Nummern, Notiz, Antworten)",
@@ -1350,7 +1352,8 @@ function goHome(){
 try{history.replaceState({},"")}catch(_){histOK=false}
 addEventListener("popstate",back);
 function resetAll(){
-  Object.assign(state,{vorname:"",nachname:"",patNr:"",fzg:"",note:"",sex:null,age:null,code:null,urg:null,cat:null});
+  try{localStorage.removeItem("pzc_nef")}catch(_){}
+  Object.assign(state,{vorname:"",nachname:"",patNr:"",fzg:"",nefNr:"",note:"",sex:null,age:null,code:null,urg:null,cat:null});
   sk={};searching=false;$("q").value="";$("year").value="";srSel.clear();
   document.querySelectorAll(".sxb").forEach(x=>x.classList.remove("on"));
   document.querySelectorAll(".u").forEach(x=>x.classList.remove("sel"));
@@ -1433,7 +1436,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 function saveEntry(extra){
   const a=load();
   const e={code:state.code,id:Date.now(),ts:Date.now(),pzc:pzcStr(state.code,state.age,state.urg),title:byCode[state.code][1],...extra};
-  a.unshift(e); store(a); state.vorname=state.nachname=state.patNr=state.fzg="";refreshScanRes();renderArc(); return e;
+  a.unshift(e); store(a); state.vorname=state.nachname=state.patNr=state.fzg=state.nefNr="";try{localStorage.removeItem("pzc_nef")}catch(_){}refreshScanRes();renderArc(); return e;
 }
 function entryText(e){
   let t=`${fmt(e.ts)}\nPZC ${e.pzc} – ${e.title}`;
@@ -1665,7 +1668,7 @@ function openSummary(){
     <div class="fld" style="margin-top:0"><label>Patientennummer</label><input class="inp namebox" id="fPatNr" inputmode="numeric" autocomplete="off" value="${esc(state.patNr)}"></div>
     <div class="fld"><label>NEF-Nummer</label><input class="inp namebox" id="fNefNr" autocomplete="off" value="${esc(state.nefNr)}"></div>
     <div class="fld"><label>Weitere Fahrzeuge vor Ort</label><input class="inp namebox" id="fFzg" autocomplete="off"></div>
-    <div class="warn">Die NEF-Nummer wird für den nächsten Einsatz gemerkt.</div></div>
+    </div>
   <button class="btn" id="sSave" style="padding:20px;font-size:19px">Speichern ins Archiv</button>
   <div class="warn" style="text-align:center">Wird nur auf diesem Gerät gespeichert.</div>`;
   renderSpell();$("sum").scrollTop=0;push({v:"sum"});
