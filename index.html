@@ -689,8 +689,13 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="7.5";
+const APP_VERSION="8.0";
 const CHANGELOG=[
+ {v:"8.0",d:"15.10.2026",items:[
+  "Medikamentenliste der BF München (Stand 07.07.2026, Version 5.1) eingebaut: jetzt über 100 Präparate in Nachschlagen – mit Handelsname, Stärke und Form, gefiltert nach Standard, Antidote / Tox und Kinder / Neugeborene",
+  "Mengen in ml an eure Ampullen angepasst (z. B. Atropin 1 mg / 1 ml, Atrovent 250 µg / 2 ml, Salbutamol 1,5 mg / 2,5 ml)",
+  "Kinder-Adrenalin: Hinweis auf die Fertigspritze 1:10.000 (0,1 mg/ml) und eigene Karte dazu; Dosis nach Gewicht",
+  "Bei Präparaten ohne Dosierung in der ÄLRD-Liste steht nur die Kurzbeschreibung – die Dosierung gilt nach eurer SOP"]},
  {v:"7.5",d:"15.10.2026",items:[
   "Schockraum-Indikation und Eintrag bearbeiten (Archiv) öffnen jetzt ebenfalls als eigene Seite mit Zurück · Start · Neu statt als Fenster",
   "Der Code in der schwarzen Leiste unten bricht auf schmalen Handys nicht mehr in zwei Zeilen um"]},
@@ -1957,17 +1962,17 @@ const NK_MED=[
  {id:"adr_rea",n:"Adrenalin (Epinephrin) – Reanimation",hay:"adrenalin epinephrin suprarenin reanimation herzstillstand kreislaufstillstand cpr rea defibrillation asystolie kammerflimmern",ind:"Kreislaufstillstand",amp:"Stechampulle 25 mg / 25 ml = 1 mg/ml",conc:1,u:"mg",kconc:.1,
   erw:[["nicht defibrillierbar: 1 mg i.v. (i.o.) sobald möglich",1],["defibrillierbar: 1 mg i.v. (i.o.) nach 3. Defibrillation",1],["Repetition alle 3–5 Minuten unter ALS"]],
   kind:[["nicht defibrillierbar: 0,01 mg/kg KG i.v. (i.o.) sobald möglich",null,.01,1],["defibrillierbar: 0,01 mg/kg KG i.v. (i.o.) nach 3. Defibrillation",null,.01,1],["Repetition i.v. (i.o.) alle 3–5 Minuten unter ALS"]],
-  dil:{t:"Für Kinder verdünnen: 1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann gilt 0,1 ml pro kg KG. Einzeldosis höchstens 1 mg.",parts:[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}],src:"Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0), Maximaldosis: RCUK Paediatric ALS 2025 – bitte mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen"}},
- {id:"adr_ana",n:"Adrenalin (Epinephrin) – anaphylaktischer Schock",hay:"adrenalin epinephrin anaphylaxie anaphylaktischer schock allergie allergisch allergische reaktion intramuskulär",ind:"anaphylaktischer Schock",amp:"Ampulle 1 mg / 1 ml = 1 mg/ml",conc:1,u:"mg",
+  dil:{t:"Auf dem Kinder-Notfall liegt Adrenalin 1:10.000 als Fertigspritze (0,1 mg/ml) – dann nicht verdünnen, direkt 0,1 ml pro kg KG. Sonst für Kinder verdünnen: 1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann gilt 0,1 ml pro kg KG. Einzeldosis höchstens 1 mg.",parts:[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}],src:"Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0), Maximaldosis: RCUK Paediatric ALS 2025 – bitte mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen"}},
+ {id:"adr_ana",n:"Adrenalin (Epinephrin) – anaphylaktischer Schock",hay:"adrenalin epinephrin anaphylaxie anaphylaktischer schock allergie allergisch allergische reaktion intramuskulär",ind:"anaphylaktischer Schock",amp:"Suprarenin 25 mg / 25 ml = 1 mg/ml (laut BF-Liste gibt es keine 1-ml-Ampulle)",conc:1,u:"mg",
   erw:[["0,5 mg i.m.",.5],["Repetition (i.m.) nach 5 Minuten bei ausbleibender Wirkung"]],
   kind:[["0,01 mg/kg KG i.m.",null,.01],["Repetition (i.m.) nach 5–10 Minuten bei ausbleibender Wirkung"]]},
- {id:"adr_inh",n:"Adrenalin (Epinephrin) – Inhalation (Pseudokrupp, Ödem obere Atemwege)",hay:"adrenalin epinephrin inhalation pseudokrupp krupp stridor larynx laryngotracheitis ödem schwellung atemweg kehlkopf",ind:"kritische akute stenosierende Laryngotracheitis (Pseudokrupp), kritische Schwellung/Ödem der oberen Atemwege – zur Inhalation",amp:"Stechampulle 25 mg / 25 ml = 1 mg/ml",conc:1,u:"mg",
+ {id:"adr_inh",n:"Adrenalin (Epinephrin) – Inhalation (Pseudokrupp, Ödem obere Atemwege)",hay:"adrenalin epinephrin inhalation pseudokrupp krupp stridor larynx laryngotracheitis ödem schwellung atemweg kehlkopf",ind:"kritische akute stenosierende Laryngotracheitis (Pseudokrupp), kritische Schwellung/Ödem der oberen Atemwege – zur Inhalation",amp:"Suprarenin 25 mg / 25 ml = 1 mg/ml · Kinder-Notfall: Infectokrupp 40 mg / 10 ml Pumpspray",conc:1,u:"mg",
   erw:[["5 mg (5 ml) zur Inhalation",5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
   kind:[["5 mg (5 ml) zur Inhalation",5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]]},
  {id:"amio",n:"Amiodaron",hay:"amiodaron cordarex kammerflimmern pulslose ventrikuläre tachykardie vf pvt reanimation rea schockbar",ind:"Kammerflimmern / pulslose ventrikuläre Tachykardie",amp:"Ampulle 150 mg / 3 ml = 50 mg/ml",conc:50,u:"mg",
   erw:[["nach 3. Defibrillation 300 mg i.v. (i.o.)",300],["nach 5. Defibrillation 150 mg i.v. (i.o.)",150]],
   kind:[["nach 3. Defibrillation 5 mg/kg KG (max. 300 mg) i.v. (i.o.)",null,5,300],["nach 5. Defibrillation 5 mg/kg KG (max. 150 mg) i.v. (i.o.)",null,5,150]]},
- {id:"atropin",n:"Atropin",hay:"atropin atropinsulfat bradykardie langsamer puls herzfrequenz niedrig",ind:"lebensbedrohliche Bradykardie",amp:"Ampulle 0,5 mg / 1 ml = 0,5 mg/ml",conc:.5,u:"mg",
+ {id:"atropin",n:"Atropin",hay:"atropin atropinsulfat bradykardie langsamer puls herzfrequenz niedrig",ind:"lebensbedrohliche Bradykardie",amp:"Atropin 1 mg / 1 ml = 1 mg/ml",conc:1,u:"mg",
   erw:[["initial 0,5 mg Atropin i.v. (i.o.)",.5],["ggf. Wiederholung alle 3–5 Minuten bis maximal 3 mg"]],
   kind:[["0,01 mg/kg KG i.v. (i.o.), max. 0,5 mg",null,.01,.5]]},
  {id:"cafedrin",n:"Cafedrin / Theodrenalin",hay:"cafedrin theodrenalin akrinor hypotension blutdruck niedrig kreislauf",ind:"kritische Hypotension trotz adäquater bzw. mit Kontraindikation für i.v.-Flüssigkeitsgabe",amp:"Ampulle 200/10 mg / 2 ml",conc:null,u:"ml",
@@ -1975,9 +1980,9 @@ const NK_MED=[
   kind:[["Kinder: keine Zulassung"]],cave:"CAVE: Konzept der permissiven Hypotension bei aktiver Blutung!"},
  {id:"diazepam",n:"Diazepam rektal",hay:"diazepam rektiole krampf krampfanfall fieberkrampf kind rektal",ind:"prolongierter kindlicher Krampfanfall (> 3 min)",amp:"Rectiole 5 mg",conc:null,u:"mg",
   erw:[["nur Kinder"]],kind:[["Kinder < 15 kg KG: 5 mg rektal"],["Kinder ≥ 15 kg KG: 10 mg rektal, bzw. siehe Midazolam"],["keine Repetition (siehe Midazolam)"]]},
- {id:"esketamin",n:"Esketamin – intranasal (Kinder)",hay:"esketamin ketamin schmerz schmerzen kind nasal intranasal analgesie",ind:"kritischer Schmerzzustand Kinder bis 11 Jahre – intranasale Applikation",amp:"Ampulle 50 mg / 2 ml = 25 mg/ml",conc:25,u:"mg",
+ {id:"esketamin",n:"Esketamin – intranasal (Kinder)",hay:"esketamin ketamin schmerz schmerzen kind nasal intranasal analgesie",ind:"kritischer Schmerzzustand Kinder bis 11 Jahre – intranasale Applikation",amp:"Ketanest S 50 mg / 2 ml = 25 mg/ml (Kinder-Notfall: Ketanest S 25 mg / 5 ml = 5 mg/ml)",conc:25,u:"mg",
   erw:[["nur Kinder bis 11 Jahre"]],kind:[["2 mg/kg KG intranasal",null,2],["ggf. Repetition der Hälfte der Initialdosis nach 10 Minuten"]],ref:"siehe DIVI-Kindernotfallkarte"},
- {id:"fentanyl",n:"Fentanyl",hay:"fentanyl schmerz schmerzen opioid analgesie nasal intranasal btm",ind:"kritischer Schmerzzustand (außer bei akutem Koronarsyndrom) · Kinder ab 12 Jahre intranasal",amp:"Ampulle 0,5 mg / 10 ml = 0,05 mg/ml",conc:.05,u:"mg",
+ {id:"fentanyl",n:"Fentanyl",hay:"fentanyl schmerz schmerzen opioid analgesie nasal intranasal btm",ind:"kritischer Schmerzzustand (außer bei akutem Koronarsyndrom) · Kinder ab 12 Jahre intranasal",amp:"Fentanyl 0,5 mg / 10 ml = 0,05 mg/ml (Kinder-Notfall: 0,1 mg / 2 ml, Restbestände)",conc:.05,u:"mg",
   erw:[["nur Erwachsene und Kinder ab 12 Jahre: unverdünnte Einzeldosis von 0,05 mg i.v. (i.o.)",.05],["ggf. Repetition nach 5 Minuten bis maximal 0,2 mg"]],
   kind:[["Kinder ab 12 Jahre intranasal: 0,002 mg/kg KG",null,.002],["ggf. Repetition der Hälfte der Initialdosis nach 10 Minuten"]],ref:"siehe DIVI-Kindernotfallkarte (intranasal)",btm:1},
  {id:"flumazenil",n:"Flumazenil",hay:"flumazenil anexate benzodiazepin überdosis intoxikation vergiftung antidot",ind:"kritische Benzodiazepin-Überdosierung/-Intoxikation",amp:"Ampulle 0,5 mg / 5 ml = 0,1 mg/ml",conc:.1,u:"mg",
@@ -1986,16 +1991,16 @@ const NK_MED=[
  {id:"glucose",n:"Glucose 40 %",hay:"glucose glukose zucker unterzucker hypoglykämie dextrose traubenzucker bz",ind:"kritische Hypoglykämie",amp:"Ampulle 4,0 g / 10 ml = 0,4 g/ml (40 %)",conc:.4,u:"g",
   erw:[["initial 12 g langsam i.v. (i.o.) zu laufender Infusion",12],["weitere 8 g i.v. nach Patientenzustand",8]],
   kind:[["200 mg/kg KG i.v. (i.o.)",null,.2]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Bei V. a. chronischen Alkoholabusus: Thiamin vor dem Hypoglykämie-Ausgleich!"},
- {id:"ipra",n:"Ipratropiumbromid",hay:"ipratropium atrovent asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Inhalationslösung 0,5 mg / 2 ml = 0,25 mg/ml",conc:.25,u:"mg",
-  erw:[["0,5 mg (2,0 ml) zur Inhalation",.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
-  kind:[["0,25 mg (1,0 ml) zur Inhalation",.25],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],hint:"Restmenge der verwendeten Verneblungsmaske beachten!"},
+ {id:"ipra",n:"Ipratropiumbromid",hay:"ipratropium atrovent asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Atrovent 250 µg / 2 ml = 0,125 mg/ml",conc:.125,u:"mg",
+  erw:[["0,5 mg zur Inhalation",.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
+  kind:[["0,25 mg zur Inhalation",.25],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],hint:"Restmenge der verwendeten Verneblungsmaske beachten! Die ÄLRD-Liste rechnet mit 0,25 mg/ml (0,5 mg = 2 ml). Eure Ampulle hat 0,125 mg/ml, deshalb ist die Menge in ml hier doppelt so groß."},
  {id:"midaz_iv",n:"Midazolam – intravenös",hay:"midazolam dormicum krampf krampfanfall status epilepticus epilepsie iv intravenös",ind:"generalisierter Status epilepticus – intravenöse Applikation (in der Regel nur, wenn i.v.-Zugang bei Krampfbeginn bereits etabliert)",amp:"Ampulle 5 mg / 5 ml = 1 mg/ml",conc:1,u:"mg",
   erw:[["initial 5 mg",5],["einmalige Repetition bei Krampfpersistenz"]],kind:[["0,1 mg/kg KG i.v. (i.o.)",null,.1]],ref:"siehe DIVI-Kindernotfallkarte"},
  {id:"midaz_in",n:"Midazolam – intranasal",hay:"midazolam dormicum krampf krampfanfall status epilepticus epilepsie nasal intranasal",ind:"generalisierter Status epilepticus – intranasale Applikation",amp:"Ampulle 15 mg / 3 ml = 5 mg/ml",conc:5,u:"mg",
   erw:[["10 mg intranasal",10],["einmalige Repetition bei Krampfpersistenz nach frühestens 5 Minuten"]],kind:[["0,3 mg/kg KG intranasal",null,.3]],ref:"siehe DIVI-Kindernotfallkarte"},
  {id:"morphin",n:"Morphin",hay:"morphin schmerz schmerzen herzinfarkt acs koronarsyndrom opioid btm",ind:"kritischer Schmerzzustand bei akutem Koronarsyndrom",amp:"Ampulle 10 mg / 1 ml = 10 mg/ml",conc:10,u:"mg",
   erw:[["nur Erwachsene: 1–2 mg i.v. (i.o.)",1],["Repetition nach frühestens 5 Minuten bis maximal 5 mg"]],kind:[["nur Erwachsene"]],btm:1},
- {id:"naloxon",n:"Naloxon nasal",hay:"naloxon nyxoid opiat opioid überdosis heroin atemdepression antidot intoxikation nasal",ind:"kritische Opiat-Überdosierung/-Intoxikation",amp:"Einzeldosis nasal 2 × 1,8 mg",conc:null,u:"mg",
+ {id:"naloxon",n:"Naloxon nasal",hay:"naloxon nyxoid opiat opioid überdosis heroin atemdepression antidot intoxikation nasal",ind:"kritische Opiat-Überdosierung/-Intoxikation",amp:"Nyoxid 1,8 mg Nasalzerstäuber · außerdem Naloxon 0,4 mg / 1 ml Ampulle",conc:null,u:"mg",
   erw:[["Anwendung zugelassen ab 14. Lebensjahr: 1,8 mg intranasal"],["Repetition nach 2–3 Minuten oder bei Symptomrückkehr"]],kind:[["zugelassen ab 14. Lebensjahr"]]},
  {id:"oxymeta",n:"Oxymetazolin 0,05 % Nasenspray",hay:"oxymetazolin nasenbluten epistaxis nasenspray nase blutung",ind:"kritische Epistaxis",amp:"Nasenspray 0,5 mg/ml",conc:null,u:"mg",
   erw:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG: 2–6 Sprühstöße in jedes betroffene Nasenloch"],["keine Repetition"]],kind:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG"]]},
@@ -2005,16 +2010,16 @@ const NK_MED=[
   erw:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG: 7,5 mg als Kurzinfusion in 100 ml NaCl 0,9 % i.v. (i.o.) über mind. 5 Minuten",7.5],["ggf. Repetition nach 10 Minuten"]],kind:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG"]],btm:1},
  {id:"prednison",n:"Prednison rektal",hay:"prednison rektal pseudokrupp krupp spastische bronchitis kind kortison zäpfchen suppositorium",ind:"kritische akute stenosierende Laryngotracheitis (Pseudokrupp), kritische spastische Bronchitis – nur Kinder",amp:"Suppositorium 100 mg",conc:null,u:"mg",
   erw:[["nur Kinder"]],kind:[["100 mg rektal (alters-/gewichtsunabhängig)"]],ref:"siehe DIVI-Kindernotfallkarte"},
- {id:"salbu",n:"Salbutamol",hay:"salbutamol sultanol asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Inhalationslösung 1,25 mg / 2,5 ml = 0,5 mg/ml",conc:.5,u:"mg",
-  erw:[["2,5 mg (5 ml) initial zur Inhalation",2.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
-  kind:[["2,5 mg (5 ml) zur Inhalation",2.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Restmenge der verwendeten Verneblungsmaske beachten!"},
+ {id:"salbu",n:"Salbutamol",hay:"salbutamol sultanol asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Salbutamol 1,5 mg / 2,5 ml = 0,6 mg/ml",conc:.6,u:"mg",
+  erw:[["2,5 mg initial zur Inhalation",2.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
+  kind:[["2,5 mg zur Inhalation",2.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Restmenge der verwendeten Verneblungsmaske beachten! Die ÄLRD-Liste rechnet mit 1,25 mg / 2,5 ml (2,5 mg = 5 ml). Eure Ampulle hat 1,5 mg / 2,5 ml, deshalb ist die Menge in ml hier anders."},
  {id:"o2",n:"Sauerstoff",hay:"sauerstoff o2 hypoxie sättigung atemnot beatmung",ind:"kritische Hypoxie",amp:"inhalativ",conc:null,u:"",
   erw:[["15 l/min über Maske"],["CPR: höchstmögliche inspiratorische Sauerstoffkonzentration"]],kind:[["15 l/min über Maske"],["CPR: höchstmögliche inspiratorische Sauerstoffkonzentration"]]},
  {id:"thiamin",n:"Thiamin (Vitamin B1)",hay:"thiamin vitamin b1 alkohol alkoholiker krampf unterzucker hypoglykämie",ind:"V. a. alkoholinduzierter, generalisierter Status epilepticus · kritische Hypoglykämie bei V. a. chron. Alkoholabusus",amp:"Ampulle 100 mg / 2 ml",conc:50,u:"mg",
   erw:[["100 mg als Kurzinfusion in 100 ml NaCl 0,9 % i.v. (i.o.)",100]],kind:[["–"]],hint:"Thiamin-Gabe unmittelbar nach Krampfdurchbrechung. Bei Hypoglykämie: Thiamin vor dem Hypoglykämie-Ausgleich!"},
  {id:"urapidil",n:"Urapidil",hay:"urapidil ebrantil hypertensiver notfall blutdruck hoch hypertonie krise",ind:"hypertensiver Notfall",amp:"Ampulle 50 mg / 10 ml = 5 mg/ml",conc:5,u:"mg",
   erw:[["nur Erwachsene: initial 5 mg i.v. (i.o.)",5],["Repetition frühestens nach 5 Minuten"],["Senkung nach Symptomatik, max. um 25 % des Ausgangswertes RRsyst."]],kind:[["nur Erwachsene"]]},
- {id:"elyt",n:"Balancierte Elektrolytlösung",hay:"balancierte elektrolytlösung infusion volumen vollelektrolyt jonosteril sterofundin ringer volumenmangel flüssigkeit",ind:"Träger-Infusionslösung zur i.v.-Medikamentenapplikation · Flüssigkeitsersatz bei kritischem Volumenmangel",amp:"Infusionslösung 500 ml (Acetat/Malat)",conc:null,u:"",
+ {id:"elyt",n:"Balancierte Elektrolytlösung",hay:"balancierte elektrolytlösung infusion volumen vollelektrolyt jonosteril sterofundin ringer volumenmangel flüssigkeit",ind:"Träger-Infusionslösung zur i.v.-Medikamentenapplikation · Flüssigkeitsersatz bei kritischem Volumenmangel",amp:"Ringerlösung 500 ml · Sterofundin ISO 250 ml",conc:null,u:"",
   erw:[["nach Bedarf"]],kind:[["nach Bedarf"]],cave:"CAVE: Konzept der permissiven Hypotension bei aktiver Blutung!"}
 ].sort((a,b)=>a.n.localeCompare(b.n,"de"));
 
@@ -2050,7 +2055,7 @@ const NK_BRAND={
  amio:["Cordarex"],atropin:["Atropinsulfat"],cafedrin:["Akrinor"],diazepam:["Diazepam Desitin","Stesolid","Valium"],
  esketamin:["Ketanest S"],fentanyl:["Fentanyl-Janssen","Instanyl"],flumazenil:["Anexate"],glucose:["Glukose 40 %","Dextrose"],
  ipra:["Atrovent"],midaz_iv:["Dormicum"],midaz_in:["Dormicum","Midazolam Nasenspray"],morphin:["Morphinsulfat"],
- naloxon:["Nyxoid","Narcanti"],oxymeta:["Nasivin"],oxytocin:["Syntocinon"],piritramid:["Dipidolor"],
+ naloxon:["Nyoxid (so in der BF-Liste)","Nyxoid","Narcanti"],oxymeta:["Nasivin"],oxytocin:["Syntocinon"],piritramid:["Dipidolor"],
  prednison:["Rectodelt"],salbu:["Sultanol","Ventolin"],o2:["O2"],thiamin:["Betabion","Benerva"],urapidil:["Ebrantil"],
  elyt:["Jonosteril","Sterofundin","Tutofusin","Ringer-Acetat"]
 };
@@ -2086,7 +2091,103 @@ const NK_CARDS=[
  {id:"rea_k",n:"Reanimation Kind",sub:"mit Gewichts-Rechner",hay:"reanimation kind kinder baby säugling pädiatrisch kinderreanimation pals cpr gewicht kg herzstillstand"},
  {id:"schock",n:"Schockraum-Indikation",sub:"Trauma · Non-Trauma",hay:"schockraum indikation trauma non trauma polytrauma kriterien"}
 ];
-let nkKg="",nkCur="";
+
+/* ---- Medikamentenliste Berufsfeuerwehr München (Stand 07.07.2026, Version 5.1): alle weiteren Präparate. Indikation und Dosierung stehen dort nicht – nur Präparat, Stärke, Form ---- */
+const NK_BF_SRC="Medikamentenliste Berufsfeuerwehr München · Stand 07.07.2026 · Version 5.1 · Herausgeber BE-TS 3";
+const NK_BF_INFO={adr_rea:"Suprarenin 25 mg / 25 ml · Ampulle · Kinder-Notfall: Adrenalin 1:10.000 Fertigspritze",adr_ana:"Suprarenin 25 mg / 25 ml · Ampulle",adr_inh:"Suprarenin 25 mg / 25 ml Ampulle · Infectokrupp 40 mg / 10 ml Pumpspray (Kinder-Notfall)",amio:"Amiodaron 150 mg / 3 ml · Ampulle",atropin:"Atropin 1 mg / 1 ml · Ampulle",cafedrin:"Akrinor 200 mg + 10 mg / 2 ml · Ampulle",diazepam:"Diazepam Rektiole 5 mg und 10 mg",esketamin:"Ketanest S 50 mg / 2 ml · Ampulle · Kinder-Notfall: Ketanest S 25 mg / 5 ml",fentanyl:"Fentanyl 0,5 mg / 10 ml · Ampulle · Kinder-Notfall: Fentanyl 0,1 mg / 2 ml (Restbestände)",flumazenil:"Flumazenil 0,5 mg / 5 ml · Ampulle",glucose:"Glucose 40 %, 4 g / 10 ml · Ampulle (außerdem Glucose 5 % und 10 % als Infusion)",ipra:"Atrovent 250 µg / 2 ml · Ampulle",midaz_iv:"Midazolam 5 mg / 5 ml · Ampulle",midaz_in:"Midazolam 15 mg / 3 ml · Ampulle",morphin:"Morphin 10 mg / 1 ml · Ampulle",naloxon:"Naloxon 0,4 mg / 1 ml Ampulle · Nyoxid 1,8 mg Nasalzerstäuber",oxymeta:"Nicht auf der BF-Liste (gelistet ist Xylometazolin: Otriven 0,025 % Tropfen)",oxytocin:"Oxytocin 3 IE / 1 ml · Ampulle",piritramid:"Piritramid 7,5 mg / 1 ml · Ampulle",prednison:"Rectodelt 100 mg · Zäpfchen",salbu:"Salbutamol 1,5 mg / 2,5 ml · Ampulle",o2:"Sauerstoff (kein Eintrag in der Medikamentenliste)",thiamin:"Vitamin B1 100 mg / 2 ml · Ampulle",urapidil:"Urapidil 25 mg / 5 ml · Ampulle",elyt:"Ringerlösung 500 ml · Sterofundin ISO 250 ml · Infusion"};
+const NK_GEN=[
+ ["asa_iv","Standard","Acetylsalicylsäure i.v.","Aspirin i.v. 500 mg","Pulver","Blutplättchenhemmer (z. B. bei Herzinfarkt)","aspirin ass herzinfarkt acs thrombozytenhemmer"],
+ ["asa_tah","Standard","Acetylsalicylsäure Tablette","ASS-ratiopharm 300 mg TAH","Tablettenblister","Blutplättchenhemmer zum Schlucken","aspirin ass herzinfarkt acs"],
+ ["adenosin","Standard","Adenosin","Adrekar 6 mg / 2 ml","Ampulle","Gegen sehr schnellen Puls (z. B. supraventrikuläre Tachykardie)","herzrasen tachykardie svt adrekar"],
+ ["ajmalin","Standard","Ajmalin","Gilurytmal 50 mg / 10 ml","Ampulle","Herzrhythmusmittel (Antiarrhythmikum)","herzrhythmusstörung gilurytmal"],
+ ["alteplase","Standard","Alteplase","Actilyse 50 mg + 50 ml","Pulver","Lysemittel – löst Blutgerinnsel auf","lyse thrombolyse schlaganfall herzinfarkt lungenembolie actilyse"],
+ ["aqua","Standard","Aqua ad iniectabilia","Ampuwa 20 ml","Ampulle","Steriles Wasser zum Auflösen und Verdünnen","wasser ampuwa lösungsmittel"],
+ ["buscopan","Standard","Butylscopolamin","Butylscopolamin 20 mg / 1 ml","Ampulle","Krampflösend (z. B. bei Koliken)","buscopan kolik bauchkrampf"],
+ ["captopril","Standard","Captopril","Captopril AL 12,5 mg","Tablettenblister","Blutdrucksenker zum Schlucken","blutdruck hoch hypertonie"],
+ ["ceftriaxon","Standard","Ceftriaxon","Ceftriaxon 2 g","Pulver","Antibiotikum","antibiotikum infektion meningitis sepsis rocephin"],
+ ["digoxin","Standard","Digoxin","Lanicor 0,25 mg / 1 ml","Ampulle","Herzmittel (Herzglykosid)","digitalis herzschwäche vorhofflimmern"],
+ ["dimenhydrinat","Standard","Dimenhydrinat","Dimenhydrinat 62 mg / 10 ml","Ampulle","Gegen Übelkeit, Erbrechen und Schwindel","vomex übelkeit erbrechen schwindel"],
+ ["dimetinden","Standard","Dimetindenmaleat","Histakut 4 mg / 4 ml","Ampulle","Gegen Allergie (Antihistaminikum)","fenistil allergie histakut juckreiz"],
+ ["fenistil","Standard","Dimetindenmaleat Gel","Fenistil Gel 50 g (nur KLAF / WNF)","Cremetube","Gel gegen Juckreiz","fenistil gel juckreiz insektenstich"],
+ ["dobutamin","Standard","Dobutaminhydrochlorid","Dobutamin 250 mg / 50 ml","Ampulle","Stärkt die Pumpkraft des Herzens (Katecholamin)","dobutrex herzschwäche kardiogener schock"],
+ ["partusisten","Standard","Fenoterol","Partusisten 25 µg / 1 ml","Ampulle","Wehenhemmer (Tokolytikum)","wehen frühgeburt tokolyse"],
+ ["berotec","Standard","Fenoterol Spray","Berotec N 100 µg Dosier-Aerosol","Autohaler","Asthma-Spray (erweitert die Bronchien)","asthma copd atemnot berotec spray"],
+ ["furosemid","Standard","Furosemid","Furosemid 40 mg / 4 ml","Ampulle","Entwässerung (schwemmt Wasser aus)","lasix lungenödem wasser entwässern"],
+ ["gelafusal","Standard","Gelatinepolysuccinat","Gelafusal 4 % / 500 ml","Ampulle","Volumenersatz (Infusion bei Blutverlust)","plasmaersatz volumen blutung infusion"],
+ ["glc5","Standard","Glucose 5 %","Glucose 5 %, 5 g / 100 ml","Ampulle","Zuckerlösung zur Infusion","glucose zucker infusion"],
+ ["glc10","Standard","Glucose 10 %","Glucose 10 %, 10 g / 100 ml","Ampulle","Zuckerlösung zur Infusion (stärker)","glucose zucker infusion unterzucker"],
+ ["glucosegel","Standard","Glucosegel","Glucosegel 40 g (Jubin)","Tube","Traubenzucker-Gel zum Schlucken bei Unterzucker","unterzucker hypoglykämie traubenzucker jubin"],
+ ["nitro","Standard","Glyceroltrinitrat","Nitrolingual akut Spray 0,4 mg / Hub","Pumpspray","Nitro-Spray (erweitert Gefäße, z. B. bei Brustschmerz)","nitro brustschmerz angina herzinfarkt nitrolingual"],
+ ["haloperidol","Standard","Haloperidol","Haloperidol 5 mg / 1 ml","Ampulle","Beruhigungsmittel bei starker Unruhe (Neuroleptikum)","unruhe psychose erregung haldol"],
+ ["heparin","Standard","Heparin","Heparin-Natrium 5000 IE / 0,2 ml","Ampulle","Blutverdünner (Gerinnungshemmer)","blutverdünner gerinnung herzinfarkt"],
+ ["levetiracetam","Standard","Levetiracetam","Levetiracetam 500 mg / 5 ml","Ampulle","Gegen Krampfanfälle (Antiepileptikum)","krampf epilepsie anfall keppra"],
+ ["lidocain","Standard","Lidocain","Xylocain 2 % 100 mg / 5 ml","Ampulle","Örtliche Betäubung und Herzrhythmusmittel","xylocain betäubung herzrhythmus"],
+ ["lorazepam","Standard","Lorazepam","Tavor Expidet 1 mg","Tablettenblister","Beruhigungsmittel (Benzodiazepin), löst sich im Mund auf","tavor angst unruhe krampf"],
+ ["magnesium","Standard","Magnesiumsulfat","Magnesium 2000 mg / 10 ml","Ampulle","Mineralstoff Magnesium","magnesium asthma torsade eklampsie"],
+ ["metamizol","Standard","Metamizol","Novaminsulfon 2,5 g / 5 ml","Ampulle","Schmerz- und Fiebermittel","novalgin schmerz fieber kolik"],
+ ["metoprolol","Standard","Metoprolol","Metoprolol i.v. 5 mg / 5 ml","Ampulle","Betablocker – senkt Puls und Blutdruck","betablocker puls herzrasen blutdruck"],
+ ["nacl10","Standard","Natriumchlorid 0,9 % 10 ml","NaCl 0,9 % / 10 ml","Ampulle","Kochsalzlösung zum Spülen und Verdünnen","kochsalz nacl spülen verdünnen"],
+ ["nacl100","Standard","Natriumchlorid 0,9 % 100 ml","NaCl 0,9 % / 100 ml","Beutel","Kochsalz-Infusion, Trägerlösung für Kurzinfusionen","kochsalz nacl infusion"],
+ ["nahco3_100","Standard","Natriumhydrogenkarbonat 100 ml","NaHCO3 8,4 % / 100 ml","Ampulle","Natriumbikarbonat (Puffer gegen Übersäuerung)","bikarbonat natron azidose"],
+ ["norepi_1","Standard","Norepinephrin 1 mg","Sinora 1 mg / 1 ml","Ampulle","Noradrenalin – hebt den Blutdruck (Katecholamin)","noradrenalin arterenol sinora schock blutdruck"],
+ ["norepi_5","Standard","Norepinephrin 5 mg / 50 ml","Sinora 5 mg / 50 ml","Ampulle","Noradrenalin – hebt den Blutdruck (Katecholamin)","noradrenalin arterenol sinora schock blutdruck perfusor"],
+ ["ondansetron","Standard","Ondansetron","Ondansetron 4 mg / 2 ml","Ampulle","Gegen Übelkeit und Erbrechen","zofran übelkeit erbrechen"],
+ ["para125","Standard","Paracetamol 125 mg","Ben-u-ron 125 mg","Zäpfchen","Schmerz- und Fiebermittel (Zäpfchen)","benuron schmerz fieber kind zäpfchen"],
+ ["para250","Standard","Paracetamol 250 mg","Ben-u-ron 250 mg","Zäpfchen","Schmerz- und Fiebermittel (Zäpfchen)","benuron schmerz fieber kind zäpfchen"],
+ ["para500","Standard","Paracetamol 500 mg","Ben-u-ron 500 mg","Zäpfchen","Schmerz- und Fiebermittel (Zäpfchen)","benuron schmerz fieber zäpfchen"],
+ ["prednisolon250","Standard","Prednisolon 250 mg","Prednisolut 250 mg","Pulver","Kortison (z. B. bei Allergie oder Asthma)","kortison cortison allergie asthma anaphylaxie"],
+ ["promethazin","Standard","Promethazin","Atosil 50 mg / 2 ml","Ampulle","Beruhigungsmittel, auch gegen Übelkeit","atosil unruhe übelkeit"],
+ ["propofol","Standard","Propofol","Propofol 1 % 500 mg / 50 ml","Ampulle","Narkosemittel","narkose sedierung intubation"],
+ ["reproterol","Standard","Reproterol","Bronchospasmin 0,09 mg / 1 ml","Ampulle","Erweitert die Bronchien (z. B. bei Asthma)","asthma atemnot bronchospasmin"],
+ ["rocuronium","Standard","Rocuronium","Rocuroniumbromid 50 mg / 5 ml","Ampulle","Muskelentspanner (für die Intubation)","relaxans intubation narkose"],
+ ["terbutalin","Standard","Terbutalin","Bricanyl 0,5 mg / 1 ml","Ampulle","Erweitert die Bronchien (z. B. bei Asthma)","asthma atemnot bricanyl"],
+ ["thiopental","Standard","Thiopental","Thiopental 0,5 g","Pulver","Narkosemittel","narkose intubation trapanal"],
+ ["txa","Standard","Tranexamsäure","Tranexamsäure 1000 mg / 10 ml","Ampulle","Stoppt Blutungen (hemmt die Auflösung von Gerinnseln)","blutung blutstillung cyklokapron trauma"],
+ ["otriven","Standard","Xylometazolin","Otriven 0,025 %","Tropfen","Abschwellende Nasentropfen (Kinder)","nasentropfen nase schnupfen nasenbluten"],
+ ["dmap","Tox","4-Dimethylaminophenol (4-DMAP)","4-DMAP 250 mg / 5 ml","Ampulle","Gegenmittel bei Blausäure- und Rauchgasvergiftung","blausäure rauchgas cyanid vergiftung antidot"],
+ ["atropin100","Tox","Atropin 100 mg / 10 ml","Atropin 100 mg / 10 ml","Ampulle","Gegenmittel bei Vergiftung mit Nervengift / E 605 (Organophosphate)","vergiftung e605 nervengift organophosphat antidot"],
+ ["biperiden","Tox","Biperiden","Akineton 5 mg / 1 ml","Ampulle","Gegen Muskelkrämpfe und Zuckungen durch bestimmte Medikamente","akineton krampf zuckungen dyskinesie antidot"],
+ ["calcium10","Tox","Calciumgluconat 10 %","Calciumgluconat 10 % 1 g / 10 ml","Ampulle","Calcium (Antidot, z. B. bei Vergiftungen)","calcium vergiftung antidot"],
+ ["calciumgel","Tox","Calciumgluconat Gel","Calciumgluconat 2,5 % / 100 g","Cremetube","Gel bei Verätzung mit Flusssäure","flusssäure verätzung antidot"],
+ ["cyanokit","Tox","Hydroxocobalamin","Cyanokit 5 g","Pulver","Gegenmittel bei Blausäure- und Rauchgasvergiftung (Führungsdienste)","blausäure rauchgas cyanid vergiftung antidot"],
+ ["kohle","Tox","Kohle, medizinisch","Ultracarbon 50 g","Pulver","Aktivkohle – bindet Gifte im Magen-Darm","aktivkohle vergiftung antidot"],
+ ["natriumthiosulfat","Tox","Natriumthiosulfat","Natriumthiosulfat 25 % 25 g / 100 ml","Ampulle","Gegenmittel bei Blausäurevergiftung","blausäure cyanid vergiftung antidot"],
+ ["obidoxim","Tox","Obidoxim","Toxogonin 250 mg / 1 ml","Ampulle","Gegenmittel bei Vergiftung mit Nervengift / E 605 (Organophosphate)","toxogonin e605 nervengift antidot"],
+ ["physostigmin","Tox","Physostigmin","Anticholium 2 mg / 5 ml","Ampulle","Gegenmittel bei Vergiftung durch bestimmte Medikamente und Pflanzengifte","anticholium vergiftung antidot engelstrompete"],
+ ["simeticon","Tox","Simeticon","Sab Simplex 2,075 g / 30 ml","Ampulle","Entschäumer (z. B. nach Verschlucken von Spülmittel)","spülmittel schaum entschäumer sab simplex"],
+ ["alprostadil","Kinder","Alprostadil","Minprog 500 µg / 1 ml","Ampulle","Hält bei Neugeborenen mit bestimmten Herzfehlern den Gefäßgang offen","neugeborene herzfehler ductus prostaglandin"],
+ ["ampicillin","Kinder","Ampicillin","Ampicillin 0,5 g","Pulver","Antibiotikum (Kinder / Neugeborene)","antibiotikum infektion neugeborene"],
+ ["cefotaxim","Kinder","Cefotaxim","Cefotaxim 0,5 g","Pulver","Antibiotikum (Kinder / Neugeborene)","antibiotikum infektion neugeborene meningitis"],
+ ["coffein","Kinder","Coffeincitrat","Peyona 20 mg / 1 ml","Ampulle","Atemanreger bei Frühgeborenen (Atempausen)","frühgeborene apnoe atempause peyona"],
+ ["glc5k","Kinder","Glucose 5 % 10 ml","Glucose 5 %, 0,5 g / 10 ml","Ampulle","Zuckerlösung für Kinder und Neugeborene","unterzucker neugeborene glucose zucker"],
+ ["ibu60","Kinder","Ibuprofen 60 mg","Nurofen Junior 60 mg","Zäpfchen","Schmerz- und Fiebermittel für Kinder (Zäpfchen)","nurofen fieber schmerz kind zäpfchen"],
+ ["ibu125","Kinder","Ibuprofen 125 mg","Nurofen Junior 125 mg","Zäpfchen","Schmerz- und Fiebermittel für Kinder (Zäpfchen)","nurofen fieber schmerz kind zäpfchen"],
+ ["ibusaft","Kinder","Ibuprofen Saft","Nurofen 2 g / 100 ml","Saft","Schmerz- und Fiebermittel für Kinder (Saft)","nurofen fieber schmerz kind saft"],
+ ["nahco3_20","Kinder","Natriumhydrogenkarbonat 20 ml","NaHCO3 8,4 % / 20 ml","Ampulle","Natriumbikarbonat (Puffer gegen Übersäuerung)","bikarbonat natron azidose neugeborene"],
+ ["para75","Kinder","Paracetamol 75 mg","Ben-u-ron 75 mg","Zäpfchen","Schmerz- und Fiebermittel für Kinder (Zäpfchen)","benuron fieber schmerz kind baby zäpfchen"],
+ ["phenobarbital","Kinder","Phenobarbital","Luminal 200 mg / 1 ml","Ampulle","Gegen Krampfanfälle (auch bei Neugeborenen)","luminal krampf anfall neugeborene epilepsie"],
+ ["vitk","Kinder","Phytomenadion (Vitamin K1)","Konakion 2 mg / 0,2 ml","Ampulle","Vitamin K für die Blutgerinnung (Neugeborene)","konakion vitamin k neugeborene blutgerinnung"],
+ ["prednisolon50","Kinder","Prednisolon 50 mg","Prednisolut 50 mg","Pulver","Kortison (Kinder)","kortison cortison pseudokrupp asthma kind"],
+ ["okrido","Kinder","Prednisolondihydrogensuccinat-Dinatrium","Okrido 120 mg / 20 ml","Lösung","Kortison als Lösung (Kinder)","kortison cortison pseudokrupp kind okrido"],
+ ["surfactant","Kinder","Surfactant","Alveofact 45 mg / ml","Pulver","Lungenreife-Mittel für Frühgeborene","frühgeborene lunge surfactant atemnotsyndrom"],
+ ["adr_fertig","Kinder","Adrenalin 1:10.000 Fertigspritze","Adrenalin 1:10.000 (0,1 mg/ml)","Fertigspritze","Bei Herzstillstand von Kindern und Neugeborenen – fertig verdünnt, nicht mehr verdünnen","adrenalin epinephrin suprarenin reanimation kind neugeborene fertigspritze"],
+ ["theophyllin","Kinder","Theophyllin","Bronchoparat 200 mg / 10 ml","Ampulle","Erweitert die Bronchien (z. B. bei Asthma)","asthma atemnot bronchoparat"]
+];
+(()=>{
+  const old=NK_MED.map(m=>m);
+  old.forEach(m=>{m.grp="Standard";if(["fentanyl","morphin","piritramid"].includes(m.id))m.btm=1});
+  NK_GEN.forEach(([id,grp,n,h,f,k,hay])=>{
+    const bt=["fentanyl"].includes(id);
+    NK_MED.push({id,n,hay:hay+" "+h,ind:k,amp:h+" · "+f,conc:null,u:"",erw:[],kind:[],gen:1,grp,bf:h+" · "+f});
+    NK_EZ[id]=k;
+  });
+  // Adrenalin-Fertigspritze: Kinder-Dosis wie bei Adrenalin Reanimation, aber ohne Verdünnen (0,1 mg/ml)
+  const fs=NK_MED.find(x=>x.id==="adr_fertig"),ar=NK_MED.find(x=>x.id==="adr_rea");
+  Object.assign(fs,{gen:0,conc:.1,u:"mg",erw:[["Nur für Kinder und Neugeborene"]],kind:ar.kind,amp:"Adrenalin 1:10.000 Fertigspritze = 0,1 mg/ml",hay:fs.hay+" "+ar.hay});
+  NK_MED.sort((a,b)=>a.n.localeCompare(b.n,"de"));
+})();
+
+let nkKg="",nkCur="",nkGrp="";
 let nkFav=[];try{nkFav=JSON.parse(localStorage.getItem("pzc_nk_fav")||"[]")}catch(_){}
 const nkFavSave=()=>{try{localStorage.setItem("pzc_nk_fav",JSON.stringify(nkFav))}catch(_){}};
 const nkIsFav=id=>nkFav.includes(id);
@@ -2114,15 +2215,17 @@ function nkMedHTML(m){
   const dil=m.dil?`<div class="nkbox"><b>Aufziehen / Verdünnen (Kinder)</b><div style="margin:4px 0 6px">${esc(m.dil.t)}</div>${syrSVG(0,m.dil.parts)}<div class="nkmute" style="font-size:12px">${esc(m.dil.src)}</div></div>`:"";
   return `<div class="nkhead"><h2>${esc(m.n)}</h2>${nkStar()}</div>
   <div class="nkez"><b>Einfach gesagt</b><div>${esc(NK_EZ[m.id]||m.ind)}</div></div>
-  <div class="nkbox"><b>Genaue Indikation laut Liste</b><div style="font-size:14px">${esc(m.ind)}</div></div>
+  ${NK_BF_INFO[m.id]||m.bf?`<div class="nkbox"><b>Auf der BF-Liste</b><div>${esc(NK_BF_INFO[m.id]||m.bf)}</div></div>`:""}
+  ${m.gen?"":`<div class="nkbox"><b>Genaue Indikation laut Liste</b><div style="font-size:14px">${esc(m.ind)}</div></div>`}
   ${NK_BRAND[m.id]&&m.id!=="o2"?`<div class="nkbox"><b>Bekannte Handelsnamen (Beispiele)</b><div>${NK_BRAND[m.id].map(esc).join(" · ")}</div><div class="nkmute" style="font-size:12px;margin-top:3px">Auswahl, nicht vollständig – die Präparate vor Ort können abweichen.</div></div>`:""}
-  <div class="nkbox"><b>Ampulle</b><div>${esc(m.amp)}</div>${m.btm?'<div class="nkmute">Betäubungsmittel – § 13 Abs. 1b BtMG beachten</div>':""}</div>
+  ${m.gen?"":`<div class="nkbox"><b>Ampulle</b><div>${esc(m.amp)}</div>`}${m.btm?'<div class="nkmute">Betäubungsmittel – § 13 Abs. 1b BtMG beachten</div>':""}${m.gen?"":"</div>"}
   ${m.cave?`<div class="warnbox">${esc(m.cave)}</div>`:""}${m.hint?`<div class="warnbox">${esc(m.hint)}</div>`:""}
-  <h3>Erwachsene</h3><div id="nkE">${nkDoseHTML(m,false)}</div>
-  <h3>Kinder${m.ref?` <span class="nkmute" style="font-weight:400;font-size:13px">(${esc(m.ref)})</span>`:""}</h3>
+  ${m.gen?`<div class="warnbox">Indikation und Dosierung stehen nicht in der ÄLRD-Liste, die hier hinterlegt ist. Es gilt eure SOP bzw. die Anweisung des Notarztes.</div><div class="warn">Quelle: ${esc(NK_BF_SRC)}. Die Einordnung oben ist eine allgemeine Kurzbeschreibung.</div>`:""}
+  ${m.gen?"":`<h3>Erwachsene</h3><div id="nkE">${nkDoseHTML(m,false)}</div>`}
+  ${m.gen?"":`<h3>Kinder${m.ref?` <span class="nkmute" style="font-weight:400;font-size:13px">(${esc(m.ref)})</span>`:""}</h3>
   ${hasKg?`<div class="fld" style="margin:0 0 8px"><label>Gewicht des Kindes in kg</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>`:""}
   <div id="nkK">${nkDoseHTML(m,true)}</div>${dil}
-  <div class="warn">Quelle: ${esc(NK_MED_SRC)}. Mengen in ml sind aus der Ampullenstärke berechnet. Aktuelle Fassung und die Vorgaben der Leitstelle / des ÄLRD prüfen.</div>`;
+  <div class="warn">Quelle: ${esc(NK_MED_SRC)}. Mengen in ml sind aus der Ampullenstärke berechnet. Aktuelle Fassung und die Vorgaben der Leitstelle / des ÄLRD prüfen.</div>`}`;
 }
 function nkReaEHTML(){
   return `<div class="nkhead"><h2>Reanimation Erwachsene</h2>${nkStar()}</div>
@@ -2203,11 +2306,14 @@ function nkRender(){
     const favs=nkFav.map(id=>all.find(c=>c.id===id)).filter(Boolean);
     $("nkRes").innerHTML=`<div class="lbl">★ Favoriten</div>${favs.length?`<div class="nklist">${favs.map(row).join("")}</div>`:'<div class="warn" style="margin-top:0">Noch keine Favoriten – oben rechts in einer Karte oder rechts in der Liste den Stern antippen.</div>'}
     <div class="lbl" style="margin-top:16px">Reanimation</div><div class="tiles">${NK_CARDS.map(tile).join("")}</div>
-    <div class="lbl" style="margin-top:16px">Medikamente A–Z</div><div class="nklist">${NK_MED.map(m=>row(all.find(c=>c.id===m.id))).join("")}</div>`;
+    <div class="lbl" style="margin-top:16px">Medikamente A–Z <span class="nkmute" style="text-transform:none;letter-spacing:0">(${NK_MED.length})</span></div>
+    <div class="chips" style="margin:0 0 8px">${[["","Alle"],["Standard","Standard"],["Tox","Antidote / Tox"],["Kinder","Kinder / Neugeborene"]].map(([g,l])=>`<button class="chip ${nkGrp===g?"on":""}" data-grp2="${g}">${l}</button>`).join("")}</div>
+    <div class="nklist">${NK_MED.filter(m=>!nkGrp||m.grp===nkGrp).map(m=>row(all.find(c=>c.id===m.id))).join("")}</div>`;
   }else $("nkRes").innerHTML=res.length?`<div class="nklist">${res.map(row).join("")}</div>`:'<div class="warn">Nichts gefunden – anderes Wort versuchen (z. B. Wirkstoff, Krankheitsbild oder „Reanimation“).</div>';
 }
 $("nkQ").addEventListener("input",nkRender);
 $("nachView").addEventListener("click",e=>{
+  const g=e.target.closest("[data-grp2]");if(g){nkGrp=g.dataset.grp2;nkRender();return}
   const f=e.target.closest("[data-fav]");if(f){nkToggleFav(f.dataset.fav);return}
   const b=e.target.closest("[data-nk]");if(b)nkOpen(b.dataset.nk)});
 nkRender();
