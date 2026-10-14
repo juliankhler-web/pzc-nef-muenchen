@@ -689,8 +689,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="8.5";
+const APP_VERSION="8.7";
 const CHANGELOG=[
+ {v:"8.7",d:"15.10.2026",items:["Handelsnamen jetzt bei fast allen Medikamenten (z. B. Tavor, Novalgin, Lasix, Actilyse) – auf der Karte und in der Suche"]},
+ {v:"8.6",d:"15.10.2026",items:["Karte „Lorazepam i.v.“ wieder entfernt – im Bestand gibt es nur die Tavor Expidet (Tablette)"]},
  {v:"8.5",d:"15.10.2026",items:["Neue Karte „Lorazepam i.v.“ mit Dosis, Verdünnung und Quelle"]},
  {v:"8.4",d:"15.10.2026",items:["Drei weitere Karten mit Dosis und Quelle: Theophyllin, ASS-Tablette, Glucose 10 % (Kinder)"]},
  {v:"8.3",d:"15.10.2026",items:["BD3 meldet sich über denselben Kanal wie BD2: RD_BETTEN_M · Kurzwahl 2512 · Status 5"]},
@@ -2070,6 +2072,16 @@ const NK_BRAND={
  prednison:["Rectodelt"],salbu:["Sultanol","Ventolin"],o2:["O2"],thiamin:["Betabion","Benerva"],urapidil:["Ebrantil"],
  elyt:["Jonosteril","Sterofundin","Tutofusin","Ringer-Acetat"]
 };
+Object.assign(NK_BRAND,{
+ asa_iv:["Aspirin i.v."],asa_tah:["Aspirin","ASS-ratiopharm","ASS Protect"],adenosin:["Adrekar"],ajmalin:["Gilurytmal"],alprostadil:["Minprog","Prostin VR"],alteplase:["Actilyse"],ampicillin:["Binotal"],
+ biperiden:["Akineton"],buscopan:["Buscopan"],calcium10:["Calcium-Sandoz","Calciumgluconat"],captopril:["Lopirin","Tensobon"],cefotaxim:["Claforan"],ceftriaxon:["Rocephin"],coffein:["Peyona"],
+ digoxin:["Lanicor","Lenoxin","Digacin"],dimenhydrinat:["Vomex A"],dimetinden:["Fenistil"],fenistil:["Fenistil Gel"],dobutamin:["Dobutrex"],partusisten:["Partusisten"],berotec:["Berotec N"],furosemid:["Lasix"],
+ nitro:["Nitrolingual","Nitrangin"],haloperidol:["Haldol"],heparin:["Liquemin","Heparin-Natrium"],cyanokit:["Cyanokit"],ibu60:["Nurofen Junior","Dolormin für Kinder"],ibu125:["Nurofen Junior","Dolormin für Kinder"],ibusaft:["Nurofen Junior Saft","Dolormin für Kinder"],
+ kohle:["Kohle-Compretten","Carbo medicinalis"],levetiracetam:["Keppra"],lidocain:["Xylocain"],lorazepam:["Tavor","Tavor Expidet"],magnesium:["Magnesium Verla","Magnesiumsulfat 10 %"],metamizol:["Novalgin","Novaminsulfon"],
+ metoprolol:["Beloc","Beloc-Zok"],nahco3_100:["Natriumbikarbonat"],nahco3_20:["Natriumbikarbonat"],norepi_1:["Arterenol","Noradrenalin"],norepi_5:["Arterenol","Noradrenalin"],obidoxim:["Toxogonin"],ondansetron:["Zofran"],
+ para75:["ben-u-ron","Paracetamol-Zäpfchen"],para125:["ben-u-ron","Paracetamol-Zäpfchen"],para250:["ben-u-ron","Paracetamol-Zäpfchen"],para500:["ben-u-ron","Perfalgan"],phenobarbital:["Luminal","Luminaletten"],physostigmin:["Anticholium"],
+ vitk:["Konakion"],prednisolon250:["Solu-Decortin H","Prednisolut"],prednisolon50:["Solu-Decortin H","Prednisolut"],promethazin:["Atosil"],propofol:["Disoprivan","Propofol-Lipuro"],reproterol:["Bronchospasmin"],rocuronium:["Esmeron"],
+ simeticon:["Espumisan","sab simplex"],surfactant:["Curosurf"],terbutalin:["Bricanyl"],theophyllin:["Bronchoparat","Euphylong"],thiopental:["Trapanal"],txa:["Cyklokapron"],otriven:["Otriven","Nasivin"],glucosegel:["Jubin","Dextro Energy"],dmap:["4-DMAP Köhler"]});
 const NK_KB={
  adr_rea:"herzstillstand kreislaufstillstand wiederbelebung asystolie pea herzstillstand rea",
  adr_ana:"allergie allergischer schock allergische reaktion bienenstich wespenstich insektenstich nussallergie quaddeln",
@@ -2133,7 +2145,6 @@ const NK_GEN=[
  ["heparin","Standard","Heparin","Heparin-Natrium 5000 IE / 0,2 ml","Ampulle","Blutverdünner (Gerinnungshemmer)","blutverdünner gerinnung herzinfarkt"],
  ["levetiracetam","Standard","Levetiracetam","Levetiracetam 500 mg / 5 ml","Ampulle","Gegen Krampfanfälle (Antiepileptikum)","krampf epilepsie anfall keppra"],
  ["lidocain","Standard","Lidocain","Xylocain 2 % 100 mg / 5 ml","Ampulle","Örtliche Betäubung und Herzrhythmusmittel","xylocain betäubung herzrhythmus"],
- ["lorazepam_iv","Standard","Lorazepam i.v.","Lorazepam 2 mg / 1 ml","Ampulle","Beruhigungsmittel (Benzodiazepin) zum Spritzen – stoppt einen anhaltenden Krampfanfall","krampf krampfanfall status epilepticus erregung unruhe tavor lorazepam spritze"],
  ["lorazepam","Standard","Lorazepam","Tavor Expidet 1 mg","Tablettenblister","Beruhigungsmittel (Benzodiazepin), löst sich im Mund auf","tavor angst unruhe krampf"],
  ["magnesium","Standard","Magnesiumsulfat","Magnesium 2000 mg / 10 ml","Ampulle","Mineralstoff Magnesium","magnesium asthma torsade eklampsie"],
  ["metamizol","Standard","Metamizol","Novaminsulfon 2,5 g / 5 ml","Ampulle","Schmerz- und Fiebermittel","novalgin schmerz fieber kolik"],
@@ -2248,7 +2259,6 @@ const NK_FS2={
  theophyllin:{st:NK_ST2,c:20,u:"mg",erw:[["Ohne Theophyllin-Vorbehandlung: 4–5 mg/kg KG (Normalgewicht) i.v. über 20–30 Minuten",null,4,null,null,5],["Bei Vorbehandlung oder unklar: 2–2,5 mg/kg KG i.v. über 20–30 Minuten",null,2,null,null,2.5]],kind:[["Kinder: Dosis steht in der Fachinformation – hier nicht geprüft, bitte SOP / Notarzt"]],cave:"Höchstens 0,25 mg/kg KG pro Minute. Nur zusätzlich zu Beta-2-Mimetika und Kortison, nie allein. Nicht in Retardform. Bei Herzinsuffizienz, Pneumonie, Influenza, Alter und Rauchstopp wird es langsamer abgebaut – Überdosierung möglich (Rhythmusstörungen, Krampf)",hint:"Aus der Fachinformation eines Präparats (afpred forte-THEO). Leitlinien raten von routinemäßigem Einsatz bei Asthma/COPD eher ab",ind:"Schwere Atemnot bei Asthma / COPD, wenn andere Mittel nicht reichen",srcTxt:"Fachinformation afpred forte-THEO auf fachinfo.de",link:"https://fachinfo.de/pdf/022503"},
  asa_tah:{st:NK_ST2,u:"mg",erw:[["Oral 150–300 mg (Kauen / Schlucken). Bayerisches Protokoll: die Dosis wird oft zu hoch gewählt"]],kind:[["Nicht für Kinder – bei Fieber unter 12 Jahren Gefahr eines Reye-Syndroms"]],cave:"Nicht bei Asthma durch ASS/NSAR, Magen-Darm-Blutung oder Geschwür, Gerinnungsstörung, schwerem Leber- oder Nierenversagen. Andere Quellen nennen 500 mg Granulat – mit eurer SOP abgleichen",hint:"Die Tablette hat 300 mg, also eine ganze Tablette",ind:"Verdacht auf Herzinfarkt (akutes Koronarsyndrom), wenn Schlucken möglich ist",srcTxt:"Notfallmedikamente Rettungsdienst Bayern (ÄLRD Bayern, Anlage 6); in Suche zusammengefasst gelesen",link:"https://www.aelrd-bayern.de/images/6.2_Notfallmedikamente_Anlage_6.pdf"},
  glc10:{st:NK_ST2,c:.1,u:"g",erw:[["Erwachsene: hier keine Dosis geprüft – Glucose 20–40 % bzw. SOP verwenden"]],kind:[["Kinder: 2–2,5 ml/kg KG der 10-%-Lösung (0,2–0,25 g/kg) langsam über etwa 5 Minuten; nach 15 Minuten Zucker messen, bei Bedarf einmal wiederholen",null,0.2,null,null,0.25]],hint:"Quellen weichen leicht ab: MSF 2 ml/kg, australischer Rettungsdienst bis 2,5 ml/kg, Neugeborene meist 2,5 ml/kg. Danach langsam wirksame Kohlenhydrate geben",cave:"Reizt bei Paravasat stark – sichere Vene. Zucker nach der Gabe kontrollieren",ind:"Unterzucker bei Kindern mit Bewusstseinstrübung",srcTxt:"MSF Medical Guidelines, Ambulance Queensland, rd-factsheets (Glukose) – Zusammenfassung der Suche, keine deutsche Leitlinie",link:"https://medicalguidelines.msf.org/en/node/952"},
- lorazepam_iv:{st:"13.01.2026",c:2,u:"mg",erw:[["Status epilepticus: 4 mg i.v. (alternativ 0,1 mg/kg KG, höchstens 8 mg)",4],["Erregungszustand: 0,05 mg/kg KG i.v. oder i.m.",null,0.05]],kind:[["Status epilepticus: 0,05 mg/kg KG i.v., höchstens 4 mg",null,0.05,4],["Erregungszustand: 0,05 mg/kg KG i.v. oder i.m.",null,0.05]],dil:"Vor der i.v.-Gabe 1:1 verdünnen (z. B. mit NaCl 0,9 %). Höchstens 2 mg pro Minute",cave:"Nicht bei Kindern bis 1 Monat. Atemdepression – Beatmung bereithalten. Gegenmittel Flumazenil. Schwangerschaft nur bei zwingender Notfallindikation, Stillpause nach der Gabe",hint:"Quellen weichen ab: Ein Rettungsdienst-Protokoll (Rotes Kreuz) nennt bei Kindern ab 12 Jahren 0,1 mg/kg KG, höchstens 4 mg. Die Tavor Expidet ist eine Schmelztablette ohne geprüfte Notfalldosis",ind:"Anhaltender Krampfanfall, starke Erregung",srcTxt:"rd-factsheets.de, Lorazepam (Stand 13.01.2026)",link:"https://rd-factsheets.de/factsheets/lorazepam"},
 };
 ["ibu125","ibusaft"].forEach(i=>NK_FS2[i]=NK_FS2.ibu60);
 Object.assign(NK_FS,NK_FS2);
@@ -2299,6 +2309,7 @@ function nkMedHTML(m){
   const hasKgE=m.erw.some(l=>l[2]!=null),hasKgK=m.kind.some(l=>l[2]!=null),kgIn=`<div class="fld" style="margin:0 0 8px"><label>Gewicht in kg (für Dosierungen pro kg)</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>`;
   const dil=m.dil?`<div class="nkbox"><b>Aufziehen / Verdünnen (Kinder)</b><div style="margin:4px 0 6px">${esc(m.dil.t)}</div>${syrSVG(0,m.dil.parts)}<div class="nkmute" style="font-size:12px">${esc(m.dil.src)}</div></div>`:"";
   return `<div class="nkhead"><h2>${esc(m.n)}</h2>${nkStar()}</div>
+  ${NK_BRAND[m.id]&&m.id!=="o2"?`<div class="nkmute" style="margin:-4px 0 8px;font-size:14px">auch bekannt als: <b>${NK_BRAND[m.id].map(esc).join(" · ")}</b></div>`:""}
   <div class="nkez"><b>Einfach gesagt</b><div>${esc(NK_EZ[m.id]||m.ind)}</div></div>
   ${(NK_BF_INFO[m.id]||m.bf)&&!m.fs?`<div class="nkbox"><b>Auf der BF-Liste</b><div>${esc(NK_BF_INFO[m.id]||m.bf)}</div></div>`:""}
   ${m.gen?"":`<div class="nkbox"><b>${m.fs?"Indikation":"Genaue Indikation laut Liste"}</b><div style="font-size:14px">${esc(m.ind)}</div></div>`}
