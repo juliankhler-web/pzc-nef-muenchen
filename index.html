@@ -53,7 +53,8 @@ h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chip[data-grp].on{background:var(--accent);border-color:var(--accent);color:#fff}
 .top>div{display:flex;gap:6px;flex:none}
-.top h1{min-width:0}
+.top h1{min-width:0;color:var(--ink);font-size:17px;font-weight:800;letter-spacing:.02em;line-height:1.2}
+.top h1 .ver{color:var(--accent);font-size:13px;font-weight:700;display:block;padding:2px 0 0}
 .reset{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:800;font-size:14px;margin-right:0;white-space:nowrap}
 
 /* Suche */
@@ -686,8 +687,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="7.2";
+const APP_VERSION="7.3";
 const CHANGELOG=[
+ {v:"7.3",d:"15.10.2026",items:[
+  "Titel oben in kräftiger, dunkler Schrift statt blassem Grau (wirkte verschwommen); Versionsnummer in Blau darunter"]},
  {v:"7.2",d:"15.10.2026",items:[
   "Kopfleiste oben jetzt vollständig undurchsichtig, ohne jeden Blur – der Inhalt scheint beim Scrollen nicht mehr durch"]},
  {v:"7.1",d:"15.10.2026",items:[
