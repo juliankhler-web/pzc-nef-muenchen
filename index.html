@@ -689,8 +689,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="8.7";
+const APP_VERSION="8.8";
 const CHANGELOG=[
+ {v:"8.8",d:"15.10.2026",items:["Karte „Adrenalin 1:10.000 Fertigspritze“ entfernt – gibt es im NEF nicht; Kinder-Adrenalin 1:10.000 wird aus der Ampulle verdünnt"]},
  {v:"8.7",d:"15.10.2026",items:["Handelsnamen jetzt bei fast allen Medikamenten (z. B. Tavor, Novalgin, Lasix, Actilyse) – auf der Karte und in der Suche"]},
  {v:"8.6",d:"15.10.2026",items:["Karte „Lorazepam i.v.“ wieder entfernt – im Bestand gibt es nur die Tavor Expidet (Tablette)"]},
  {v:"8.5",d:"15.10.2026",items:["Neue Karte „Lorazepam i.v.“ mit Dosis, Verdünnung und Quelle"]},
@@ -1975,7 +1976,7 @@ const NK_MED=[
  {id:"adr_rea",n:"Adrenalin (Epinephrin) – Reanimation",hay:"adrenalin epinephrin suprarenin reanimation herzstillstand kreislaufstillstand cpr rea defibrillation asystolie kammerflimmern",ind:"Kreislaufstillstand",amp:"Stechampulle 25 mg / 25 ml = 1 mg/ml",conc:1,u:"mg",kconc:.1,
   erw:[["nicht defibrillierbar: 1 mg i.v. (i.o.) sobald möglich",1],["defibrillierbar: 1 mg i.v. (i.o.) nach 3. Defibrillation",1],["Repetition alle 3–5 Minuten unter ALS"]],
   kind:[["nicht defibrillierbar: 0,01 mg/kg KG i.v. (i.o.) sobald möglich",null,.01,1],["defibrillierbar: 0,01 mg/kg KG i.v. (i.o.) nach 3. Defibrillation",null,.01,1],["Repetition i.v. (i.o.) alle 3–5 Minuten unter ALS"]],
-  dil:{t:"Auf dem Kinder-Notfall liegt Adrenalin 1:10.000 als Fertigspritze (0,1 mg/ml) – dann nicht verdünnen, direkt 0,1 ml pro kg KG. Sonst für Kinder verdünnen: 1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann gilt 0,1 ml pro kg KG. Einzeldosis höchstens 1 mg.",parts:[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}],src:"Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0), Maximaldosis: RCUK Paediatric ALS 2025 – bitte mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen"}},
+  dil:{t:"Für Kinder verdünnen: 1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann gilt 0,1 ml pro kg KG. Einzeldosis höchstens 1 mg.",parts:[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}],src:"Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0), Maximaldosis: RCUK Paediatric ALS 2025 – bitte mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen"}},
  {id:"adr_ana",n:"Adrenalin (Epinephrin) – anaphylaktischer Schock",hay:"adrenalin epinephrin anaphylaxie anaphylaktischer schock allergie allergisch allergische reaktion intramuskulär",ind:"anaphylaktischer Schock",amp:"Suprarenin 25 mg / 25 ml = 1 mg/ml (laut BF-Liste gibt es keine 1-ml-Ampulle)",conc:1,u:"mg",
   erw:[["0,5 mg i.m.",.5],["Repetition (i.m.) nach 5 Minuten bei ausbleibender Wirkung"]],
   kind:[["0,01 mg/kg KG i.m.",null,.01],["Repetition (i.m.) nach 5–10 Minuten bei ausbleibender Wirkung"]]},
@@ -2117,7 +2118,7 @@ const NK_CARDS=[
 
 /* ---- Medikamentenliste Berufsfeuerwehr München (Stand 07.07.2026, Version 5.1): alle weiteren Präparate. Indikation und Dosierung stehen dort nicht – nur Präparat, Stärke, Form ---- */
 const NK_BF_SRC="Medikamentenliste Berufsfeuerwehr München · Stand 07.07.2026 · Version 5.1 · Herausgeber BE-TS 3";
-const NK_BF_INFO={adr_rea:"Suprarenin 25 mg / 25 ml · Ampulle · Kinder-Notfall: Adrenalin 1:10.000 Fertigspritze",adr_ana:"Suprarenin 25 mg / 25 ml · Ampulle",adr_inh:"Suprarenin 25 mg / 25 ml Ampulle · Infectokrupp 40 mg / 10 ml Pumpspray (Kinder-Notfall)",amio:"Amiodaron 150 mg / 3 ml · Ampulle",atropin:"Atropin 1 mg / 1 ml · Ampulle",cafedrin:"Akrinor 200 mg + 10 mg / 2 ml · Ampulle",diazepam:"Diazepam Rektiole 5 mg und 10 mg",esketamin:"Ketanest S 50 mg / 2 ml · Ampulle · Kinder-Notfall: Ketanest S 25 mg / 5 ml",fentanyl:"Fentanyl 0,5 mg / 10 ml · Ampulle · Kinder-Notfall: Fentanyl 0,1 mg / 2 ml (Restbestände)",flumazenil:"Flumazenil 0,5 mg / 5 ml · Ampulle",glucose:"Glucose 40 %, 4 g / 10 ml · Ampulle (außerdem Glucose 5 % und 10 % als Infusion)",ipra:"Atrovent 250 µg / 2 ml · Ampulle",midaz_iv:"Midazolam 5 mg / 5 ml · Ampulle",midaz_in:"Midazolam 15 mg / 3 ml · Ampulle",morphin:"Morphin 10 mg / 1 ml · Ampulle",naloxon:"Naloxon 0,4 mg / 1 ml Ampulle · Nyoxid 1,8 mg Nasalzerstäuber",oxymeta:"Nicht auf der BF-Liste (gelistet ist Xylometazolin: Otriven 0,025 % Tropfen)",oxytocin:"Oxytocin 3 IE / 1 ml · Ampulle",piritramid:"Piritramid 7,5 mg / 1 ml · Ampulle",prednison:"Rectodelt 100 mg · Zäpfchen",salbu:"Salbutamol 1,5 mg / 2,5 ml · Ampulle",o2:"Sauerstoff (kein Eintrag in der Medikamentenliste)",thiamin:"Vitamin B1 100 mg / 2 ml · Ampulle",urapidil:"Urapidil 25 mg / 5 ml · Ampulle",elyt:"Ringerlösung 500 ml · Sterofundin ISO 250 ml · Infusion"};
+const NK_BF_INFO={adr_rea:"Suprarenin 25 mg / 25 ml · Ampulle",adr_ana:"Suprarenin 25 mg / 25 ml · Ampulle",adr_inh:"Suprarenin 25 mg / 25 ml Ampulle · Infectokrupp 40 mg / 10 ml Pumpspray (Kinder-Notfall)",amio:"Amiodaron 150 mg / 3 ml · Ampulle",atropin:"Atropin 1 mg / 1 ml · Ampulle",cafedrin:"Akrinor 200 mg + 10 mg / 2 ml · Ampulle",diazepam:"Diazepam Rektiole 5 mg und 10 mg",esketamin:"Ketanest S 50 mg / 2 ml · Ampulle · Kinder-Notfall: Ketanest S 25 mg / 5 ml",fentanyl:"Fentanyl 0,5 mg / 10 ml · Ampulle · Kinder-Notfall: Fentanyl 0,1 mg / 2 ml (Restbestände)",flumazenil:"Flumazenil 0,5 mg / 5 ml · Ampulle",glucose:"Glucose 40 %, 4 g / 10 ml · Ampulle (außerdem Glucose 5 % und 10 % als Infusion)",ipra:"Atrovent 250 µg / 2 ml · Ampulle",midaz_iv:"Midazolam 5 mg / 5 ml · Ampulle",midaz_in:"Midazolam 15 mg / 3 ml · Ampulle",morphin:"Morphin 10 mg / 1 ml · Ampulle",naloxon:"Naloxon 0,4 mg / 1 ml Ampulle · Nyoxid 1,8 mg Nasalzerstäuber",oxymeta:"Nicht auf der BF-Liste (gelistet ist Xylometazolin: Otriven 0,025 % Tropfen)",oxytocin:"Oxytocin 3 IE / 1 ml · Ampulle",piritramid:"Piritramid 7,5 mg / 1 ml · Ampulle",prednison:"Rectodelt 100 mg · Zäpfchen",salbu:"Salbutamol 1,5 mg / 2,5 ml · Ampulle",o2:"Sauerstoff (kein Eintrag in der Medikamentenliste)",thiamin:"Vitamin B1 100 mg / 2 ml · Ampulle",urapidil:"Urapidil 25 mg / 5 ml · Ampulle",elyt:"Ringerlösung 500 ml · Sterofundin ISO 250 ml · Infusion"};
 const NK_GEN=[
  ["asa_iv","Standard","Acetylsalicylsäure i.v.","Aspirin i.v. 500 mg","Pulver","Blutplättchenhemmer (z. B. bei Herzinfarkt)","aspirin ass herzinfarkt acs thrombozytenhemmer"],
  ["asa_tah","Standard","Acetylsalicylsäure Tablette","ASS-ratiopharm 300 mg TAH","Tablettenblister","Blutplättchenhemmer zum Schlucken","aspirin ass herzinfarkt acs"],
@@ -2193,7 +2194,6 @@ const NK_GEN=[
  ["prednisolon50","Kinder","Prednisolon 50 mg","Prednisolut 50 mg","Pulver","Kortison (Kinder)","kortison cortison pseudokrupp asthma kind"],
  ["okrido","Kinder","Prednisolondihydrogensuccinat-Dinatrium","Okrido 120 mg / 20 ml","Lösung","Kortison als Lösung (Kinder)","kortison cortison pseudokrupp kind okrido"],
  ["surfactant","Kinder","Surfactant","Alveofact 45 mg / ml","Pulver","Lungenreife-Mittel für Frühgeborene","frühgeborene lunge surfactant atemnotsyndrom"],
- ["adr_fertig","Kinder","Adrenalin 1:10.000 Fertigspritze","Adrenalin 1:10.000 (0,1 mg/ml)","Fertigspritze","Bei Herzstillstand von Kindern und Neugeborenen – fertig verdünnt, nicht mehr verdünnen","adrenalin epinephrin suprarenin reanimation kind neugeborene fertigspritze"],
  ["theophyllin","Kinder","Theophyllin","Bronchoparat 200 mg / 10 ml","Ampulle","Erweitert die Bronchien (z. B. bei Asthma)","asthma atemnot bronchoparat"]
 ];
 const NK_FS={
@@ -2273,9 +2273,6 @@ const NK_LINKS={digoxin:["Gelbe Liste, Digoxin","https://www.gelbe-liste.de/wirk
     NK_EZ[id]=k;
   });
   NK_MED.forEach(m=>{const f=NK_FS[m.id];if(!f)return;Object.assign(m,{gen:0,fs:f.st,conc:f.c==null?null:f.c,u:f.u||"",kconc:f.kc,erw:f.erw||[["Nur Kinder-Notfall"]],kind:f.kind||[["–"]],cave:f.cave,hint:f.hint,dil:f.dil,aufz:f.aufz,ind:f.ind||m.ind,srcTxt:f.srcTxt,link:f.link})});
-  // Adrenalin-Fertigspritze: Kinder-Dosis wie bei Adrenalin Reanimation, aber ohne Verdünnen (0,1 mg/ml)
-  const fs=NK_MED.find(x=>x.id==="adr_fertig"),ar=NK_MED.find(x=>x.id==="adr_rea");
-  Object.assign(fs,{gen:0,conc:.1,u:"mg",erw:[["Nur für Kinder und Neugeborene"]],kind:ar.kind,amp:"Adrenalin 1:10.000 Fertigspritze = 0,1 mg/ml",hay:fs.hay+" "+ar.hay});
   NK_MED.sort((a,b)=>a.n.localeCompare(b.n,"de"));
 })();
 
