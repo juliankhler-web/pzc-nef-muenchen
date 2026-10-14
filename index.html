@@ -27,7 +27,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-s
 body{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 .wrap{max-width:720px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
 body.hasnav .wrap{padding-top:calc(var(--nav) + env(safe-area-inset-top) + 12px)}
-.wrap>.top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40;margin:0 -16px 12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.wrap>.top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40;margin:0 -16px 12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
 body:not(.hasnav) .wrap{padding-top:0}
 body.hasnav .wrap>.top{padding-top:10px}
 .top h1{margin:0}
@@ -686,8 +686,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="7.1";
+const APP_VERSION="7.2";
 const CHANGELOG=[
+ {v:"7.2",d:"15.10.2026",items:[
+  "Kopfleiste oben jetzt vollständig undurchsichtig, ohne jeden Blur – der Inhalt scheint beim Scrollen nicht mehr durch"]},
  {v:"7.1",d:"15.10.2026",items:[
   "Kopfleiste oben wie in der ImkerApp: bleibt beim Scrollen oben stehen, mit eigenem Hintergrund unter Uhr und Akku – der Inhalt läuft nicht mehr unter der Statusleiste durch und wird nicht mehr verschwommen ausgeblendet",
   "Statusleiste wieder im Standard-Stil (wie ImkerApp); Farbe passt sich Hell/Dunkel an"]},
