@@ -198,6 +198,18 @@ textarea.inp{min-height:84px;resize:vertical}
 .srow{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:16px}
 .srow span{color:var(--mute)}.srow b{text-align:right}.srow b.nil{color:var(--mute);font-weight:500}
 .sh{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:14px 0 2px}
+.spell2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:6px}
+.spell2 .spellh{margin:6px 0 4px;font-size:12px}
+.spell2 .spell{grid-template-columns:26px 1fr;gap:1px 8px}
+.spell2 .spell i{font-size:20px;line-height:1.25}
+.spell2 .spell span{font-size:16px;line-height:1.25}
+.spell2 .spell .sp{height:6px}
+.tabs .tab{padding:12px 3px;font-size:12.5px;min-width:0;line-height:1.15}
+#tabNach{flex:1.45}
+.tab.t-pzc{border:2px solid #E24B4A;background:rgba(226,75,74,.14);color:var(--ink)}
+.tab.t-pzc.on{background:#E24B4A;color:#fff}
+.tab.t-nach{border:2px solid #378ADD;background:rgba(55,138,221,.14);color:var(--ink)}
+.tab.t-nach.on{background:#378ADD;color:#fff}
 .spellh{font-size:13px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 4px}
 .spell{display:grid;grid-template-columns:44px 1fr;gap:2px 10px;align-items:baseline}
 .spell i{font:900 30px/1.15 ui-monospace,Menlo,monospace;font-style:normal;text-align:center}
@@ -238,8 +250,9 @@ textarea.inp{min-height:84px;resize:vertical}
 <div class="wrap">
   <div class="top"><h1>PZC · NEF München <button class="ver" id="verBtn"></button></h1><div><button class="reset" id="resetBtn">↺ Neu</button><button class="theme" id="themeBtn">◐ Auto</button></div></div>
   <div class="tabs">
-    <button class="tab on" id="tabMain">PZC finden</button>
-    <button class="tab" id="tabName">Nur Name</button>
+    <button class="tab t-pzc on" id="tabMain">PZC</button>
+    <button class="tab" id="tabName">Name + Nummer</button>
+    <button class="tab t-nach" id="tabNach">Nachschlagen</button>
     <button class="tab" id="tabArc">Archiv <span id="arcCount"></span></button>
   </div>
 
@@ -251,6 +264,14 @@ textarea.inp{min-height:84px;resize:vertical}
     <div class="chips"><button class="mini" id="repShare">Meldungen teilen / kopieren</button><button class="mini del" id="repClear">Meldungen leeren</button></div>
     <p class="note">Die Meldungen enthalten nur Suchbegriffe und Codes, keine Patientendaten. Sie helfen, die Suche zu verbessern.</p>
     <p class="note">Alles (auch Name und Nummern) wird nur in diesem Browser auf diesem Gerät gespeichert und nirgends hochgeladen. Gerät mit Sperrcode schützen. Daten gehen verloren, wenn der Browser-Speicher gelöscht wird.</p>
+  </div>
+
+  <div id="nachView" class="hidden">
+    <div class="lbl">Nachschlagen</div>
+    <div class="tiles">
+      <button class="tile" id="nvaSR" style="--c:#378ADD"><b>Schockraum</b><small>Indikation · Trauma / Non-Trauma</small></button>
+    </div>
+    <p class="note">Weitere Themen (Reanimation, Kinder-Reanimation, Medikamente) kommen nach und nach – jeweils nur aus einer genannten Quelle mit Stand.</p>
   </div>
 
   <div id="nameView" class="hidden">
@@ -632,12 +653,16 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="5.8";
+const APP_VERSION="5.9";
 const CHANGELOG=[
+ {v:"5.9",d:"14.10.2026",items:[
+  "Neue Reiter-Reihenfolge: PZC (rot) · Name + Nummer · Nachschlagen (blau) · Archiv. „Nur Name“ heißt jetzt „Name + Nummer“",
+  "Neuer Bereich „Nachschlagen“ – erste Karte: Schockraum-Indikation (Trauma / Non-Trauma). Weitere Themen folgen",
+  "Name im Funkalphabet jetzt kleiner und in zwei Spalten: links der Nachname, rechts der Vorname (gilt auch in der Zusammenfassung und beim Bearbeiten im Archiv)"]},
  {v:"5.8",d:"12.10.2026",items:[
   "Archiv bearbeiten: unter dem Namen steht wieder das Funkalphabet (Nachname, dann Vorname) und passt sich beim Tippen an"]},
  {v:"5.7",d:"12.10.2026",items:[
-  "Neuer Reiter „Nur Name“ neben „PZC finden“: für Fälle ohne PZC (z. B. eine verstorbene Person) – Ausweis fotografieren oder Name eintragen, Name im Funkalphabet, Patientennummer, NEF-Nummer, weitere Fahrzeuge, Notiz, dann ins Archiv speichern",
+  "Neuer Reiter „Nur Name“ (heute „Name + Nummer“) neben „PZC finden“: für Fälle ohne PZC (z. B. eine verstorbene Person) – Ausweis fotografieren oder Name eintragen, Name im Funkalphabet, Patientennummer, NEF-Nummer, weitere Fahrzeuge, Notiz, dann ins Archiv speichern",
   "Die Themen-Vorschläge unter der Suche (Herzinfarkt, Schlaganfall …) sind entfernt – mehr Platz"]},
  {v:"5.6",d:"12.10.2026",items:[
   "Die NEF-Nummer wird jetzt beim Speichern ins Archiv und bei „↺ Neu“ mit gelöscht und nicht mehr für den nächsten Einsatz gemerkt"]},
@@ -1340,9 +1365,9 @@ function showList(items,withSub,hints){fillList(items,withSub,hints);push({v:"li
 /* ---- Navigation: Zurück / Vor / Start, auch per Wischen ---- */
 let cur={v:"home"}, stack=[], fwd=[], histOK=true, searching=false;
 function apply(){
-  const v=cur.v, arc=v==="arc", nm=v==="name";
-  $("mainView").classList.toggle("hidden",arc||nm);$("arcView").classList.toggle("hidden",!arc);$("nameView").classList.toggle("hidden",!nm);
-  $("tabMain").classList.toggle("on",!arc&&!nm);$("tabArc").classList.toggle("on",arc);$("tabName").classList.toggle("on",nm);
+  const v=cur.v, arc=v==="arc", nm=v==="name", nc=v==="nach";
+  $("mainView").classList.toggle("hidden",arc||nm||nc);$("arcView").classList.toggle("hidden",!arc);$("nameView").classList.toggle("hidden",!nm);$("nachView").classList.toggle("hidden",!nc);
+  $("tabMain").classList.toggle("on",!arc&&!nm&&!nc);$("tabArc").classList.toggle("on",arc);$("tabName").classList.toggle("on",nm);$("tabNach").classList.toggle("on",nc);
   if(nm)nvSync();
   setBase();
   $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
@@ -1545,7 +1570,7 @@ function openEdit(id){
 function edSpellRender(){
   const el=$("edSpell");if(!el||!$("edName"))return;
   const raw=$("edName").value,i=raw.indexOf(","),n=(i<0?raw:raw.slice(0,i)).trim(),v=(i<0?"":raw.slice(i+1)).trim();
-  el.innerHTML=(n?`<div class="spellh">Nachname · ${esc(n)}</div>${spellHTML(n)}`:"")+(v?`<div class="spellh">Vorname · ${esc(v)}</div>${spellHTML(v)}`:"");
+  el.innerHTML=spellCols(n,v);
 }
 $("modal").addEventListener("input",e=>{if(e.target.id==="edName")edSpellRender()});
 $("modal").addEventListener("click",e=>{
@@ -1655,6 +1680,11 @@ $("flow").addEventListener("click",e=>{
 $("flow").addEventListener("input",e=>{const i=e.target.closest("input[data-k]");if(i)sk[i.dataset.k]={l:i.dataset.l,v:i.value}});
 const ABC={A:"Anton",B:"Berta",C:"Cäsar",D:"Dora",E:"Emil",F:"Friedrich",G:"Gustav",H:"Heinrich",I:"Ida",J:"Julius",K:"Kaufmann",L:"Ludwig",M:"Martha",N:"Nordpol",O:"Otto",P:"Paula",Q:"Quelle",R:"Richard",S:"Samuel",T:"Theodor",U:"Ulrich",V:"Viktor",W:"Wilhelm",X:"Xanthippe",Y:"Ypsilon",Z:"Zacharias","Ä":"Ärger","Ö":"Ökonom","Ü":"Übermut","ß":"Eszett","-":"Bindestrich"};
 const BASE={"à":"a","á":"a","â":"a","ã":"a","å":"a","è":"e","é":"e","ê":"e","ë":"e","ì":"i","í":"i","î":"i","ï":"i","ò":"o","ó":"o","ô":"o","õ":"o","ù":"u","ú":"u","û":"u","ç":"c","ñ":"n","ý":"y","ÿ":"y","š":"s","ž":"z","č":"c","ć":"c","ł":"l","ø":"o"};
+function spellCols(n,v){
+  if(!n&&!v)return "";
+  const col=(h,t)=>`<div><div class="spellh">${h} · ${esc(t)}</div>${t?spellHTML(t):""}</div>`;
+  return `<div class="spell2">${col("Nachname",n)}${col("Vorname",v)}</div>`;
+}
 function spellHTML(txt){
   let h="";
   [...txt.trim()].forEach(ch=>{
@@ -1666,7 +1696,7 @@ function spellHTML(txt){
 }
 function renderSpell(){
   const n=state.nachname.trim(),v=state.vorname.trim();
-  $("spellOut").innerHTML=(n?`<div class="spellh">Nachname · ${esc(n)}</div>${spellHTML(n)}`:"")+(v?`<div class="spellh">Vorname · ${esc(v)}</div>${spellHTML(v)}`:"")||'<div class="warn">Name eintragen oder Karte fotografieren – wird dann buchstabiert angezeigt.</div>';
+  $("spellOut").innerHTML=spellCols(n,v)||'<div class="warn">Name eintragen oder Karte fotografieren – wird dann buchstabiert angezeigt.</div>';
 }
 function openSummary(){
   state.note=$("note").value.trim();
@@ -2497,7 +2527,7 @@ $("scanPick").onchange=e=>{const f=e.target.files[0];e.target.value="";if(f)scan
 /* ---- Reiter „Nur Name“ (ohne PZC, z. B. bei einer verstorbenen Person) ---- */
 function nvSpellRender(){
   const n=state.nachname.trim(),v=state.vorname.trim();
-  $("nvSpell").innerHTML=(n?`<div class="spellh">Nachname · ${esc(n)}</div>${spellHTML(n)}`:"")+(v?`<div class="spellh">Vorname · ${esc(v)}</div>${spellHTML(v)}`:"")||'<div class="warn">Name eintragen oder Ausweis fotografieren – wird dann buchstabiert angezeigt.</div>';
+  $("nvSpell").innerHTML=spellCols(n,v)||'<div class="warn">Name eintragen oder Ausweis fotografieren – wird dann buchstabiert angezeigt.</div>';
 }
 function nvSync(){
   const set=(id,v)=>{const e=$(id);if(document.activeElement!==e)e.value=v};
@@ -2512,10 +2542,12 @@ $("nameView").addEventListener("input",e=>{
   else if(id==="nvNef"){state.nefNr=e.target.value;try{localStorage.setItem("pzc_nef",state.nefNr)}catch(_){}}
   nvSpellRender();syncNames();
 });
+$("tabNach").onclick=()=>{window.scrollTo(0,0);push({v:"nach"})};
+$("nvaSR").onclick=()=>openSR("trauma");
 $("tabName").onclick=()=>{window.scrollTo(0,0);push({v:"name"})};
 $("nvSave").onclick=()=>{
   const a=load(),nm=[state.nachname.trim(),state.vorname.trim()].filter(Boolean).join(", ");
-  a.unshift({code:null,id:Date.now(),ts:Date.now(),pzc:"–",noPzc:true,title:"Nur Name (ohne PZC)",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim(),fzg:state.fzg.trim(),note:(state.note||"").trim(),answers:[]});
+  a.unshift({code:null,id:Date.now(),ts:Date.now(),pzc:"–",noPzc:true,title:"Name + Nummer (ohne PZC)",name:nm,patNr:state.patNr.trim(),nefNr:state.nefNr.trim(),fzg:state.fzg.trim(),note:(state.note||"").trim(),answers:[]});
   store(a);
   state.vorname=state.nachname=state.patNr=state.fzg=state.nefNr="";state.note="";try{localStorage.removeItem("pzc_nef")}catch(_){}
   refreshScanRes();renderArc();stack=[{v:"home"}];fwd=[];cur={v:"arc"};apply();window.scrollTo(0,0);
