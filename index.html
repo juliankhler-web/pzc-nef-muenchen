@@ -184,7 +184,8 @@ textarea.inp{min-height:84px;resize:vertical}
 .nkw{display:flex;gap:6px;align-items:stretch}.nkw .nkrow{flex:1;min-width:0}
 .nkfav{flex:none;width:54px;border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:12px;font-size:26px;line-height:1}
 .nkfav.on{color:#f5b800;border-color:#f5b800}
-.nkfavtop{position:static;margin-right:8px}.nkfavtop.on{color:#f5b800;border-color:#f5b800}
+.nkhead{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin:0 0 10px}.nkhead h2{margin:0;font-size:24px;line-height:1.2}.nkhead .nkfav{width:56px;height:56px;flex:none}
+#nkCardView h3{font-size:18px;margin:18px 0 8px}#nkCardView ul{padding-left:20px}#nkCardView li{margin:6px 0;font-size:17px}
 .nkrow b{display:block;font-weight:800}.nkrow small{display:block;color:var(--mute);font-size:13px;margin-top:2px}
 #nachView .tile b{font-size:18px}#nachView .tile small{font-size:13px;color:var(--mute);display:block;margin-top:3px}
 .modal.big h3{font-size:17px;margin:16px 0 6px}
@@ -297,6 +298,8 @@ textarea.inp{min-height:84px;resize:vertical}
     <div id="nkRes" style="margin-top:12px"></div>
     <p class="note">Jede Karte nennt ihre Quelle mit Stand. Eingabehilfe – es gelten die Vorgaben der Leitstelle und des ÄLRD.</p>
   </div>
+
+  <div id="nkCardView" class="hidden"></div>
 
   <div id="nameView" class="hidden">
     <button class="scanhero" id="nvScan"><b>📷 FOTO: Ausweis / Karte</b><small>Name wird gelesen – oder unten von Hand eintragen</small></button>
@@ -677,8 +680,11 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.5";
+const APP_VERSION="6.6";
 const CHANGELOG=[
+ {v:"6.6",d:"14.10.2026",items:[
+  "Medikamente und Reanimation öffnen jetzt als eigene Seite statt als Fenster – oben bleiben Zurück, Start und Neu stehen, genau wie bei der PZC-Anmeldung",
+  "Der Stern für Favoriten steht oben rechts auf der Seite"]},
  {v:"6.5",d:"14.10.2026",items:[
   "Suche: findet Medikamente jetzt auch über gängige Handelsnamen (z. B. Suprarenin, Cordarex, Akrinor, Dormicum, Atrovent, Sultanol, Anexate, Dipidolor, Ebrantil) und über viele Krankheitsbilder und Alltagswörter (z. B. Asthma, Krampf, Bienenstich, Nasenbluten, Unterzucker, Bluthochdruck, Heroin)",
   "Auf der Medikamentenkarte stehen die bekannten Handelsnamen als Beispiele"]},
@@ -1407,9 +1413,10 @@ function showList(items,withSub,hints){fillList(items,withSub,hints);push({v:"li
 /* ---- Navigation: Zurück / Vor / Start, auch per Wischen ---- */
 let cur={v:"home"}, stack=[], fwd=[], histOK=true, searching=false;
 function apply(){
-  const v=cur.v, arc=v==="arc", nm=v==="name", nc=v==="nach";
-  $("mainView").classList.toggle("hidden",arc||nm||nc);$("arcView").classList.toggle("hidden",!arc);$("nameView").classList.toggle("hidden",!nm);$("nachView").classList.toggle("hidden",!nc);
-  $("tabMain").classList.toggle("on",!arc&&!nm&&!nc);$("tabArc").classList.toggle("on",arc);$("tabName").classList.toggle("on",nm);$("tabNach").classList.toggle("on",nc);
+  const v=cur.v, arc=v==="arc", nm=v==="name", nc=v==="nach", nkc=v==="nkc";
+  $("nkCardView").classList.toggle("hidden",!nkc);document.querySelector(".top").classList.toggle("hidden",nkc);document.querySelector(".tabs").classList.toggle("hidden",nkc);
+  $("mainView").classList.toggle("hidden",arc||nm||nc||nkc);$("arcView").classList.toggle("hidden",!arc);$("nameView").classList.toggle("hidden",!nm);$("nachView").classList.toggle("hidden",!nc);
+  $("tabMain").classList.toggle("on",!arc&&!nm&&!nc&&!nkc);$("tabArc").classList.toggle("on",arc);$("tabName").classList.toggle("on",nm);$("tabNach").classList.toggle("on",nc||nkc);
   if(nm)nvSync();
   setBase();
   $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
@@ -2064,7 +2071,7 @@ function nkDoseHTML(m,kind){
 function nkMedHTML(m){
   const hasKg=m.kind.some(l=>l[2]!=null);
   const dil=m.dil?`<div class="nkbox"><b>Aufziehen / Verdünnen (Kinder)</b><div style="margin:4px 0 6px">${esc(m.dil.t)}</div>${syrSVG(0,m.dil.parts)}<div class="nkmute" style="font-size:12px">${esc(m.dil.src)}</div></div>`:"";
-  return `<h2 style="padding-right:110px">${esc(m.n)}</h2>
+  return `<div class="nkhead"><h2>${esc(m.n)}</h2>${nkStar()}</div>
   <div class="nkez"><b>Einfach gesagt</b><div>${esc(NK_EZ[m.id]||m.ind)}</div></div>
   <div class="nkbox"><b>Genaue Indikation laut Liste</b><div style="font-size:14px">${esc(m.ind)}</div></div>
   ${NK_BRAND[m.id]&&m.id!=="o2"?`<div class="nkbox"><b>Bekannte Handelsnamen (Beispiele)</b><div>${NK_BRAND[m.id].map(esc).join(" · ")}</div><div class="nkmute" style="font-size:12px;margin-top:3px">Auswahl, nicht vollständig – die Präparate vor Ort können abweichen.</div></div>`:""}
@@ -2077,7 +2084,7 @@ function nkMedHTML(m){
   <div class="warn">Quelle: ${esc(NK_MED_SRC)}. Mengen in ml sind aus der Ampullenstärke berechnet. Aktuelle Fassung und die Vorgaben der Leitstelle / des ÄLRD prüfen.</div>`;
 }
 function nkReaEHTML(){
-  return `<h2 style="padding-right:110px">Reanimation Erwachsene</h2>
+  return `<div class="nkhead"><h2>Reanimation Erwachsene</h2>${nkStar()}</div>
   <h3>Grundlagen</h3><ul><li>Thoraxkompression: <b>100–120 pro Minute</b>, Tiefe <b>5–6 cm</b></li><li>Kompression : Beatmung <b>30 : 2</b></li><li>Mit Tubus oder Larynxmaske: Beatmung <b>10 pro Minute</b>, Kompressionen ohne Pause. Bei Leckage der Larynxmaske für die Beatmung pausieren (30 : 2)</li><li>Unterbrechungen der Kompression so kurz wie möglich (Schock: unter 5 s)</li><li>Defi-Pads: die laterale (apikale) Elektrode unter die Achsel, mittlere Axillarlinie</li></ul>
   <h3>Schockbarer Rhythmus (VF / pulslose VT)</h3><ul><li>1. Schock: biphasisch mindestens <b>150 J</b> (gepulst biphasisch 130–150 J); weitere Schocks ggf. höher. Kennt man das Gerät nicht: höchste Energiestufe</li><li><b>Adrenalin 1 mg</b> i.v./i.o. nach dem <b>3. Schock</b>, dann alle 3–5 min</li><li><b>Amiodaron 300 mg</b> nach dem 3. Schock, <b>150 mg</b> nach dem 5. Schock</li><li>Alternative: Lidocain 100 mg, zusätzlich 50 mg nach dem 5. Schock</li></ul>
   <h3>Nicht schockbarer Rhythmus (Asystolie / PEA)</h3><ul><li><b>Adrenalin 1 mg</b> i.v./i.o. <b>so früh wie möglich</b>, dann alle 3–5 min</li></ul>
@@ -2093,7 +2100,7 @@ function nkReaKHTML(){
     return `<div class="nkd"><b>Adrenalin</b> 0,01 mg/kg = <b>${nkF(adr)} mg</b> = <b>${nkF(adr/.1)} ml</b> der verdünnten Lösung (0,1 mg/ml)${.01*kg>1?" · Höchstdosis 1 mg":""}${syrSVG(adr/.1)}</div>
     <div class="nkd"><b>Amiodaron</b> 5 mg/kg nach 3. Schock = <b>${nkF(am1)} mg</b> = <b>${nkF(am1/50)} ml</b> (50 mg/ml)${5*kg>300?" · Höchstdosis 300 mg":""}${syrSVG(am1/50)}<div class="nkr">nach 5. Schock: <b>${nkF(am2)} mg</b> = <b>${nkF(am2/50)} ml</b>${5*kg>150?" · Höchstdosis 150 mg":""}</div></div>
     <div class="nkd"><b>Schock</b> 1. Schock 4 J/kg = <b>${nkF(s4)} J</b>; ab dem 5. Schock schrittweise bis 8 J/kg = <b>${nkF(s8)} J</b> (max. 360 J)</div>`})():`<div class="nkr nkmute">Gewicht eingeben → Adrenalin, Amiodaron und Schockenergie</div>`;
-  return `<h2 style="padding-right:110px">Reanimation Kind</h2>
+  return `<div class="nkhead"><h2>Reanimation Kind</h2>${nkStar()}</div>
   <div class="fld" style="margin:0 0 8px"><label>Gewicht des Kindes in kg</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>
   <div id="nkK">${calc}</div>
   <div class="nkbox"><b>Adrenalin aufziehen</b><div style="margin:4px 0 6px">1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann <b>0,1 ml pro kg</b>.</div>${syrSVG(0,[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}])}<div class="nkmute" style="font-size:12px">Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0) – mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen</div></div>
@@ -2107,22 +2114,21 @@ function nkReaKHTML(){
   <h3>Nach ROSC</h3><ul><li>ABCDE-Beurteilung; SpO₂ 94–98 %, normaler PaCO₂</li><li>Blutdruck über der 10. Perzentile halten</li><li>Hypothermie vermeiden, Blutzucker kontrollieren, Ursache behandeln</li></ul>
   <div class="warn">Quelle: ${esc(NK_REA_K_SRC)}. Die Bayerische Liste nennt für Kinder die DIVI-Kindernotfallkarte. Eingabehilfe – Gewicht und Dosis immer gegenprüfen.</div>`;
 }
-const nkTop=()=>`<div style="position:sticky;top:-8px;height:0;z-index:5;text-align:right">${nkCur&&nkCur!=="schock"?`<button class="srx nkfavtop ${nkIsFav(nkCur)?"on":""}" data-fav="${nkCur}" aria-label="Favorit">${nkIsFav(nkCur)?"★":"☆"}</button>`:""}<button class="srx" id="nkClose" aria-label="Schließen">✕</button></div>`;
+const nkStar=()=>`<button class="nkfav ${nkIsFav(nkCur)?"on":""}" data-fav="${nkCur}" aria-label="Favorit">${nkIsFav(nkCur)?"★":"☆"}</button>`;
 function nkOpen(id){
   nkCur=id;
   if(id==="schock"){openSR("trauma");return}
   const m=NK_MED.find(x=>x.id===id);
-  openModal(nkTop()+(id==="rea_e"?nkReaEHTML():id==="rea_k"?nkReaKHTML():m?nkMedHTML(m):""));
-  $("modal").classList.add("big");$("modal").scrollTop=0;
+  $("nkCardView").innerHTML=id==="rea_e"?nkReaEHTML():id==="rea_k"?nkReaKHTML():m?nkMedHTML(m):"";
+  window.scrollTo(0,0);push({v:"nkc"});window.scrollTo(0,0);
 }
-$("modal").addEventListener("input",e=>{
+$("nkCardView").addEventListener("input",e=>{
   if(e.target.id!=="nkKg")return;
   nkKg=e.target.value;
-  if(nkCur==="rea_k"){const y=$("modal").scrollTop,hold=e.target.selectionStart;$("modal").innerHTML=nkTop()+nkReaKHTML();const k=$("nkKg");k.focus();try{k.setSelectionRange(hold,hold)}catch(_){}$("modal").scrollTop=y}
+  if(nkCur==="rea_k"){const y=window.scrollY,hold=e.target.selectionStart;$("nkCardView").innerHTML=nkReaKHTML();const k=$("nkKg");k.focus();try{k.setSelectionRange(hold,hold)}catch(_){}window.scrollTo(0,y)}
   else{const m=NK_MED.find(x=>x.id===nkCur);if(m&&$("nkK"))$("nkK").innerHTML=nkDoseHTML(m,true)}
 });
-$("modal").addEventListener("click",e=>{
-  if(e.target.id==="nkClose"){closeModal();return}
+$("nkCardView").addEventListener("click",e=>{
   const f=e.target.closest("[data-fav]");
   if(f){const id=f.dataset.fav;nkToggleFav(id);f.classList.toggle("on",nkIsFav(id));f.textContent=nkIsFav(id)?"★":"☆"}
 });
