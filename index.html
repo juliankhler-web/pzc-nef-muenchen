@@ -171,6 +171,9 @@ textarea.inp{min-height:84px;resize:vertical}
 .srbtn small{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-top:2px}
 .srx{width:46px;height:46px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;font-weight:900;line-height:1;box-shadow:0 2px 8px #0004}
 .nkbox{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:16px}
+.nkez{border:2px solid var(--accent);background:var(--bg);border-radius:12px;padding:12px 14px;margin:0 0 10px;font-size:19px;font-weight:700;line-height:1.35}
+.nkez>b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.nkrow small{white-space:normal}
 .nkbox>b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:3px}
 .nkd{border:1px solid var(--line);border-left:6px solid var(--accent);background:var(--card);border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:17px;font-weight:600}
 .nkr{margin-top:6px;font-size:17px;font-weight:600}.nkr b{font-size:20px;font-weight:900}
@@ -674,8 +677,11 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.3";
+const APP_VERSION="6.4";
 const CHANGELOG=[
+ {v:"6.4",d:"14.10.2026",items:[
+  "Medikamente: zuerst ein Satz in einfachen Worten („Einfach gesagt“), z. B. Cafedrin – bei zu niedrigem Blutdruck. Die genaue Indikation laut Liste steht darunter",
+  "Die Listen und Suchergebnisse zeigen ebenfalls den einfachen Satz; die Suche findet auch die einfachen Wörter"]},
  {v:"6.3",d:"14.10.2026",items:[
   "Nachschlagen: Favoriten mit Stern – oben stehen zuerst deine Favoriten, dann Reanimation, dann Medikamente A–Z. Stern rechts in der Liste oder oben in der Karte antippen"]},
  {v:"6.2",d:"14.10.2026",items:[
@@ -1961,6 +1967,33 @@ const NK_MED=[
   erw:[["nach Bedarf"]],kind:[["nach Bedarf"]],cave:"CAVE: Konzept der permissiven Hypotension bei aktiver Blutung!"}
 ].sort((a,b)=>a.n.localeCompare(b.n,"de"));
 
+const NK_EZ={
+ adr_rea:"Bei Herzstillstand (Reanimation).",
+ adr_ana:"Bei schwerer allergischer Reaktion (Anaphylaxie) mit Kreislaufproblemen. Wird in den Muskel gespritzt.",
+ adr_inh:"Zum Einatmen bei Schwellung der oberen Atemwege, z. B. Pseudokrupp (bellender Husten, Atemnot bei Kindern).",
+ amio:"Bei Herzstillstand mit Kammerflimmern – nach dem 3. und 5. Schock.",
+ atropin:"Bei lebensbedrohlich langsamem Puls.",
+ cafedrin:"Bei zu niedrigem Blutdruck – wenn eine Infusion allein nicht reicht oder nicht gegeben werden darf.",
+ diazepam:"Bei Krampfanfall von Kindern, der länger als 3 Minuten dauert. Wird als Zäpfchen in den Po gegeben.",
+ esketamin:"Gegen starke Schmerzen bei Kindern bis 11 Jahre. Wird in die Nase gesprüht.",
+ fentanyl:"Gegen starke Schmerzen (nicht bei Herzinfarkt). Kinder ab 12 Jahre über die Nase.",
+ flumazenil:"Gegenmittel bei Überdosis von Beruhigungsmitteln (Benzodiazepine).",
+ glucose:"Bei gefährlich niedrigem Blutzucker (Unterzucker).",
+ ipra:"Zum Einatmen bei schwerer Atemnot durch verkrampfte Bronchien (z. B. Asthma).",
+ midaz_iv:"Bei einem großen Krampfanfall, der nicht aufhört – in die Vene, wenn schon ein Zugang liegt.",
+ midaz_in:"Bei einem großen Krampfanfall, der nicht aufhört – über die Nase.",
+ morphin:"Gegen starke Schmerzen bei Herzinfarkt (akutes Koronarsyndrom). Nur Erwachsene.",
+ naloxon:"Gegenmittel bei Überdosis von Opiaten (z. B. Heroin, starke Schmerzmittel).",
+ oxymeta:"Bei starkem Nasenbluten – Nasenspray.",
+ oxytocin:"Bei starker Blutung nach der Geburt.",
+ piritramid:"Gegen starke Schmerzen (nicht bei Herzinfarkt). Nur Erwachsene und Jugendliche über 50 kg.",
+ prednison:"Bei Pseudokrupp oder verkrampften Bronchien bei Kindern. Zäpfchen, nur für Kinder.",
+ salbu:"Zum Einatmen bei schwerer Atemnot durch verkrampfte Bronchien (z. B. Asthma).",
+ o2:"Bei Sauerstoffmangel.",
+ thiamin:"Vitamin B1. Bei Krampfanfall durch Alkohol und bei Unterzucker, wenn jemand vermutlich viel Alkohol trinkt.",
+ urapidil:"Bei gefährlich hohem Blutdruck. Nur Erwachsene.",
+ elyt:"Infusion: Flüssigkeit bei starkem Flüssigkeitsmangel und als Träger für andere Medikamente."
+};
 const NK_CARDS=[
  {id:"rea_e",n:"Reanimation Erwachsene",sub:"ALS-Ablauf, Schock, Medikamente",hay:"reanimation erwachsene erwachsener cpr herzdruckmassage herzstillstand kreislaufstillstand als algorithmus defibrillation schock rea compressions"},
  {id:"rea_k",n:"Reanimation Kind",sub:"mit Gewichts-Rechner",hay:"reanimation kind kinder baby säugling pädiatrisch kinderreanimation pals cpr gewicht kg herzstillstand"},
@@ -1993,7 +2026,8 @@ function nkMedHTML(m){
   const hasKg=m.kind.some(l=>l[2]!=null);
   const dil=m.dil?`<div class="nkbox"><b>Aufziehen / Verdünnen (Kinder)</b><div style="margin:4px 0 6px">${esc(m.dil.t)}</div>${syrSVG(0,m.dil.parts)}<div class="nkmute" style="font-size:12px">${esc(m.dil.src)}</div></div>`:"";
   return `<h2 style="padding-right:110px">${esc(m.n)}</h2>
-  <div class="nkbox"><b>Wann / wofür</b><div>${esc(m.ind)}</div></div>
+  <div class="nkez"><b>Einfach gesagt</b><div>${esc(NK_EZ[m.id]||m.ind)}</div></div>
+  <div class="nkbox"><b>Genaue Indikation laut Liste</b><div style="font-size:14px">${esc(m.ind)}</div></div>
   <div class="nkbox"><b>Ampulle</b><div>${esc(m.amp)}</div>${m.btm?'<div class="nkmute">Betäubungsmittel – § 13 Abs. 1b BtMG beachten</div>':""}</div>
   ${m.cave?`<div class="warnbox">${esc(m.cave)}</div>`:""}${m.hint?`<div class="warnbox">${esc(m.hint)}</div>`:""}
   <h3>Erwachsene</h3><div id="nkE">${nkDoseHTML(m,false)}</div>
@@ -2054,7 +2088,7 @@ $("modal").addEventListener("click",e=>{
 });
 
 /* Suche mit Tippfehler-Toleranz */
-const nkIndex=[...NK_CARDS.map(c=>({id:c.id,n:c.n,sub:c.sub,hay:c.hay})),...NK_MED.map(m=>({id:m.id,n:m.n,sub:m.ind.length>60?m.ind.slice(0,58)+"…":m.ind,hay:m.n+" "+m.hay+" "+m.ind}))].map(c=>({...c,tok:[...new Set(fold(c.hay).split(" ").filter(w=>w.length>1))]}));
+const nkIndex=[...NK_CARDS.map(c=>({id:c.id,n:c.n,sub:c.sub,hay:c.hay})),...NK_MED.map(m=>({id:m.id,n:m.n,sub:NK_EZ[m.id]||m.ind,hay:m.n+" "+m.hay+" "+m.ind+" "+(NK_EZ[m.id]||"")}))].map(c=>({...c,tok:[...new Set(fold(c.hay).split(" ").filter(w=>w.length>1))]}));
 function nkMatch(qt,tok){
   let best=0;
   for(const h of tok){
@@ -2074,7 +2108,7 @@ function nkSearch(q){
 }
 function nkRender(){
   const q=$("nkQ").value,res=nkSearch(q);
-  const all=[...NK_CARDS,...NK_MED.map(m=>({id:m.id,n:m.n,sub:m.ind.length>70?m.ind.slice(0,68)+"…":m.ind}))];
+  const all=[...NK_CARDS,...NK_MED.map(m=>({id:m.id,n:m.n,sub:NK_EZ[m.id]||m.ind}))];
   const tile=c=>`<button class="tile" data-nk="${c.id}" style="--c:#378ADD"><b>${esc(c.n)}</b><small>${esc(c.sub||"")}</small></button>`;
   const row=c=>`<div class="nkw"><button class="nkrow" data-nk="${c.id}"><b>${esc(c.n)}</b><small>${esc(c.sub||"")}</small></button>${c.id==="schock"?"":`<button class="nkfav ${nkIsFav(c.id)?"on":""}" data-fav="${c.id}" aria-label="Favorit">${nkIsFav(c.id)?"★":"☆"}</button>`}</div>`;
   if(res===null){
