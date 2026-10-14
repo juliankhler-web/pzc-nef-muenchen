@@ -689,8 +689,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="8.2";
+const APP_VERSION="8.3";
 const CHANGELOG=[
+ {v:"8.3",d:"15.10.2026",items:["BD3 meldet sich über denselben Kanal wie BD2: RD_BETTEN_M · Kurzwahl 2512 · Status 5"]},
  {v:"8.2",d:"15.10.2026",items:[
   "Weitere rund 35 Präparate mit Dosierung und Quelle: Antidote (Cyanokit, 4-DMAP, Natriumthiosulfat, Atropin hochdosiert, Obidoxim, Physostigmin, Biperiden, Calcium, Kohle), Kinder / Neugeborene (Coffein, Vitamin K, Alprostadil, Surfactant, Ampicillin, Cefotaxim, Ibuprofen), Alteplase, Ceftriaxon, Dobutamin, Levetiracetam, Phenobarbital, Promethazin, Thiopental, Captopril, Noradrenalin",
   "Auf jeder Karte steht die Quelle mit Link („Quelle öffnen“) – Fachinformation, Leitlinie oder Rettungsdienst-Factsheet. Wo die Quellen voneinander abweichen, steht das auf der Karte",
@@ -1716,7 +1717,7 @@ function openPanel(){
   if(skBd>=2){
     $("flow").innerHTML=`
   <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
-    <div class="say">${skBd===2?"TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"BD3 – für diese BD ist hier noch kein Kanal / keine Kurzwahl hinterlegt"}</div>
+    <div class="say">TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5</div>
     <div class="warn" style="margin:0">Bei Funkausfall ausschließlich über Notruf „112".</div></div>
   <div class="blk"><h3><span class="step">2</span>PZC durchgeben</h3>
     <div class="say" style="font:800 28px ui-monospace,Menlo,monospace">${pzcStr(state.code,state.age,state.urg)}</div>
@@ -1813,7 +1814,7 @@ function openSummary(){
   const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)+(i===0&&sk.iv_sr?row("Welcher Schockraum",sk.iv_sr.v):"")+(i===0&&sk.iv_srk?row("Schockraum-Kriterien",sk.iv_srk.v):"")).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
-    <div class="say">${skBd===3?"BD3 – kein Kanal / keine Kurzwahl hinterlegt":bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
+    <div class="say">${bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
     ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
