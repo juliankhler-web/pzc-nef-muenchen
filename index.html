@@ -25,6 +25,8 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
 body{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+/* iPhone-App: der Bereich unter der Uhr/Statusleiste ist undurchsichtig, damit der Inhalt beim Scrollen nicht durchscheint */
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#0f1216;z-index:300;pointer-events:none}
 .wrap{max-width:720px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
 body.hasnav .wrap{padding-top:calc(var(--nav) + env(safe-area-inset-top) + 12px)}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -684,8 +686,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.8";
+const APP_VERSION="6.9";
 const CHANGELOG=[
+ {v:"6.9",d:"14.10.2026",items:[
+  "iPhone: der Bereich oben unter der Uhr ist jetzt undurchsichtig – beim Scrollen scheint der Inhalt nicht mehr durch, das Verschwimmen oben ist weg"]},
  {v:"6.8",d:"14.10.2026",items:[
   "Die Auswahl nach dem PZC (Alter, Geschlecht, BD) öffnet als eigene Seite statt als Fenster: nichts wird mehr abgedunkelt, oben bleiben Zurück, Start und Neu"]},
  {v:"6.7",d:"14.10.2026",items:[
