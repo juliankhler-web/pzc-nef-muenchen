@@ -170,6 +170,8 @@ textarea.inp{min-height:84px;resize:vertical}
 .srbtn{width:100%;margin:0 0 14px;border:2px solid var(--d1,#d33);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font-size:18px;font-weight:800;text-align:left}
 .srbtn small{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-top:2px}
 .srx{width:46px;height:46px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;font-weight:900;line-height:1;box-shadow:0 2px 8px #0004}
+.miss{outline:3px solid #d92d20;outline-offset:2px;border-radius:12px}
+#sheet .age{margin-bottom:12px}
 .nkbox{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:16px}
 .nkez{border:2px solid var(--accent);background:var(--bg);border-radius:12px;padding:12px 14px;margin:0 0 10px;font-size:19px;font-weight:700;line-height:1.35}
 .nkez>b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
@@ -386,7 +388,6 @@ textarea.inp{min-height:84px;resize:vertical}
     <input id="year" inputmode="decimal" maxlength="10" placeholder="Alter / Jahr" autocomplete="off">
     <div class="out"><b id="ageOut">––</b><span id="ageNote">Alter für den PZC</span></div>
   </div>
-  <div class="chips" id="ageChips" style="margin-bottom:12px"></div>
   <div class="lbl">Geschlecht</div>
   <div class="sx" style="margin-bottom:14px"><button class="sxb" data-sx="M">M<small>männlich</small></button><button class="sxb" data-sx="W">W<small>weiblich</small></button></div>
   <!-- 3 BD -->
@@ -398,8 +399,7 @@ textarea.inp{min-height:84px;resize:vertical}
   </div>
   <div class="sb hidden" id="sb"></div>
   <div class="acts">
-    <button class="btn" id="goSK" disabled>BD1-Anmeldung ›</button>
-    <button class="btn sec" id="saveOnly" disabled>Nur speichern</button>
+    <button class="btn sec" id="saveOnly">Nur speichern</button>
   </div>
 </div>
 
@@ -680,8 +680,12 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.6";
+const APP_VERSION="6.7";
 const CHANGELOG=[
+ {v:"6.7",d:"14.10.2026",items:[
+  "Ein Tipp auf BD1, BD2 oder BD3 reicht – der blaue Anmelde-Knopf ist weg, es geht direkt weiter zur Anmeldung. Fehlen Alter, Geschlecht oder BD, werden die Felder rot umrandet",
+  "Die Schnellwahl-Vorschläge unter dem Alter (Säugling, Kleinkind, Kind, Teen, Alter unbekannt) sind entfernt",
+  "BD3 hat jetzt ebenfalls einen Ablauf (PZC, Geschlecht, Notiz, Zusammenfassung) – Kanal und Kurzwahl für BD3 sind noch nicht hinterlegt"]},
  {v:"6.6",d:"14.10.2026",items:[
   "Medikamente und Reanimation öffnen jetzt als eigene Seite statt als Fenster – oben bleiben Zurück, Start und Neu stehen, genau wie bei der PZC-Anmeldung",
   "Der Stern für Favoriten steht oben rechts auf der Seite"]},
@@ -903,14 +907,7 @@ $("year").addEventListener("input",e=>{
       setAge(a,a===0?"Säugling / 0–11 Monate → 00":`${a} Jahre (geb. ${m[1]}.${m[2]}.${y})`)}
   } else setAge(null,"Alter (z. B. 72), Jahr (1954) oder Datum");
 });
-[["Säugling",0],["Kleinkind 3",3],["Kind 8",8],["Teen 15",15]].forEach(([t,a])=>{
-  const b=document.createElement("button");b.className="chip";b.textContent=t;b.dataset.a=a;
-  b.onclick=()=>{$("year").value="";setAge(a,a===0?"Säugling 0–11 Monate → 00":"Schätzwert (Notfall)")};
-  $("ageChips").appendChild(b);
-});
-const unk=document.createElement("button");unk.className="chip";unk.textContent="Alter unbekannt → schätzen";
-unk.onclick=()=>{$("year").focus()};
-$("ageChips").appendChild(unk);
+
 
 /* ---- Suchbegriffe: Alltags- und Fachbegriffe -> Codes (Vorschläge, bitte prüfen) ---- */
 const R=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
@@ -1479,6 +1476,9 @@ function render(){
   $("rA").textContent=a==null?"__":String(a).padStart(2,"0");
   $("rU").textContent=u??"_";
   document.body.dataset.bd=u||"";
+  if(state.sex)document.querySelectorAll(".sx.miss").forEach(x=>x.classList.remove("miss"));
+  if(a!=null)["year","yearH"].forEach(id=>$(id).classList.remove("miss"));
+  if(u){const ub=document.querySelector(".urg");if(ub)ub.classList.remove("miss")}
   if(!u)delete document.body.dataset.bd;
   if(typeof updActs==="function")updActs();
 }
@@ -1516,10 +1516,19 @@ function openSheet(c){
   updActs();
   render();push({v:"sheet"});
 }
-const updActs=()=>{const ok=!!(state.sex&&state.code&&state.urg&&state.age!=null);$("goSK").disabled=!ok||state.urg===3;$("saveOnly").disabled=!ok;
-  $("goSK").textContent=!state.sex?"Erst Geschlecht wählen":state.age==null?"Erst Alter eingeben":!state.urg?"Erst BD wählen":state.urg===3?"BD3: keine Anmeldung":"BD"+state.urg+"-Anmeldung ›"};
+const updActs=()=>{};
+function missCheck(needBd){
+  const noSex=!state.sex,noAge=state.age==null,noBd=needBd&&!state.urg;
+  $("year").classList.toggle("miss",noAge);
+  document.querySelector("#sheet .sx").classList.toggle("miss",noSex);
+  document.querySelector(".urg").classList.toggle("miss",!!noBd);
+  const first=noAge?$("year"):noSex?document.querySelector("#sheet .sx"):noBd?document.querySelector(".urg"):null;
+  if(first)try{first.scrollIntoView({block:"center",behavior:"smooth"})}catch(_){}
+  return !(noSex||noAge||noBd);
+}
 document.querySelectorAll(".u").forEach(b=>b.onclick=()=>{
-  state.urg=+b.dataset.u; document.querySelectorAll(".u").forEach(x=>x.classList.toggle("sel",x===b)); render(); updActs();
+  state.urg=+b.dataset.u; document.querySelectorAll(".u").forEach(x=>x.classList.toggle("sel",x===b)); render();
+  if(missCheck(true))openPanel();
 });
 
 /* ---- Archiv (localStorage) ---- */
@@ -1637,7 +1646,7 @@ $("modal").addEventListener("click",e=>{
 $("arcExport").onclick=()=>{navigator.clipboard?.writeText(load().map(entryText).join("\n\n———\n\n"));$("arcExport").textContent="✓ kopiert"};
 $("arcClear").onclick=()=>{if(confirm("Gesamtes Archiv löschen?")){store([]);renderArc()}};
 $("tabMain").onclick=goHome;$("tabArc").onclick=()=>{window.scrollTo(0,0);push({v:"arc"})};
-$("saveOnly").onclick=()=>{saveEntry({});goBack();$("saveOnly").textContent="✓ gespeichert";setTimeout(()=>$("saveOnly").textContent="Nur speichern",1500)};
+$("saveOnly").onclick=()=>{if(!missCheck(true))return;saveEntry({});goBack();$("saveOnly").textContent="✓ gespeichert";setTimeout(()=>$("saveOnly").textContent="Nur speichern",1500)};
 
 /* ---- SK 1 Panel ---- */
 let sk={},skBd=1; // Antworten, BD-Modus der Anmeldung
@@ -1650,7 +1659,7 @@ function fieldHTML(sec,f,i){
   return `<div class="fld"><label>${l}</label>${hint}<div class="opts">${o.map(v=>`<button class="opt" data-k="${id}" data-l="${esc(l)}" data-m="${t==="m"?1:0}" data-v="${esc(v)}">${esc(v)}</button>`).join("")}</div></div>`;
 }
 function openPanel(){
-  sk={}; srSel.clear(); skBd=state.urg===2?2:1; const k0=skBd===1?sbKey(state.code):null;
+  sk={}; srSel.clear(); skBd=state.urg===2?2:state.urg===3?3:1; const k0=skBd===1?sbKey(state.code):null;
   $("pPzc").textContent=pzcStr(state.code,state.age,state.urg);
   const sbOpts=Object.entries(SBD).map(([k,v])=>`<button class="opt ${k===k0?"on":""}" data-sbk="${k}">${v.n}</button>`).join("");
   const noteBlk=`<div class="blk"><h3>📝 Notiz</h3>
@@ -1658,10 +1667,10 @@ function openPanel(){
     <textarea class="inp" id="note" placeholder="Freitext – bleibt im Archiv"></textarea></div>
   <div class="warn" style="text-align:center">Name im Funkalphabet und Nummern folgen in der Zusammenfassung.</div>
   <button class="btn" id="pNext" style="padding:20px;font-size:19px">Weiter zur Zusammenfassung ›</button>`;
-  if(skBd===2){
+  if(skBd>=2){
     $("flow").innerHTML=`
   <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
-    <div class="say">TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5</div>
+    <div class="say">${skBd===2?"TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"BD3 – für diese BD ist hier noch kein Kanal / keine Kurzwahl hinterlegt"}</div>
     <div class="warn" style="margin:0">Bei Funkausfall ausschließlich über Notruf „112".</div></div>
   <div class="blk"><h3><span class="step">2</span>PZC durchgeben</h3>
     <div class="say" style="font:800 28px ui-monospace,Menlo,monospace">${pzcStr(state.code,state.age,state.urg)}</div>
@@ -1753,12 +1762,12 @@ function openSummary(){
   state.note=$("note").value.trim();
   $("sPzc").textContent=pzcStr(state.code,state.age,state.urg);
   const row=(l,v)=>`<div class="srow"><span>${esc(l)}</span><b class="${v?"":"nil"}">${v?esc(v):"–"}</b></div>`;
-  const bd2=skBd===2;
+  const bd2=skBd>=2;
   const zus=(sk.sb&&!bd2?SBD[sk.sb].f:[]).map((f,i)=>row(f[0],sk["zus_"+i]&&sk["zus_"+i].v)).join("");
   const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)+(i===0&&sk.iv_sr?row("Welcher Schockraum",sk.iv_sr.v):"")+(i===0&&sk.iv_srk?row("Schockraum-Kriterien",sk.iv_srk.v):"")).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
-    <div class="say">${bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
+    <div class="say">${skBd===3?"BD3 – kein Kanal / keine Kurzwahl hinterlegt":bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
     ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
@@ -1797,7 +1806,6 @@ function savePanel(){
 document.querySelectorAll(".sxb").forEach(b=>b.onclick=()=>{
   state.sex=state.sex===b.dataset.sx?null:b.dataset.sx;
   document.querySelectorAll(".sxb").forEach(x=>x.classList.toggle("on",x.dataset.sx===state.sex));render();});
-$("goSK").onclick=openPanel;
 $("pNextTop").onclick=openSummary;
 document.addEventListener("click",e=>{if(e.target.id==="pNext")openSummary();if(e.target.id==="sSave")savePanel()});
 renderArc();
