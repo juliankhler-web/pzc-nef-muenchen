@@ -87,6 +87,10 @@ h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 :root{--bar:calc(76px + env(safe-area-inset-bottom))}
 .sheet{max-height:calc(100vh - var(--bar) - var(--nav) - env(safe-area-inset-top) - 12px);overflow-y:auto;position:fixed;left:0;right:0;bottom:var(--bar);background:var(--card);border-radius:22px 22px 0 0;padding:18px 16px 18px;z-index:50;max-width:720px;margin:0 auto;transform:translateY(105%);transition:transform .2s;box-shadow:0 -10px 40px rgba(0,0,0,.3)}
 .sheet.open{transform:none}
+/* Auswahl nach dem PZC als eigene Seite (kein Abdunkeln, kein Fenster) */
+.scrim.open{display:none}
+.sheet{top:calc(var(--nav) + env(safe-area-inset-top));max-height:none;border-radius:0;transform:none;transition:none;display:none;background:var(--bg);box-shadow:none;max-width:none;padding:14px 16px 24px}
+.sheet.open{display:block;z-index:60}
 .sheet h2{margin:0 0 2px;font-size:20px}
 .sheet .cd{color:var(--mute);font-size:14px;margin-bottom:14px}
 .urg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -680,8 +684,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.7";
+const APP_VERSION="6.8";
 const CHANGELOG=[
+ {v:"6.8",d:"14.10.2026",items:[
+  "Die Auswahl nach dem PZC (Alter, Geschlecht, BD) öffnet als eigene Seite statt als Fenster: nichts wird mehr abgedunkelt, oben bleiben Zurück, Start und Neu"]},
  {v:"6.7",d:"14.10.2026",items:[
   "Ein Tipp auf BD1, BD2 oder BD3 reicht – der blaue Anmelde-Knopf ist weg, es geht direkt weiter zur Anmeldung. Fehlen Alter, Geschlecht oder BD, werden die Felder rot umrandet",
   "Die Schnellwahl-Vorschläge unter dem Alter (Säugling, Kleinkind, Kind, Teen, Alter unbekannt) sind entfernt",
