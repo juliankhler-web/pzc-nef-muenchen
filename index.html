@@ -170,6 +170,18 @@ textarea.inp{min-height:84px;resize:vertical}
 .srbtn{width:100%;margin:0 0 14px;border:2px solid var(--d1,#d33);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;font-size:18px;font-weight:800;text-align:left}
 .srbtn small{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-top:2px}
 .srx{width:46px;height:46px;border-radius:50%;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:22px;font-weight:900;line-height:1;box-shadow:0 2px 8px #0004}
+.nkbox{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:16px}
+.nkbox>b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin-bottom:3px}
+.nkd{border:1px solid var(--line);border-left:6px solid var(--accent);background:var(--card);border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:17px;font-weight:600}
+.nkr{margin-top:6px;font-size:17px;font-weight:600}.nkr b{font-size:20px;font-weight:900}
+.nkmute{color:var(--mute);font-weight:500}
+.nksyr{margin:6px 0 2px;color:var(--ink)}.nkcap{font-size:13px;color:var(--mute);margin:0 0 8px}
+.nklist{display:flex;flex-direction:column;gap:6px}
+.nkrow{text-align:left;border:1px solid var(--line);border-left:6px solid #378ADD;background:var(--card);color:var(--ink);border-radius:12px;padding:12px 14px;min-height:56px;font-size:17px}
+.nkrow b{display:block;font-weight:800}.nkrow small{display:block;color:var(--mute);font-size:13px;margin-top:2px}
+#nachView .tile b{font-size:18px}#nachView .tile small{font-size:13px;color:var(--mute);display:block;margin-top:3px}
+.modal.big h3{font-size:17px;margin:16px 0 6px}
+.modal.big ul{padding-left:20px}.modal.big li{margin:6px 0;font-size:16px}
 .srtabs{display:flex;gap:8px;margin:8px 0 10px}.srtabs button{flex:1;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:14px 8px;font-size:16px;font-weight:800}.srtabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .srres{position:sticky;top:-20px;z-index:2;margin:0 0 10px;padding:12px 14px;border-radius:12px;font-weight:800;font-size:16px;background:var(--bg);border:2px solid var(--line)}
 .srres.a{background:#d33;border-color:#d33;color:#fff}.srres.b{background:#e8890c;border-color:#e8890c;color:#fff}
@@ -274,11 +286,9 @@ textarea.inp{min-height:84px;resize:vertical}
   </div>
 
   <div id="nachView" class="hidden">
-    <div class="lbl">Nachschlagen</div>
-    <div class="tiles">
-      <button class="tile" id="nvaSR" style="--c:#378ADD"><b>Schockraum</b><small>Indikation · Trauma / Non-Trauma</small></button>
-    </div>
-    <p class="note">Weitere Themen (Reanimation, Kinder-Reanimation, Medikamente) kommen nach und nach – jeweils nur aus einer genannten Quelle mit Stand.</p>
+    <input class="search" id="nkQ" type="search" placeholder="Suchen: Adrenalin, Krampf …" autocomplete="off" autocapitalize="off" autocorrect="off">
+    <div id="nkRes" style="margin-top:12px"></div>
+    <p class="note">Jede Karte nennt ihre Quelle mit Stand. Eingabehilfe – es gelten die Vorgaben der Leitstelle und des ÄLRD.</p>
   </div>
 
   <div id="nameView" class="hidden">
@@ -660,8 +670,13 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.0";
+const APP_VERSION="6.1";
 const CHANGELOG=[
+ {v:"6.1",d:"14.10.2026",items:[
+  "Nachschlagen: Suche mit Tippfehler-Toleranz (Wirkstoff, Krankheitsbild, Alltagswort) – findet z. B. „Adrenalien“, „Unterzucker“, „Krampf“",
+  "Neu: Reanimation Erwachsene (nach RCUK/ERC-Leitlinien 2025) und Reanimation Kind mit Gewichts-Rechner für Adrenalin, Amiodaron und Schockenergie",
+  "Neu: 25 Notfallmedikamente nach der Liste des ÄLRD Bayern (§ 2a NotSanG, Version 1.4): wofür, Ampulle, Dosierung Erwachsene und Kinder, Menge in ml mit Spritzen-Grafik, Kinder-Dosis nach Gewicht",
+  "Adrenalin für Kinder: Verdünnen als Bild (1 ml Adrenalin + 9 ml NaCl)"]},
  {v:"6.0",d:"14.10.2026",items:[
   "Der PZC-Code steht dicker und in der Farbe der gewählten BD: BD1 rot, BD2 gelb, BD3 grün – unten in der schwarzen Leiste, im Fenster nach der PZC-Auswahl (Code und Titel) sowie oben in der Anmeldung und der Zusammenfassung",
   "Gleiche Reihenfolge überall: Foto Karte/Ausweis → Alter → Geschlecht → PZC/BD (auch im Fenster nach der PZC-Auswahl)"]},
@@ -1845,6 +1860,213 @@ $("modal").addEventListener("click",e=>{
   if(e.target.id==="srClose")closeModal();
 });
 
+/* ---- Nachschlagen: Reanimation + Notfallmedikamente ----
+   Quellen stehen auf jeder Karte. Medikamente: ÄLRD Bayern „Medikamente nach § 2a NotSanG“ v1.4 (02.07.2024).
+   Reanimation: Resuscitation Council UK / ERC-Leitlinien 2025 (Erwachsene) und RCUK-Algorithmus Paediatric ALS 2025 (Kinder). */
+const NK_MED_SRC="ÄLRD Bayern · „Medikamente zur Anwendung nach § 2a NotSanG“ · Version 1.4 · freigegeben 02.07.2024 · laut Dokument gültig bis 30.06.2025";
+const NK_REA_E_SRC="Resuscitation Council UK · Adult advanced life support guidelines (27.10.2025, basierend auf den ERC-Leitlinien 2025) · Rate und Tiefe: RCUK Adult basic life support guidelines 2025 · Medikamentendosen Bayern: ÄLRD-Liste v1.4";
+const NK_REA_K_SRC="Resuscitation Council UK · Paediatric advanced life support algorithm 2025 (Stand 11/2025, basierend auf den ERC-Leitlinien 2025) · Bayern: ÄLRD-Liste v1.4 verweist für Kinder auf die DIVI-Kindernotfallkarte";
+const nkF=n=>{if(!isFinite(n))return "–";const a=Math.abs(n);const v=a>=100?Math.round(n):a>=10?Math.round(n*10)/10:a>=1?Math.round(n*100)/100:Math.round(n*1000)/1000;return String(v).replace(".",",")};
+
+/* Spritze zeichnen: Menge in ml (oder mehrere Teile für Verdünnung) */
+function syrSVG(ml,parts){
+  const total=parts?parts.reduce((a,p)=>a+p.v,0):ml;
+  if(!(total>0)||total>50)return "";
+  const sizes=[1,2,5,10,20,50],cap=sizes.find(s=>s>=total-1e-9)||50;
+  const x0=44,x1=250,y=26,h=28,len=x1-x0,minor=cap<=1?.1:cap<=2?.2:cap<=5?.5:cap<=10?1:cap<=20?2:5;
+  const fw=Math.max(3,len*total/cap),px=x1-fw;
+  let s=`<svg viewBox="0 0 300 92" width="100%" style="max-width:360px;display:block" role="img" aria-label="Spritze ${nkF(total)} ml">`;
+  s+=`<rect x="${x1}" y="${y+h/2-3}" width="22" height="6" fill="none" stroke="currentColor" stroke-width="1.5"/>`;
+  if(parts){let cx=x1;parts.forEach((p,i)=>{const w=Math.max(2,len*p.v/cap);cx-=w;s+=`<rect x="${cx}" y="${y+1}" width="${w}" height="${h-2}" fill="${i?"#9aa3ad":"var(--accent)"}" opacity="${i?".45":".55"}"/>`})}
+  else s+=`<rect x="${px}" y="${y+1}" width="${fw}" height="${h-2}" fill="var(--accent)" opacity=".55"/>`;
+  s+=`<rect x="${x0}" y="${y}" width="${len}" height="${h}" fill="none" stroke="currentColor" stroke-width="2" rx="2"/>`;
+  s+=`<line x1="${px}" y1="${y-4}" x2="${px}" y2="${y+h+4}" stroke="currentColor" stroke-width="3"/><line x1="${px}" y1="${y+h/2}" x2="${x0-26}" y2="${y+h/2}" stroke="currentColor" stroke-width="3"/><line x1="${x0-26}" y1="${y+h/2-9}" x2="${x0-26}" y2="${y+h/2+9}" stroke="currentColor" stroke-width="3"/>`;
+  for(let v=0;v<=cap+1e-9;v+=minor){const x=x1-len*v/cap,major=Math.abs(v-Math.round(v/(cap/2))*(cap/2))<1e-6;s+=`<line x1="${x}" y1="${y+h}" x2="${x}" y2="${y+h+(major?9:5)}" stroke="currentColor" stroke-width="1"/>`;if(major)s+=`<text x="${x}" y="${y+h+22}" font-size="11" text-anchor="middle" fill="currentColor">${nkF(v)}</text>`}
+  s+=`<text x="${Math.min(Math.max(px,60),x1-10)}" y="${y-9}" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor">${nkF(total)} ml</text>`;
+  s+=`<text x="${x1+30}" y="${y+h+22}" font-size="10" fill="currentColor">ml</text></svg>`;
+  return `<div class="nksyr">${s}${parts?`<div class="nkcap">${parts.map(p=>esc(p.l)).join(" + ")}</div>`:""}</div>`;
+}
+
+/* ---- Medikamente (wörtlich nach ÄLRD-Liste; Mengen in ml sind rechnerisch aus der Ampullenstärke) ---- */
+const NK_MED=[
+ {id:"adr_rea",n:"Adrenalin (Epinephrin) – Reanimation",hay:"adrenalin epinephrin suprarenin reanimation herzstillstand kreislaufstillstand cpr rea defibrillation asystolie kammerflimmern",ind:"Kreislaufstillstand",amp:"Stechampulle 25 mg / 25 ml = 1 mg/ml",conc:1,u:"mg",kconc:.1,
+  erw:[["nicht defibrillierbar: 1 mg i.v. (i.o.) sobald möglich",1],["defibrillierbar: 1 mg i.v. (i.o.) nach 3. Defibrillation",1],["Repetition alle 3–5 Minuten unter ALS"]],
+  kind:[["nicht defibrillierbar: 0,01 mg/kg KG i.v. (i.o.) sobald möglich",null,.01,1],["defibrillierbar: 0,01 mg/kg KG i.v. (i.o.) nach 3. Defibrillation",null,.01,1],["Repetition i.v. (i.o.) alle 3–5 Minuten unter ALS"]],
+  dil:{t:"Für Kinder verdünnen: 1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann gilt 0,1 ml pro kg KG. Einzeldosis höchstens 1 mg.",parts:[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}],src:"Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0), Maximaldosis: RCUK Paediatric ALS 2025 – bitte mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen"}},
+ {id:"adr_ana",n:"Adrenalin (Epinephrin) – anaphylaktischer Schock",hay:"adrenalin epinephrin anaphylaxie anaphylaktischer schock allergie allergisch allergische reaktion intramuskulär",ind:"anaphylaktischer Schock",amp:"Ampulle 1 mg / 1 ml = 1 mg/ml",conc:1,u:"mg",
+  erw:[["0,5 mg i.m.",.5],["Repetition (i.m.) nach 5 Minuten bei ausbleibender Wirkung"]],
+  kind:[["0,01 mg/kg KG i.m.",null,.01],["Repetition (i.m.) nach 5–10 Minuten bei ausbleibender Wirkung"]]},
+ {id:"adr_inh",n:"Adrenalin (Epinephrin) – Inhalation (Pseudokrupp, Ödem obere Atemwege)",hay:"adrenalin epinephrin inhalation pseudokrupp krupp stridor larynx laryngotracheitis ödem schwellung atemweg kehlkopf",ind:"kritische akute stenosierende Laryngotracheitis (Pseudokrupp), kritische Schwellung/Ödem der oberen Atemwege – zur Inhalation",amp:"Stechampulle 25 mg / 25 ml = 1 mg/ml",conc:1,u:"mg",
+  erw:[["5 mg (5 ml) zur Inhalation",5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
+  kind:[["5 mg (5 ml) zur Inhalation",5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]]},
+ {id:"amio",n:"Amiodaron",hay:"amiodaron cordarex kammerflimmern pulslose ventrikuläre tachykardie vf pvt reanimation rea schockbar",ind:"Kammerflimmern / pulslose ventrikuläre Tachykardie",amp:"Ampulle 150 mg / 3 ml = 50 mg/ml",conc:50,u:"mg",
+  erw:[["nach 3. Defibrillation 300 mg i.v. (i.o.)",300],["nach 5. Defibrillation 150 mg i.v. (i.o.)",150]],
+  kind:[["nach 3. Defibrillation 5 mg/kg KG (max. 300 mg) i.v. (i.o.)",null,5,300],["nach 5. Defibrillation 5 mg/kg KG (max. 150 mg) i.v. (i.o.)",null,5,150]]},
+ {id:"atropin",n:"Atropin",hay:"atropin atropinsulfat bradykardie langsamer puls herzfrequenz niedrig",ind:"lebensbedrohliche Bradykardie",amp:"Ampulle 0,5 mg / 1 ml = 0,5 mg/ml",conc:.5,u:"mg",
+  erw:[["initial 0,5 mg Atropin i.v. (i.o.)",.5],["ggf. Wiederholung alle 3–5 Minuten bis maximal 3 mg"]],
+  kind:[["0,01 mg/kg KG i.v. (i.o.), max. 0,5 mg",null,.01,.5]]},
+ {id:"cafedrin",n:"Cafedrin / Theodrenalin",hay:"cafedrin theodrenalin akrinor hypotension blutdruck niedrig kreislauf",ind:"kritische Hypotension trotz adäquater bzw. mit Kontraindikation für i.v.-Flüssigkeitsgabe",amp:"Ampulle 200/10 mg / 2 ml",conc:null,u:"ml",
+  erw:[["initial 0,5 ml i.v. (i.o.)",null,null,null,.5],["ggf. Repetition alle 5 Minuten bis max. 4 ml (2 Amp.)"]],
+  kind:[["Kinder: keine Zulassung"]],cave:"CAVE: Konzept der permissiven Hypotension bei aktiver Blutung!"},
+ {id:"diazepam",n:"Diazepam rektal",hay:"diazepam rektiole krampf krampfanfall fieberkrampf kind rektal",ind:"prolongierter kindlicher Krampfanfall (> 3 min)",amp:"Rectiole 5 mg",conc:null,u:"mg",
+  erw:[["nur Kinder"]],kind:[["Kinder < 15 kg KG: 5 mg rektal"],["Kinder ≥ 15 kg KG: 10 mg rektal, bzw. siehe Midazolam"],["keine Repetition (siehe Midazolam)"]]},
+ {id:"esketamin",n:"Esketamin – intranasal (Kinder)",hay:"esketamin ketamin schmerz schmerzen kind nasal intranasal analgesie",ind:"kritischer Schmerzzustand Kinder bis 11 Jahre – intranasale Applikation",amp:"Ampulle 50 mg / 2 ml = 25 mg/ml",conc:25,u:"mg",
+  erw:[["nur Kinder bis 11 Jahre"]],kind:[["2 mg/kg KG intranasal",null,2],["ggf. Repetition der Hälfte der Initialdosis nach 10 Minuten"]],ref:"siehe DIVI-Kindernotfallkarte"},
+ {id:"fentanyl",n:"Fentanyl",hay:"fentanyl schmerz schmerzen opioid analgesie nasal intranasal btm",ind:"kritischer Schmerzzustand (außer bei akutem Koronarsyndrom) · Kinder ab 12 Jahre intranasal",amp:"Ampulle 0,5 mg / 10 ml = 0,05 mg/ml",conc:.05,u:"mg",
+  erw:[["nur Erwachsene und Kinder ab 12 Jahre: unverdünnte Einzeldosis von 0,05 mg i.v. (i.o.)",.05],["ggf. Repetition nach 5 Minuten bis maximal 0,2 mg"]],
+  kind:[["Kinder ab 12 Jahre intranasal: 0,002 mg/kg KG",null,.002],["ggf. Repetition der Hälfte der Initialdosis nach 10 Minuten"]],ref:"siehe DIVI-Kindernotfallkarte (intranasal)",btm:1},
+ {id:"flumazenil",n:"Flumazenil",hay:"flumazenil anexate benzodiazepin überdosis intoxikation vergiftung antidot",ind:"kritische Benzodiazepin-Überdosierung/-Intoxikation",amp:"Ampulle 0,5 mg / 5 ml = 0,1 mg/ml",conc:.1,u:"mg",
+  erw:[["0,2 mg i.v. (i.o.)",.2],["ggf. Repetition nach 1 Minute bis maximal 1 mg"]],
+  kind:[["Kinder ab 1 Jahr: 0,01 mg/kg KG (max. 0,2 mg) langsam i.v. (i.o.)",null,.01,.2],["ggf. Repetition nach 1 Min. bis Gesamtdosis von 0,05 mg/kg KG (max. 1 mg)"]]},
+ {id:"glucose",n:"Glucose 40 %",hay:"glucose glukose zucker unterzucker hypoglykämie dextrose traubenzucker bz",ind:"kritische Hypoglykämie",amp:"Ampulle 4,0 g / 10 ml = 0,4 g/ml (40 %)",conc:.4,u:"g",
+  erw:[["initial 12 g langsam i.v. (i.o.) zu laufender Infusion",12],["weitere 8 g i.v. nach Patientenzustand",8]],
+  kind:[["200 mg/kg KG i.v. (i.o.)",null,.2]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Bei V. a. chronischen Alkoholabusus: Thiamin vor dem Hypoglykämie-Ausgleich!"},
+ {id:"ipra",n:"Ipratropiumbromid",hay:"ipratropium atrovent asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Inhalationslösung 0,5 mg / 2 ml = 0,25 mg/ml",conc:.25,u:"mg",
+  erw:[["0,5 mg (2,0 ml) zur Inhalation",.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
+  kind:[["0,25 mg (1,0 ml) zur Inhalation",.25],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],hint:"Restmenge der verwendeten Verneblungsmaske beachten!"},
+ {id:"midaz_iv",n:"Midazolam – intravenös",hay:"midazolam dormicum krampf krampfanfall status epilepticus epilepsie iv intravenös",ind:"generalisierter Status epilepticus – intravenöse Applikation (in der Regel nur, wenn i.v.-Zugang bei Krampfbeginn bereits etabliert)",amp:"Ampulle 5 mg / 5 ml = 1 mg/ml",conc:1,u:"mg",
+  erw:[["initial 5 mg",5],["einmalige Repetition bei Krampfpersistenz"]],kind:[["0,1 mg/kg KG i.v. (i.o.)",null,.1]],ref:"siehe DIVI-Kindernotfallkarte"},
+ {id:"midaz_in",n:"Midazolam – intranasal",hay:"midazolam dormicum krampf krampfanfall status epilepticus epilepsie nasal intranasal",ind:"generalisierter Status epilepticus – intranasale Applikation",amp:"Ampulle 15 mg / 3 ml = 5 mg/ml",conc:5,u:"mg",
+  erw:[["10 mg intranasal",10],["einmalige Repetition bei Krampfpersistenz nach frühestens 5 Minuten"]],kind:[["0,3 mg/kg KG intranasal",null,.3]],ref:"siehe DIVI-Kindernotfallkarte"},
+ {id:"morphin",n:"Morphin",hay:"morphin schmerz schmerzen herzinfarkt acs koronarsyndrom opioid btm",ind:"kritischer Schmerzzustand bei akutem Koronarsyndrom",amp:"Ampulle 10 mg / 1 ml = 10 mg/ml",conc:10,u:"mg",
+  erw:[["nur Erwachsene: 1–2 mg i.v. (i.o.)",1],["Repetition nach frühestens 5 Minuten bis maximal 5 mg"]],kind:[["nur Erwachsene"]],btm:1},
+ {id:"naloxon",n:"Naloxon nasal",hay:"naloxon nyxoid opiat opioid überdosis heroin atemdepression antidot intoxikation nasal",ind:"kritische Opiat-Überdosierung/-Intoxikation",amp:"Einzeldosis nasal 2 × 1,8 mg",conc:null,u:"mg",
+  erw:[["Anwendung zugelassen ab 14. Lebensjahr: 1,8 mg intranasal"],["Repetition nach 2–3 Minuten oder bei Symptomrückkehr"]],kind:[["zugelassen ab 14. Lebensjahr"]]},
+ {id:"oxymeta",n:"Oxymetazolin 0,05 % Nasenspray",hay:"oxymetazolin nasenbluten epistaxis nasenspray nase blutung",ind:"kritische Epistaxis",amp:"Nasenspray 0,5 mg/ml",conc:null,u:"mg",
+  erw:[["nur Erwachsene/Adoleszente > 50 kg KG: 2–6 Sprühstöße in jedes betroffene Nasenloch"],["keine Repetition"]],kind:[["nur Erwachsene/Adoleszente > 50 kg KG"]]},
+ {id:"oxytocin",n:"Oxytocin",hay:"oxytocin syntocinon geburt nachblutung postpartale blutung atonie gebärmutter",ind:"kritische postpartale Blutung",amp:"Ampulle 3 IE / 1 ml",conc:3,u:"IE",
+  erw:[["3 IE langsam i.v. (i.o.)",3],["einmalige Repetition nach frühestens 5 Minuten"]],kind:[["–"]]},
+ {id:"piritramid",n:"Piritramid",hay:"piritramid dipidolor schmerz schmerzen opioid analgesie btm",ind:"kritischer Schmerzzustand (außer bei akutem Koronarsyndrom)",amp:"Ampulle 7,5 mg / 1 ml",conc:7.5,u:"mg",
+  erw:[["nur Erwachsene/Adoleszente > 50 kg KG: 7,5 mg als Kurzinfusion in 100 ml NaCl 0,9 % i.v. (i.o.) über mind. 5 Minuten",7.5],["ggf. Repetition nach 10 Minuten"]],kind:[["nur Erwachsene/Adoleszente > 50 kg KG"]],btm:1},
+ {id:"prednison",n:"Prednison rektal",hay:"prednison rektal pseudokrupp krupp spastische bronchitis kind kortison zäpfchen suppositorium",ind:"kritische akute stenosierende Laryngotracheitis (Pseudokrupp), kritische spastische Bronchitis – nur Kinder",amp:"Suppositorium 100 mg",conc:null,u:"mg",
+  erw:[["nur Kinder"]],kind:[["100 mg rektal (alters-/gewichtsunabhängig)"]],ref:"siehe DIVI-Kindernotfallkarte"},
+ {id:"salbu",n:"Salbutamol",hay:"salbutamol sultanol asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Inhalationslösung 1,25 mg / 2,5 ml = 0,5 mg/ml",conc:.5,u:"mg",
+  erw:[["2,5 mg (5 ml) initial zur Inhalation",2.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
+  kind:[["2,5 mg (5 ml) zur Inhalation",2.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Restmenge der verwendeten Verneblungsmaske beachten!"},
+ {id:"o2",n:"Sauerstoff",hay:"sauerstoff o2 hypoxie sättigung atemnot beatmung",ind:"kritische Hypoxie",amp:"inhalativ",conc:null,u:"",
+  erw:[["15 l/min über Maske"],["CPR: höchstmögliche inspiratorische Sauerstoffkonzentration"]],kind:[["15 l/min über Maske"],["CPR: höchstmögliche inspiratorische Sauerstoffkonzentration"]]},
+ {id:"thiamin",n:"Thiamin (Vitamin B1)",hay:"thiamin vitamin b1 alkohol alkoholiker krampf unterzucker hypoglykämie",ind:"V. a. alkoholinduzierter, generalisierter Status epilepticus · kritische Hypoglykämie bei V. a. chron. Alkoholabusus",amp:"Ampulle 100 mg / 2 ml",conc:50,u:"mg",
+  erw:[["100 mg als Kurzinfusion in 100 ml NaCl 0,9 % i.v. (i.o.)",100]],kind:[["–"]],hint:"Thiamin-Gabe unmittelbar nach Krampfdurchbrechung. Bei Hypoglykämie: Thiamin vor dem Hypoglykämie-Ausgleich!"},
+ {id:"urapidil",n:"Urapidil",hay:"urapidil ebrantil hypertensiver notfall blutdruck hoch hypertonie krise",ind:"hypertensiver Notfall",amp:"Ampulle 50 mg / 10 ml = 5 mg/ml",conc:5,u:"mg",
+  erw:[["nur Erwachsene: initial 5 mg i.v. (i.o.)",5],["Repetition frühestens nach 5 Minuten"],["Senkung nach Symptomatik, max. um 25 % des Ausgangswertes RRsyst."]],kind:[["nur Erwachsene"]]},
+ {id:"elyt",n:"Balancierte Elektrolytlösung",hay:"balancierte elektrolytlösung infusion volumen vollelektrolyt jonosteril sterofundin ringer volumenmangel flüssigkeit",ind:"Träger-Infusionslösung zur i.v.-Medikamentenapplikation · Flüssigkeitsersatz bei kritischem Volumenmangel",amp:"Infusionslösung 500 ml (Acetat/Malat)",conc:null,u:"",
+  erw:[["nach Bedarf"]],kind:[["nach Bedarf"]],cave:"CAVE: Konzept der permissiven Hypotension bei aktiver Blutung!"}
+].sort((a,b)=>a.n.localeCompare(b.n,"de"));
+
+const NK_CARDS=[
+ {id:"rea_e",n:"Reanimation Erwachsene",sub:"ALS-Ablauf, Schock, Medikamente",hay:"reanimation erwachsene erwachsener cpr herzdruckmassage herzstillstand kreislaufstillstand als algorithmus defibrillation schock rea compressions"},
+ {id:"rea_k",n:"Reanimation Kind",sub:"mit Gewichts-Rechner",hay:"reanimation kind kinder baby säugling pädiatrisch kinderreanimation pals cpr gewicht kg herzstillstand"},
+ {id:"schock",n:"Schockraum-Indikation",sub:"Trauma · Non-Trauma",hay:"schockraum indikation trauma non trauma polytrauma kriterien"}
+];
+let nkKg="",nkCur="";
+
+function nkDoseHTML(m,kind){
+  const kg=parseFloat(String(nkKg).replace(",","."));
+  const lines=kind?m.kind:m.erw,conc=kind&&m.kconc?m.kconc:m.conc;
+  let h="";
+  lines.forEach(l=>{
+    const [t,d,pk,mx,ml0]=l;
+    h+=`<div class="nkd"><div>${esc(t)}</div>`;
+    if(kind&&pk!=null){
+      if(kg>0){let dose=pk*kg;if(mx!=null&&dose>mx)dose=mx;
+        h+=`<div class="nkr"><b>${nkF(kg)} kg → ${nkF(dose)} ${m.u}${mx!=null&&pk*kg>mx?" (Höchstdosis)":""}</b>${conc?` · ${nkF(dose/conc)} ml`:""}</div>${conc?syrSVG(dose/conc):""}`}
+      else h+=`<div class="nkr nkmute">Gewicht eingeben → Menge in mg und ml</div>`}
+    else if(d!=null&&conc){h+=`<div class="nkr">= <b>${nkF(d/conc)} ml</b> aus der Ampulle</div>${syrSVG(d/conc)}`}
+    else if(ml0!=null){h+=`<div class="nkr"><b>${nkF(ml0)} ml</b></div>${syrSVG(ml0)}`}
+    h+="</div>";
+  });
+  return h;
+}
+function nkMedHTML(m){
+  const hasKg=m.kind.some(l=>l[2]!=null);
+  const dil=m.dil?`<div class="nkbox"><b>Aufziehen / Verdünnen (Kinder)</b><div style="margin:4px 0 6px">${esc(m.dil.t)}</div>${syrSVG(0,m.dil.parts)}<div class="nkmute" style="font-size:12px">${esc(m.dil.src)}</div></div>`:"";
+  return `<h2 style="padding-right:54px">${esc(m.n)}</h2>
+  <div class="nkbox"><b>Wann / wofür</b><div>${esc(m.ind)}</div></div>
+  <div class="nkbox"><b>Ampulle</b><div>${esc(m.amp)}</div>${m.btm?'<div class="nkmute">Betäubungsmittel – § 13 Abs. 1b BtMG beachten</div>':""}</div>
+  ${m.cave?`<div class="warnbox">${esc(m.cave)}</div>`:""}${m.hint?`<div class="warnbox">${esc(m.hint)}</div>`:""}
+  <h3>Erwachsene und Adoleszente</h3><div id="nkE">${nkDoseHTML(m,false)}</div>
+  <h3>Kinder${m.ref?` <span class="nkmute" style="font-weight:400;font-size:13px">(${esc(m.ref)})</span>`:""}</h3>
+  ${hasKg?`<div class="fld" style="margin:0 0 8px"><label>Gewicht des Kindes in kg</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>`:""}
+  <div id="nkK">${nkDoseHTML(m,true)}</div>${dil}
+  <div class="warn">Quelle: ${esc(NK_MED_SRC)}. Mengen in ml sind aus der Ampullenstärke berechnet. Aktuelle Fassung und die Vorgaben der Leitstelle / des ÄLRD prüfen.</div>`;
+}
+function nkReaEHTML(){
+  return `<h2 style="padding-right:54px">Reanimation Erwachsene</h2>
+  <h3>Grundlagen</h3><ul><li>Thoraxkompression: <b>100–120 pro Minute</b>, Tiefe <b>5–6 cm</b></li><li>Kompression : Beatmung <b>30 : 2</b></li><li>Mit Tubus oder Larynxmaske: Beatmung <b>10 pro Minute</b>, Kompressionen ohne Pause. Bei Leckage der Larynxmaske für die Beatmung pausieren (30 : 2)</li><li>Unterbrechungen der Kompression so kurz wie möglich (Schock: unter 5 s)</li><li>Defi-Pads: die laterale (apikale) Elektrode unter die Achsel, mittlere Axillarlinie</li></ul>
+  <h3>Schockbarer Rhythmus (VF / pulslose VT)</h3><ul><li>1. Schock: biphasisch mindestens <b>150 J</b> (gepulst biphasisch 130–150 J); weitere Schocks ggf. höher. Kennt man das Gerät nicht: höchste Energiestufe</li><li><b>Adrenalin 1 mg</b> i.v./i.o. nach dem <b>3. Schock</b>, dann alle 3–5 min</li><li><b>Amiodaron 300 mg</b> nach dem 3. Schock, <b>150 mg</b> nach dem 5. Schock</li><li>Alternative: Lidocain 100 mg, zusätzlich 50 mg nach dem 5. Schock</li></ul>
+  <h3>Nicht schockbarer Rhythmus (Asystolie / PEA)</h3><ul><li><b>Adrenalin 1 mg</b> i.v./i.o. <b>so früh wie möglich</b>, dann alle 3–5 min</li></ul>
+  <div id="nkAd"><h3>Aufziehen</h3>${syrSVG(1)}<div class="nkcap">Adrenalin 1 mg = 1 ml (Stechampulle 25 mg / 25 ml)</div>${syrSVG(6)}<div class="nkcap">Amiodaron 300 mg = 6 ml (150 mg / 3 ml = 50 mg/ml)</div>${syrSVG(3)}<div class="nkcap">Amiodaron 150 mg = 3 ml</div></div>
+  <h3>Atemweg</h3><ul><li>Intubation nur durch Anwender mit hoher Erfolgsrate (über 95 % in zwei Versuchen) und mit Kapnographie; Unterbrechung der Kompression unter 5 s</li><li>Videolaryngoskopie bevorzugen, wenn verfügbar</li><li>Tubuslage nur sicher mit anhaltender Kapnographie-Kurve; Anstieg von ETCO₂ kann ROSC anzeigen</li></ul>
+  <h3>Reversible Ursachen</h3><ul><li>Hypoxie</li><li>Hypovolämie</li><li>Metabolisch: Kalium, Calcium, Magnesium, Hypoglykämie</li><li>Hypo-/Hyperthermie</li><li>Thrombose (Herzinfarkt / Lungenembolie)</li><li>Spannungspneumothorax</li><li>Herzbeuteltamponade</li><li>Toxine</li></ul>
+  <h3>Sonstiges</h3><ul><li>Flüssigkeit nur bei Hypovolämie als Ursache</li><li>Calcium, Natriumbicarbonat und Kortikosteroide nicht routinemäßig</li><li>Lungenembolie vermutet: Lyse erwägen</li></ul>
+  <div class="warn">Quelle: ${esc(NK_REA_E_SRC)}. Eingabehilfe – es gelten die Vorgaben der Leitstelle / des ÄLRD.</div>`;
+}
+function nkReaKHTML(){
+  const kg=parseFloat(String(nkKg).replace(",","."));
+  const calc=kg>0?(()=>{const adr=Math.min(.01*kg,1),am1=Math.min(5*kg,300),am2=Math.min(5*kg,150),s4=4*kg,s8=Math.min(8*kg,360);
+    return `<div class="nkd"><b>Adrenalin</b> 0,01 mg/kg = <b>${nkF(adr)} mg</b> = <b>${nkF(adr/.1)} ml</b> der verdünnten Lösung (0,1 mg/ml)${.01*kg>1?" · Höchstdosis 1 mg":""}${syrSVG(adr/.1)}</div>
+    <div class="nkd"><b>Amiodaron</b> 5 mg/kg nach 3. Schock = <b>${nkF(am1)} mg</b> = <b>${nkF(am1/50)} ml</b> (50 mg/ml)${5*kg>300?" · Höchstdosis 300 mg":""}${syrSVG(am1/50)}<div class="nkr">nach 5. Schock: <b>${nkF(am2)} mg</b> = <b>${nkF(am2/50)} ml</b>${5*kg>150?" · Höchstdosis 150 mg":""}</div></div>
+    <div class="nkd"><b>Schock</b> 1. Schock 4 J/kg = <b>${nkF(s4)} J</b>; ab dem 5. Schock schrittweise bis 8 J/kg = <b>${nkF(s8)} J</b> (max. 360 J)</div>`})():`<div class="nkr nkmute">Gewicht eingeben → Adrenalin, Amiodaron und Schockenergie</div>`;
+  return `<h2 style="padding-right:54px">Reanimation Kind</h2>
+  <div class="fld" style="margin:0 0 8px"><label>Gewicht des Kindes in kg</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>
+  <div id="nkK">${calc}</div>
+  <div class="nkbox"><b>Adrenalin aufziehen</b><div style="margin:4px 0 6px">1 ml Adrenalin (1 mg) + 9 ml NaCl 0,9 % = 10 ml mit 0,1 mg/ml. Dann <b>0,1 ml pro kg</b>.</div>${syrSVG(0,[{v:1,l:"1 ml Adrenalin (1 mg)"},{v:9,l:"9 ml NaCl 0,9 %"}])}<div class="nkmute" style="font-size:12px">Verdünnung: Nerdfallmedizin (M. Fandler, CC BY-NC 4.0) – mit lokaler SOP / DIVI-Kindernotfallkarte abgleichen</div></div>
+  <div class="nkbox"><b>Amiodaron</b><div>unverdünnt aus der Ampulle 150 mg / 3 ml (50 mg/ml): 5 mg/kg = <b>0,1 ml pro kg</b></div></div>
+  <h3>Ablauf</h3><ul><li>Kein Lebenszeichen oder Bradykardie unter 60/min mit schlechter Durchblutung: Reanimation beginnen</li><li>Kompression : Beatmung <b>15 : 2</b>; Beutel-Masken-Beatmung mit 100 % Sauerstoff (2-Helfer-Methode)</li><li>Defibrillator anschließen, Rhythmus beurteilen, Pausen minimieren</li><li>Gefäßzugang i.v. oder i.o.</li><li>Kapnographie nutzen</li></ul>
+  <h3>Schockbar (VF / pulslose VT)</h3><ul><li>1. Schock <b>4 J/kg</b>; ab dem 5. Schock schrittweise auf <b>8 J/kg</b> (max. 360 J)</li><li>Nach dem 3. Schock: Adrenalin 10 µg/kg (= 0,01 mg/kg) <b>und</b> Amiodaron 5 mg/kg; Amiodaron nach dem 5. Schock noch einmal 5 mg/kg</li><li>Danach Adrenalin alle 3–5 min</li></ul>
+  <h3>Nicht schockbar (PEA / Asystolie / Bradykardie)</h3><ul><li>Adrenalin 10 µg/kg (= 0,01 mg/kg) <b>so früh wie möglich</b>, dann alle 3–5 min</li></ul>
+  <h3>Höchstdosen</h3><ul><li>Adrenalin: einzeln höchstens 1 mg</li><li>Amiodaron: höchstens 300 mg nach dem 3. Schock, 150 mg nach dem 5. Schock</li></ul>
+  <h3>Beatmungsfrequenz mit Tubus / Larynxmaske (Kompression ohne Pause)</h3><ul><li>Säugling: <b>25</b>/min · 1–8 Jahre: <b>20</b>/min · 8–12 Jahre: <b>15</b>/min · über 12 Jahre: <b>10</b>/min</li></ul>
+  <h3>Reversible Ursachen</h3><ul><li>Hypoxie · Hypovolämie · Elektrolyte / Hypoglykämie · Hypo-/Hyperthermie · Thrombose · Spannungspneumothorax · Tamponade · Toxine</li></ul>
+  <h3>Nach ROSC</h3><ul><li>ABCDE-Beurteilung; SpO₂ 94–98 %, normaler PaCO₂</li><li>Blutdruck über der 10. Perzentile halten</li><li>Hypothermie vermeiden, Blutzucker kontrollieren, Ursache behandeln</li></ul>
+  <div class="warn">Quelle: ${esc(NK_REA_K_SRC)}. Die Bayerische Liste nennt für Kinder die DIVI-Kindernotfallkarte. Eingabehilfe – Gewicht und Dosis immer gegenprüfen.</div>`;
+}
+const nkXBtn='<div style="position:sticky;top:-8px;height:0;z-index:5;text-align:right"><button class="srx" id="nkClose" aria-label="Schließen">✕</button></div>';
+function nkOpen(id){
+  nkCur=id;
+  if(id==="schock"){openSR("trauma");return}
+  const m=NK_MED.find(x=>x.id===id);
+  openModal(nkXBtn+(id==="rea_e"?nkReaEHTML():id==="rea_k"?nkReaKHTML():m?nkMedHTML(m):""));
+  $("modal").classList.add("big");$("modal").scrollTop=0;
+}
+$("modal").addEventListener("input",e=>{
+  if(e.target.id!=="nkKg")return;
+  nkKg=e.target.value;
+  if(nkCur==="rea_k"){const y=$("modal").scrollTop,hold=e.target.selectionStart;$("modal").innerHTML=nkXBtn+nkReaKHTML();const k=$("nkKg");k.focus();try{k.setSelectionRange(hold,hold)}catch(_){}$("modal").scrollTop=y}
+  else{const m=NK_MED.find(x=>x.id===nkCur);if(m&&$("nkK"))$("nkK").innerHTML=nkDoseHTML(m,true)}
+});
+$("modal").addEventListener("click",e=>{if(e.target.id==="nkClose")closeModal()});
+
+/* Suche mit Tippfehler-Toleranz */
+const nkIndex=[...NK_CARDS.map(c=>({id:c.id,n:c.n,sub:c.sub,hay:c.hay})),...NK_MED.map(m=>({id:m.id,n:m.n,sub:m.ind.length>60?m.ind.slice(0,58)+"…":m.ind,hay:m.n+" "+m.hay+" "+m.ind}))].map(c=>({...c,tok:[...new Set(fold(c.hay).split(" ").filter(w=>w.length>1))]}));
+function nkMatch(qt,tok){
+  let best=0;
+  for(const h of tok){
+    if(h===qt)return 3;
+    if(h.startsWith(qt)&&qt.length>=2)best=Math.max(best,2.5);
+    else if(qt.length>=3&&h.includes(qt))best=Math.max(best,1.5);
+    else if(qt.length>=4){const d=lev(qt,h.length>qt.length+1?h.slice(0,qt.length+1):h),lim=qt.length>=8?2:1;if(d<=lim)best=Math.max(best,2-d*.3)}
+  }
+  return best;
+}
+function nkSearch(q){
+  const qs=fold(q).split(" ").filter(Boolean);
+  if(!qs.length)return null;
+  let r=nkIndex.map(c=>{const s=qs.map(t=>nkMatch(t,c.tok));return {c,all:s.every(x=>x>0),sum:s.reduce((a,b)=>a+b,0),any:s.some(x=>x>0)}});
+  let hit=r.filter(x=>x.all);if(!hit.length)hit=r.filter(x=>x.any);
+  return hit.sort((a,b)=>b.sum-a.sum).slice(0,12).map(x=>x.c);
+}
+function nkRender(){
+  const q=$("nkQ").value,res=nkSearch(q);
+  const tile=c=>`<button class="tile" data-nk="${c.id}" style="--c:#378ADD"><b>${esc(c.n)}</b><small>${esc(c.sub||"")}</small></button>`;
+  if(res===null){
+    $("nkRes").innerHTML=`<div class="tiles">${NK_CARDS.map(tile).join("")}</div><div class="lbl" style="margin-top:16px">Medikamente A–Z</div><div class="nklist">${NK_MED.map(m=>`<button class="nkrow" data-nk="${m.id}"><b>${esc(m.n)}</b><small>${esc(m.ind.length>70?m.ind.slice(0,68)+"…":m.ind)}</small></button>`).join("")}</div>`;
+  }else $("nkRes").innerHTML=res.length?`<div class="nklist">${res.map(c=>`<button class="nkrow" data-nk="${c.id}"><b>${esc(c.n)}</b><small>${esc(c.sub||"")}</small></button>`).join("")}</div>`:'<div class="warn">Nichts gefunden – anderes Wort versuchen (z. B. Wirkstoff, Krankheitsbild oder „Reanimation“).</div>';
+}
+$("nkQ").addEventListener("input",nkRender);
+$("nachView").addEventListener("click",e=>{const b=e.target.closest("[data-nk]");if(b)nkOpen(b.dataset.nk)});
+nkRender();
+
 /* ---- Karte / Ausweis scannen: Texterkennung läuft komplett im Gerät, Foto wird nicht gespeichert ---- */
 const closeModal=()=>{$("mscrim").classList.remove("open");$("modal").classList.remove("big")};
 const openModal=h=>{$("modal").innerHTML=h;$("mscrim").classList.add("open")};
@@ -2555,7 +2777,6 @@ $("nameView").addEventListener("input",e=>{
   nvSpellRender();syncNames();
 });
 $("tabNach").onclick=()=>{window.scrollTo(0,0);push({v:"nach"})};
-$("nvaSR").onclick=()=>openSR("trauma");
 $("tabName").onclick=()=>{window.scrollTo(0,0);push({v:"name"})};
 $("nvSave").onclick=()=>{
   const a=load(),nm=[state.nachname.trim(),state.vorname.trim()].filter(Boolean).join(", ");
