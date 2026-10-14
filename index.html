@@ -16,7 +16,7 @@
 :root{
   --bg:#f3f4f6; --card:#fff; --ink:#111418; --mute:#5b6470; --line:#dfe3e8;
   --d1:#d92d20; --d2:#f5b800; --d3:#2e9e44;
-  --accent:#0b5fff; --sayb:#fde8e8; --sayc:#7a1010; --tile:1; --nav:72px; --barbg:#111418; --barfg:#fff; --nbbg:#111418;
+  --accent:#0b5fff; --sayb:#fde8e8; --sayc:#7a1010; --tile:1; --nav:86px; --barbg:#111418; --barfg:#fff; --nbbg:#111418;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){--bg:#07090c; --card:#12161b; --ink:#e8ebef; --mute:#8d97a5; --line:#262d36; --accent:#6a98ff; --sayb:#3a1414; --sayc:#ffd0d0; --tile:.82; --barbg:#1b222b; --barfg:#f2f4f7; --nbbg:#2a3441}
@@ -27,12 +27,12 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-s
 body{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 .wrap{max-width:720px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
 body.hasnav .wrap{padding-top:calc(var(--nav) + env(safe-area-inset-top) + 12px)}
-.wrap>.top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40;margin:0 -16px 12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
+.wrap>.top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40;margin:0 -16px 12px;padding:calc(22px + env(safe-area-inset-top)) 16px 10px;background:var(--bg);border-bottom:1px solid var(--line)}
 body:not(.hasnav) .wrap{padding-top:0}
 body.hasnav .wrap>.top{padding-top:10px}
 .top h1{margin:0}
 .theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px}
-.nav{position:fixed;top:0;left:0;right:0;z-index:80;background:var(--card);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 12px 8px;display:flex;gap:8px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:80;background:var(--card);border-bottom:1px solid var(--line);padding:calc(22px + env(safe-area-inset-top)) 12px 8px;display:flex;gap:8px}
 .nb{flex:1;border:0;border-radius:14px;font-size:20px;font-weight:800;background:var(--nbbg);color:#fff;min-height:56px}
 .nb.sm{flex:0 0 76px;background:var(--bg);color:var(--ink);border:2px solid var(--line);font-size:17px}
 h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:4px 0 12px;font-weight:700}
@@ -687,8 +687,12 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="7.3";
+const APP_VERSION="7.4";
 const CHANGELOG=[
+ {v:"7.4",d:"15.10.2026",items:[
+  "Klare Struktur: Auf den Hauptseiten (PZC, Name + Nummer, Nachschlagen, Archiv) stehen oben nur Titel, Neu, Hell/Dunkel und die vier Reiter. Auf allen Unterseiten (Auswahl, Anmeldung, Zusammenfassung, Karten, Listen) steht oben nur die Leiste Zurück · Start · Neu – nichts doppelt",
+  "Obere Leisten etwas tiefer gesetzt, damit sie nicht in den Bereich unter der Uhr geraten",
+  "Das Update-Fenster zeigt nur noch die neueste Version"]},
  {v:"7.3",d:"15.10.2026",items:[
   "Titel oben in kräftiger, dunkler Schrift statt blassem Grau (wirkte verschwommen); Versionsnummer in Blau darunter"]},
  {v:"7.2",d:"15.10.2026",items:[
@@ -1431,14 +1435,15 @@ function showList(items,withSub,hints){fillList(items,withSub,hints);push({v:"li
 let cur={v:"home"}, stack=[], fwd=[], histOK=true, searching=false;
 function apply(){
   const v=cur.v, arc=v==="arc", nm=v==="name", nc=v==="nach", nkc=v==="nkc";
-  $("nkCardView").classList.toggle("hidden",!nkc);document.querySelector(".top").classList.toggle("hidden",nkc);document.querySelector(".tabs").classList.toggle("hidden",nkc);
+  const top=v==="home"||arc||nm||nc;   // Hauptseiten: Kopfzeile + Reiter. Alle anderen Seiten: Leiste mit Zurück / Start / Neu
+  $("nkCardView").classList.toggle("hidden",!nkc);document.querySelector(".top").classList.toggle("hidden",!top);document.querySelector(".tabs").classList.toggle("hidden",!top);
   $("mainView").classList.toggle("hidden",arc||nm||nc||nkc);$("arcView").classList.toggle("hidden",!arc);$("nameView").classList.toggle("hidden",!nm);$("nachView").classList.toggle("hidden",!nc);
   $("tabMain").classList.toggle("on",!arc&&!nm&&!nc&&!nkc);$("tabArc").classList.toggle("on",arc);$("tabName").classList.toggle("on",nm);$("tabNach").classList.toggle("on",nc||nkc);
   if(nm)nvSync();
   setBase();
   $("sheet").classList.toggle("open",v==="sheet");$("scrim").classList.toggle("open",v==="sheet");
   $("panel").classList.toggle("open",v==="panel");$("sum").classList.toggle("open",v==="sum");
-  $("nav").classList.toggle("hidden",v==="home");document.body.classList.toggle("hasnav",v!=="home");
+  $("nav").classList.toggle("hidden",top);document.body.classList.toggle("hasnav",!top);
   $("nFwd").classList.toggle("hidden",!fwd.length);
   if(arc)renderArc();
 }
@@ -2988,7 +2993,7 @@ $("verBtn").onclick=openVersion;
   const newer=(a,b)=>{const x=num(a),y=num(b);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0}return false};
   if(seen&&seen!==APP_VERSION){
     const news=CHANGELOG.filter(c=>newer(c.v,seen));
-    if(news.length)showModal(`<h2>🆕 Update auf Version ${APP_VERSION}</h2><div class="vv">Vorher: Version ${seen}</div>`+verList(news));
+    if(news.length)showModal(`<h2>🆕 Update auf Version ${APP_VERSION}</h2><div class="vv">Vorher: Version ${seen}</div>`+verList(news.slice(0,1)));
   }
   try{localStorage.setItem("pzc_seen_version",APP_VERSION)}catch(_){}
 })();
