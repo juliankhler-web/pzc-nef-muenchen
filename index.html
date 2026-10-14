@@ -670,8 +670,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.1";
+const APP_VERSION="6.2";
 const CHANGELOG=[
+ {v:"6.2",d:"14.10.2026",items:[
+  "Medikamentenkarten: verständlichere Wörter – „Erwachsene“ statt „Erwachsene und Adoleszente“, „Jugendliche (ab Pubertät)“ statt „Adoleszente“"]},
  {v:"6.1",d:"14.10.2026",items:[
   "Nachschlagen: Suche mit Tippfehler-Toleranz (Wirkstoff, Krankheitsbild, Alltagswort) – findet z. B. „Adrenalien“, „Unterzucker“, „Krampf“",
   "Neu: Reanimation Erwachsene (nach RCUK/ERC-Leitlinien 2025) und Reanimation Kind mit Gewichts-Rechner für Adrenalin, Amiodaron und Schockenergie",
@@ -1933,11 +1935,11 @@ const NK_MED=[
  {id:"naloxon",n:"Naloxon nasal",hay:"naloxon nyxoid opiat opioid überdosis heroin atemdepression antidot intoxikation nasal",ind:"kritische Opiat-Überdosierung/-Intoxikation",amp:"Einzeldosis nasal 2 × 1,8 mg",conc:null,u:"mg",
   erw:[["Anwendung zugelassen ab 14. Lebensjahr: 1,8 mg intranasal"],["Repetition nach 2–3 Minuten oder bei Symptomrückkehr"]],kind:[["zugelassen ab 14. Lebensjahr"]]},
  {id:"oxymeta",n:"Oxymetazolin 0,05 % Nasenspray",hay:"oxymetazolin nasenbluten epistaxis nasenspray nase blutung",ind:"kritische Epistaxis",amp:"Nasenspray 0,5 mg/ml",conc:null,u:"mg",
-  erw:[["nur Erwachsene/Adoleszente > 50 kg KG: 2–6 Sprühstöße in jedes betroffene Nasenloch"],["keine Repetition"]],kind:[["nur Erwachsene/Adoleszente > 50 kg KG"]]},
+  erw:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG: 2–6 Sprühstöße in jedes betroffene Nasenloch"],["keine Repetition"]],kind:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG"]]},
  {id:"oxytocin",n:"Oxytocin",hay:"oxytocin syntocinon geburt nachblutung postpartale blutung atonie gebärmutter",ind:"kritische postpartale Blutung",amp:"Ampulle 3 IE / 1 ml",conc:3,u:"IE",
   erw:[["3 IE langsam i.v. (i.o.)",3],["einmalige Repetition nach frühestens 5 Minuten"]],kind:[["–"]]},
  {id:"piritramid",n:"Piritramid",hay:"piritramid dipidolor schmerz schmerzen opioid analgesie btm",ind:"kritischer Schmerzzustand (außer bei akutem Koronarsyndrom)",amp:"Ampulle 7,5 mg / 1 ml",conc:7.5,u:"mg",
-  erw:[["nur Erwachsene/Adoleszente > 50 kg KG: 7,5 mg als Kurzinfusion in 100 ml NaCl 0,9 % i.v. (i.o.) über mind. 5 Minuten",7.5],["ggf. Repetition nach 10 Minuten"]],kind:[["nur Erwachsene/Adoleszente > 50 kg KG"]],btm:1},
+  erw:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG: 7,5 mg als Kurzinfusion in 100 ml NaCl 0,9 % i.v. (i.o.) über mind. 5 Minuten",7.5],["ggf. Repetition nach 10 Minuten"]],kind:[["nur Erwachsene/Jugendliche (ab Pubertät) > 50 kg KG"]],btm:1},
  {id:"prednison",n:"Prednison rektal",hay:"prednison rektal pseudokrupp krupp spastische bronchitis kind kortison zäpfchen suppositorium",ind:"kritische akute stenosierende Laryngotracheitis (Pseudokrupp), kritische spastische Bronchitis – nur Kinder",amp:"Suppositorium 100 mg",conc:null,u:"mg",
   erw:[["nur Kinder"]],kind:[["100 mg rektal (alters-/gewichtsunabhängig)"]],ref:"siehe DIVI-Kindernotfallkarte"},
  {id:"salbu",n:"Salbutamol",hay:"salbutamol sultanol asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Inhalationslösung 1,25 mg / 2,5 ml = 0,5 mg/ml",conc:.5,u:"mg",
@@ -1984,7 +1986,7 @@ function nkMedHTML(m){
   <div class="nkbox"><b>Wann / wofür</b><div>${esc(m.ind)}</div></div>
   <div class="nkbox"><b>Ampulle</b><div>${esc(m.amp)}</div>${m.btm?'<div class="nkmute">Betäubungsmittel – § 13 Abs. 1b BtMG beachten</div>':""}</div>
   ${m.cave?`<div class="warnbox">${esc(m.cave)}</div>`:""}${m.hint?`<div class="warnbox">${esc(m.hint)}</div>`:""}
-  <h3>Erwachsene und Adoleszente</h3><div id="nkE">${nkDoseHTML(m,false)}</div>
+  <h3>Erwachsene</h3><div id="nkE">${nkDoseHTML(m,false)}</div>
   <h3>Kinder${m.ref?` <span class="nkmute" style="font-weight:400;font-size:13px">(${esc(m.ref)})</span>`:""}</h3>
   ${hasKg?`<div class="fld" style="margin:0 0 8px"><label>Gewicht des Kindes in kg</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>`:""}
   <div id="nkK">${nkDoseHTML(m,true)}</div>${dil}
