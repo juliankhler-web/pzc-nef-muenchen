@@ -689,8 +689,12 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="8.0";
+const APP_VERSION="8.1";
 const CHANGELOG=[
+ {v:"8.1",d:"15.10.2026",items:[
+  "Über 30 Präparate der BF-Liste haben jetzt Indikation, Dosierung für Erwachsene und Kinder, Aufziehen und Warnhinweise – aus den Rettungsdienst-Factsheets (Stand 2026), z. B. Propofol, Rocuronium, Adenosin, Heparin, Aspirin i.v., Noradrenalin, Furosemid, Metamizol, Ondansetron, Prednisolut, Tranexamsäure",
+  "Mengen in ml aus eurer Ampullenstärke, Gewichts-Rechner jetzt auch bei Erwachsenen-Dosierungen pro kg (z. B. Propofol, Rocuronium)",
+  "Hinweistext bei Präparaten ohne Dosierung überarbeitet"]},
  {v:"8.0",d:"15.10.2026",items:[
   "Medikamentenliste der BF München (Stand 07.07.2026, Version 5.1) eingebaut: jetzt über 100 Präparate in Nachschlagen – mit Handelsname, Stärke und Form, gefiltert nach Standard, Antidote / Tox und Kinder / Neugeborene",
   "Mengen in ml an eure Ampullen angepasst (z. B. Atropin 1 mg / 1 ml, Atrovent 250 µg / 2 ml, Salbutamol 1,5 mg / 2,5 ml)",
@@ -1990,7 +1994,7 @@ const NK_MED=[
   kind:[["Kinder ab 1 Jahr: 0,01 mg/kg KG (max. 0,2 mg) langsam i.v. (i.o.)",null,.01,.2],["ggf. Repetition nach 1 Min. bis Gesamtdosis von 0,05 mg/kg KG (max. 1 mg)"]]},
  {id:"glucose",n:"Glucose 40 %",hay:"glucose glukose zucker unterzucker hypoglykämie dextrose traubenzucker bz",ind:"kritische Hypoglykämie",amp:"Ampulle 4,0 g / 10 ml = 0,4 g/ml (40 %)",conc:.4,u:"g",
   erw:[["initial 12 g langsam i.v. (i.o.) zu laufender Infusion",12],["weitere 8 g i.v. nach Patientenzustand",8]],
-  kind:[["200 mg/kg KG i.v. (i.o.)",null,.2]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Bei V. a. chronischen Alkoholabusus: Thiamin vor dem Hypoglykämie-Ausgleich!"},
+  kind:[["200 mg/kg KG i.v. (i.o.)",null,.2]],ref:"siehe DIVI-Kindernotfallkarte",hint:"Bei V. a. chronischen Alkoholabusus: Thiamin vor dem Hypoglykämie-Ausgleich! Glucose 40 % vor der Gabe 1:1 verdünnen und vorher eine Rücklaufprobe machen (Rettungsdienst-Factsheets)."},
  {id:"ipra",n:"Ipratropiumbromid",hay:"ipratropium atrovent asthma copd bronchospastik atemnot inhalation spastisch",ind:"kritische Bronchospastik – zur Inhalation",amp:"Atrovent 250 µg / 2 ml = 0,125 mg/ml",conc:.125,u:"mg",
   erw:[["0,5 mg zur Inhalation",.5],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],
   kind:[["0,25 mg zur Inhalation",.25],["Repetition bei Symptompersistenz und (kardiovaskulärer) Verträglichkeit"]],hint:"Restmenge der verwendeten Verneblungsmaske beachten! Die ÄLRD-Liste rechnet mit 0,25 mg/ml (0,5 mg = 2 ml). Eure Ampulle hat 0,125 mg/ml, deshalb ist die Menge in ml hier doppelt so groß."},
@@ -2173,6 +2177,36 @@ const NK_GEN=[
  ["adr_fertig","Kinder","Adrenalin 1:10.000 Fertigspritze","Adrenalin 1:10.000 (0,1 mg/ml)","Fertigspritze","Bei Herzstillstand von Kindern und Neugeborenen – fertig verdünnt, nicht mehr verdünnen","adrenalin epinephrin suprarenin reanimation kind neugeborene fertigspritze"],
  ["theophyllin","Kinder","Theophyllin","Bronchoparat 200 mg / 10 ml","Ampulle","Erweitert die Bronchien (z. B. bei Asthma)","asthma atemnot bronchoparat"]
 ];
+const NK_FS={
+ asa_iv:{st:"16.09.2026",c:100,u:"mg",erw:[["250 mg i.v. (höchstens 500 mg)",250],["Alternativ 500 mg Granulat zum Schlucken"]],aufz:"500 mg Pulver + 5 ml Lösungsmittel (Aqua) = 500 mg / 5 ml = 100 mg/ml",cave:"Nicht bei Blutungsneigung, Magen-Darm-Geschwüren, Leber- oder Nierenversagen, Überempfindlichkeit oder allergischem Asthma",ind:"Akutes Koronarsyndrom (Herzinfarkt)"},
+ adenosin:{st:"27.07.2026",c:3,u:"mg",erw:[["Zuerst 6 mg i.v.",6],["Bei Misserfolg 12 mg i.v.",12],["Bei erneutem Misserfolg 18 mg i.v.",18]],aufz:"Als schneller Bolus geben und sofort mit Infusion nachspülen (Halbwertszeit unter 10 Sekunden)",cave:"Nur unter EKG-Kontrolle, Asystolie möglich. Nicht bei AV-Block II/III, Sick-Sinus-Syndrom, Vorhofflimmern/-flattern, Asthma/COPD, Long-QT, schwerer Hypotonie",ind:"Paroxysmale Tachykardien vom AV-Knoten (AV-Reentry und AV-Knoten-Tachykardie)"},
+ ajmalin:{st:"16.09.2026",c:5,u:"mg",erw:[["50 mg i.v. über 5 Minuten (höchstens 10 mg pro Minute)",50]],cave:"Nicht bei Bradykardie, AV-Block II/III, Herzschwäche, breitem QRS oder verlängerter QT-Zeit. Bei ventrikulärer Tachykardie wird Amiodaron vorgezogen",ind:"Supraventrikuläre und ventrikuläre Tachykardien"},
+ buscopan:{st:"16.09.2026",c:20,u:"mg",erw:[["20–40 mg i.v. = 1–2 ml, höchstens 100 mg"]],kind:[["0,3–0,6 mg/kg KG i.v., höchstens 1,5 mg/kg KG",null,.3,1.5,null,.6,1]],hint:"Bei Harnleiterkolik laut S2k-Leitlinie Urolithiasis wirkungslos – dort nicht einsetzen. Bei Koliken zusammen mit einem Schmerzmittel (z. B. Metamizol) geben.",aufz:"Langsam oder als Kurzinfusion",cave:"Nicht bei Darmverschluss/Megakolon, Tachykardie, Engwinkelglaukom, Myasthenia gravis",ind:"Kolikartige Schmerzen"},
+ dimenhydrinat:{st:"25.05.2026",c:6.2,u:"mg",erw:[["62 mg i.v. langsam über 2 Minuten",62]],kind:[["1,25 mg/kg KG i.v. (Kinder über 20 kg: 25–50 mg)",null,1.25]],cave:"Nicht bei Long-QT, akutem Asthmaanfall, Engwinkelglaukom, Krampfleiden. Bei Kindern Überdosierung unbedingt vermeiden (Letaldosis 10 mg/kg), EKG überwachen",ind:"Übelkeit und Erbrechen"},
+ dimetinden:{st:"17.04.2026",c:1,u:"mg",erw:[["4 mg i.v. über 30 Sekunden",4]],kind:[["0,1 mg/kg KG i.v.",null,.1]],cave:"Nicht bei Kindern unter 1 Jahr. Wirkt stark beruhigend – Clemastin wird bevorzugt",ind:"Anaphylaxie"},
+ furosemid:{st:"16.09.2026",c:10,u:"mg",erw:[["Anfangs 20 mg i.v.",20],["Steigerung auf 40 mg möglich",40]],kind:[["0,5 mg/kg KG i.v., höchstens 1,5 mg/kg KG",null,.5,1.5,null,null,1]],aufz:"Langsam, höchstens 4 mg pro Minute",cave:"Nicht bei Flüssigkeitsmangel, schwerer Elektrolytstörung, Nierenversagen ohne Urinausscheidung, Morbus Addison",ind:"Lungenödem / akute Herzschwäche"},
+ nitro:{st:"16.09.2026",erw:[["0,4–0,8 mg unter die Zunge (1 Sprühstoß = 0,4 mg)"],["bzw. 0,8–1,6 mg unter die Zunge – die Quelle ordnet die Dosis nicht eindeutig dem Herzinfarkt oder dem Lungenödem zu"]],hint:"Vorher zwingend einen i.v.-Zugang legen. Keine Routinegabe – Rechtsherzbeteiligung ausschließen.",cave:"Nicht bei Rechtsherzinfarkt, Hypotonie, kardiogenem Schock, Schlaganfall/erhöhtem Hirndruck oder Potenzmitteln (PDE-5-Hemmer) in den letzten 24–72 Stunden",ind:"Akutes Koronarsyndrom und kardiales Lungenödem"},
+ haloperidol:{st:"16.09.2026",c:5,u:"mg",erw:[["5 mg i.m. (= 1 ml), höchstens 20 mg pro Tag",5]],hint:"Intravenöse Gabe wird nicht mehr empfohlen (schwere Herznebenwirkungen).",cave:"Nicht bei Long-QT/QTc-Verlängerung, Epilepsie, Parkinson, kürzlichem Herzinfarkt",ind:"Akute Erregungszustände, akute manische Episode"},
+ heparin:{st:"16.09.2026",c:25000,u:"IE",erw:[["5.000 IE i.v.",5000],["Außerdem genannt: 80 IE/kg KG i.v. (im Rettungsdienst 7.500–10.000 IE)"]],cave:"Nicht bei akuter Blutung, erhöhter Blutungsneigung, Thrombozytenmangel, Überempfindlichkeit",ind:"Akutes Koronarsyndrom, Lungenembolie"},
+ lidocain:{st:"16.09.2026",c:20,u:"mg",erw:[["Reanimation: 100 mg i.v. nach der 3. Defibrillation",100],["Reanimation: 50 mg i.v. nach der 5. Defibrillation",50],["Tachykardie: 1–1,5 mg/kg KG i.v., Wiederholung nach 5–10 Minuten",null,1,null,null,1.5]],kind:[["Reanimation: 1 mg/kg KG i.v. nach der 3. und nach der 5. Defibrillation",null,1]],aufz:"Langsam i.v. oder i.o.",cave:"Nicht bei AV-Block II/III. Nicht mit Amiodaron kombinieren",ind:"Reanimation und Tachykardie"},
+ magnesium:{st:"16.09.2026",c:200,u:"mg",erw:[["2 g i.v. als Kurzinfusion über 10–15 Minuten",2000]],hint:"Off-Label-Anwendung (nach ERC-Leitlinie 2021).",cave:"Nicht bei AV-Block, schwerer Bradykardie, schwerer Nierenschwäche, Myasthenia gravis. Nicht zusammen mit Barbituraten, Narkose- oder Schlafmitteln",ind:"Polymorphe Kammertachykardie (Torsades de Pointes), schwerer Asthmaanfall"},
+ metamizol:{st:"21.05.2026",c:500,u:"mg",erw:[["1 g i.v. langsam oder als Kurzinfusion",1000]],kind:[["10–15 mg/kg KG i.v. (3.–11. Lebensmonat: 50–100 mg)",null,10,null,null,15]],aufz:"Bevorzugt als Kurzinfusion. Wenn nicht möglich, langsam spritzen (höchstens 1 ml pro Minute)",cave:"Nicht bei Hypotonie, Schwangerschaft, Säuglingen unter 3 Monaten oder unter 5 kg. Schnelle Gabe kann den Blutdruck stark senken, selten Agranulozytose",ind:"Kolikartige Schmerzen und Fieber"},
+ metoprolol:{st:"16.09.2026",c:1,u:"mg",erw:[["5 mg i.v., Wiederholung nach 5–10 Minuten, höchstens 15 mg",5]],aufz:"Langsam, 1–2 mg pro Minute",cave:"Nicht bei Herzschwäche, AV-Block II/III, Schock. Nie mit Verapamil kombinieren (Lebensgefahr). Antidot bei Überdosierung: Atropin",ind:"Tachykarde Herzrhythmusstörungen"},
+ nahco3_100:{st:"08.04.2026",c:1,u:"mmol",erw:[["1–2 ml/kg KG i.v. (8,4 % = 1 mmol/ml)",null,1,null,null,2]],aufz:"Unverdünnt nur über einen zentralen Zugang; peripher verdünnen. Langsam geben",cave:"Nicht gemeinsam mit calcium-, magnesium- oder phosphathaltigen Lösungen. Nicht bei Hypoventilation, Alkalose, Hypernatriämie, Hypokaliämie",ind:"Vergiftung mit trizyklischen Antidepressiva, lebensbedrohliche Hyperkaliämie, metabolische Azidose"},
+ ondansetron:{st:"16.09.2026",c:2,u:"mg",erw:[["4 mg i.v. langsam",4]],kind:[["0,1 mg/kg KG i.v., höchstens 4 mg",null,.1,4]],cave:"Nicht bei Long-QT. EKG überwachen (QT-Verlängerung möglich). Nicht in der Schwangerschaft",ind:"Übelkeit und Erbrechen"},
+ prednisolon250:{st:"16.09.2026",c:50,u:"mg",erw:[["Atemnot durch Verengung: 50 mg i.v.; Status asthmaticus: 100 mg i.v.",50],["Anaphylaxie: 250 mg i.v. (höchstens 1000 mg)",250]],kind:[["2 mg/kg KG i.v.",null,2],["Oder nach Gewicht: unter 15 kg 25 mg · 15–30 kg 50 mg · über 30–60 kg 100 mg"],["Rektal: 100 mg als Zäpfchen"]],aufz:"250 mg Pulver + 5 ml Lösungsmittel = 50 mg/ml. Langsam über 2–3 Minuten spritzen",cave:"Nicht bei Überempfindlichkeit. Zu schnelle Gabe: Venenreizung, Hitzegefühl",ind:"Atemnot durch Verengung der Bronchien (obstruktiv), Anaphylaxie"},
+ propofol:{st:"16.09.2026",c:10,u:"mg",erw:[["Narkose (RSI): 1,5–2,5 mg/kg KG i.v., nach Wirkung, zügig als Bolus",null,1.5,null,null,2.5],["Erhaltung: 4–12 mg/kg KG pro Stunde per Perfusor"]],kind:[["Narkose (RSI): 2,5–4 mg/kg KG i.v., nach Wirkung, höchstens 6 mg/kg KG",null,2.5,6,null,4,1]],aufz:"Propofol 1 % = 10 mg/ml",cave:"Nicht bei Allergie gegen Soja oder Erdnuss. Bei Kreislaufschwäche sowie älteren oder herzkranken Patienten vorsichtig dosieren. Blutdruckabfall, Atemstillstand möglich",ind:"Narkose (Rapid Sequence Induction), Kurznarkose, Analgosedierung"},
+ rocuronium:{st:"16.09.2026",c:10,u:"mg",erw:[["1 mg/kg KG i.v.",null,1]],kind:[["1 mg/kg KG i.v.",null,1]],cave:"Danach zügig intubieren (Aspiration, Sauerstoffmangel). Antidot: Sugammadex. Tachykardie, Blutdruckabfall, lange Wirkdauer möglich",ind:"Narkoseeinleitung (Rapid Sequence Induction)"},
+ reproterol:{st:"16.09.2026",c:.09,kc:.006,u:"mg",erw:[["0,09 mg i.v., Wiederholung nach 10–15 Minuten",.09]],kind:[["1,2 µg/kg KG i.v.",null,.0012]],dil:{t:"Für Kinder verdünnen: 1 Ampulle (0,09 mg / 1 ml) + 14 ml NaCl 0,9 % = 15 ml mit 6 µg/ml. Dann gilt 1 ml pro 5 kg KG (0,2 ml pro kg).",parts:[{v:1,l:"1 ml Bronchospasmin"},{v:14,l:"14 ml NaCl 0,9 %"}],src:"Quelle: Rettungsdienst-Factsheets (CC BY-SA 4.0)"},aufz:"Langsam i.v. oder i.o.",cave:"Nicht bei schwerer Überfunktion der Schilddrüse, Phäochromozytom, HOCM",ind:"Asthma, COPD, Anaphylaxie"},
+ terbutalin:{st:"16.09.2026",c:.5,u:"mg",erw:[["0,5 mg unter die Haut (s.c.) = 1 ml",.5]],cave:"Nicht bei ausgeprägter Tachykardie, Schilddrüsenüberfunktion, Phäochromozytom, frischem Herzinfarkt, Aortenstenose, bevorstehender Geburt",ind:"Asthma, COPD, Anaphylaxie"},
+ txa:{st:"16.09.2026",c:100,u:"mg",erw:[["1 g i.v. als Kurzinfusion über 10 Minuten (in 100 ml NaCl 0,9 %)",1000]],kind:[["15 mg/kg KG i.v. als Kurzinfusion über 10 Minuten",null,15]],hint:"Nur innerhalb von 3 Stunden nach dem Unfall geben – danach höhere Sterblichkeit.",cave:"Nicht bei akuter Thrombose oder schwerer Nierenschwäche",ind:"Lebensbedrohliche innere und äußere Blutungen (Polytrauma)"},
+ berotec:{st:"16.09.2026",erw:[["1 Sprühstoß (0,1 mg) inhalieren; einmal Wiederholung nach 5 Minuten möglich, höchstens 2 Hübe"]],cave:"Nicht bei ausgeprägter Tachykardie, bevorstehender Geburt, Überempfindlichkeit",ind:"Asthma, COPD"}
+};
+const NK_FS_PARA={st:"02.09.2026",erw:[["Erwachsene: 1 g als Infusion (1 g / 100 ml)"]],kind:[["Kinder rektal: unter 10 kg 125 mg · 10–20 kg 250 mg · über 20 kg 500 mg (etwa 15 mg/kg)"]],cave:"Nicht bei schweren Leberschäden oder Überempfindlichkeit",ind:"Schmerzen, Fieber, Fieberkrampf"};
+["para75","para125","para250","para500"].forEach(i=>NK_FS[i]=NK_FS_PARA);
+NK_FS.prednisolon50=Object.assign({},NK_FS.prednisolon250,{c:null,erw:[["Nur Kinder-Notfall"]],aufz:null});
+NK_FS.nahco3_20=NK_FS.nahco3_100;
+
 (()=>{
   const old=NK_MED.map(m=>m);
   old.forEach(m=>{m.grp="Standard";if(["fentanyl","morphin","piritramid"].includes(m.id))m.btm=1});
@@ -2181,6 +2215,7 @@ const NK_GEN=[
     NK_MED.push({id,n,hay:hay+" "+h,ind:k,amp:h+" · "+f,conc:null,u:"",erw:[],kind:[],gen:1,grp,bf:h+" · "+f});
     NK_EZ[id]=k;
   });
+  NK_MED.forEach(m=>{const f=NK_FS[m.id];if(!f)return;Object.assign(m,{gen:0,fs:f.st,conc:f.c==null?null:f.c,u:f.u||"",kconc:f.kc,erw:f.erw||[["Nur Kinder-Notfall"]],kind:f.kind||[["–"]],cave:f.cave,hint:f.hint,dil:f.dil,aufz:f.aufz,ind:f.ind||m.ind})});
   // Adrenalin-Fertigspritze: Kinder-Dosis wie bei Adrenalin Reanimation, aber ohne Verdünnen (0,1 mg/ml)
   const fs=NK_MED.find(x=>x.id==="adr_fertig"),ar=NK_MED.find(x=>x.id==="adr_rea");
   Object.assign(fs,{gen:0,conc:.1,u:"mg",erw:[["Nur für Kinder und Neugeborene"]],kind:ar.kind,amp:"Adrenalin 1:10.000 Fertigspritze = 0,1 mg/ml",hay:fs.hay+" "+ar.hay});
@@ -2196,14 +2231,17 @@ function nkToggleFav(id){nkFav=nkIsFav(id)?nkFav.filter(x=>x!==id):[...nkFav,id]
 function nkDoseHTML(m,kind){
   const kg=parseFloat(String(nkKg).replace(",","."));
   const lines=kind?m.kind:m.erw,conc=kind&&m.kconc?m.kconc:m.conc;
+  const amt=v=>m.u==="mg"&&v<0.1&&v>0?nkF(v*1000)+" µg":nkF(v)+" "+m.u;
   let h="";
   lines.forEach(l=>{
-    const [t,d,pk,mx,ml0]=l;
+    const [t,d,pk,mx0,ml0,pk2,mxk]=l;const mx=mx0!=null&&mxk&&kg>0?mx0*kg:mx0;
     h+=`<div class="nkd"><div>${esc(t)}</div>`;
-    if(kind&&pk!=null){
-      if(kg>0){let dose=pk*kg;if(mx!=null&&dose>mx)dose=mx;
-        h+=`<div class="nkr"><b>${nkF(kg)} kg → ${nkF(dose)} ${m.u}${mx!=null&&pk*kg>mx?" (Höchstdosis)":""}</b>${conc?` · ${nkF(dose/conc)} ml`:""}</div>${conc?syrSVG(dose/conc):""}`}
-      else h+=`<div class="nkr nkmute">Gewicht eingeben → Menge in mg und ml</div>`}
+    if(pk!=null){
+      if(kg>0){
+        let dose=pk*kg,hi=pk2!=null?pk2*kg:null;if(mx!=null){if(dose>mx)dose=mx;if(hi!=null&&hi>mx)hi=mx}
+        if(hi!=null){h+=`<div class="nkr"><b>${nkF(kg)} kg → ${amt(dose)} bis ${amt(hi)}</b>${conc?` · ${nkF(dose/conc)} bis ${nkF(hi/conc)} ml`:""}</div>`}
+        else h+=`<div class="nkr"><b>${nkF(kg)} kg → ${amt(dose)}${mx!=null&&pk*kg>mx?" (Höchstdosis)":""}</b>${conc?` · ${nkF(dose/conc)} ml`:""}</div>${conc?syrSVG(dose/conc):""}`}
+      else h+=`<div class="nkr nkmute">Gewicht eingeben → Menge in ${m.u||"mg"} und ml</div>`}
     else if(d!=null&&conc){h+=`<div class="nkr">= <b>${nkF(d/conc)} ml</b> aus der Ampulle</div>${syrSVG(d/conc)}`}
     else if(ml0!=null){h+=`<div class="nkr"><b>${nkF(ml0)} ml</b></div>${syrSVG(ml0)}`}
     h+="</div>";
@@ -2211,21 +2249,22 @@ function nkDoseHTML(m,kind){
   return h;
 }
 function nkMedHTML(m){
-  const hasKg=m.kind.some(l=>l[2]!=null);
+  const hasKgE=m.erw.some(l=>l[2]!=null),hasKgK=m.kind.some(l=>l[2]!=null),kgIn=`<div class="fld" style="margin:0 0 8px"><label>Gewicht in kg (für Dosierungen pro kg)</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>`;
   const dil=m.dil?`<div class="nkbox"><b>Aufziehen / Verdünnen (Kinder)</b><div style="margin:4px 0 6px">${esc(m.dil.t)}</div>${syrSVG(0,m.dil.parts)}<div class="nkmute" style="font-size:12px">${esc(m.dil.src)}</div></div>`:"";
   return `<div class="nkhead"><h2>${esc(m.n)}</h2>${nkStar()}</div>
   <div class="nkez"><b>Einfach gesagt</b><div>${esc(NK_EZ[m.id]||m.ind)}</div></div>
-  ${NK_BF_INFO[m.id]||m.bf?`<div class="nkbox"><b>Auf der BF-Liste</b><div>${esc(NK_BF_INFO[m.id]||m.bf)}</div></div>`:""}
-  ${m.gen?"":`<div class="nkbox"><b>Genaue Indikation laut Liste</b><div style="font-size:14px">${esc(m.ind)}</div></div>`}
+  ${(NK_BF_INFO[m.id]||m.bf)&&!m.fs?`<div class="nkbox"><b>Auf der BF-Liste</b><div>${esc(NK_BF_INFO[m.id]||m.bf)}</div></div>`:""}
+  ${m.gen?"":`<div class="nkbox"><b>${m.fs?"Indikation":"Genaue Indikation laut Liste"}</b><div style="font-size:14px">${esc(m.ind)}</div></div>`}
   ${NK_BRAND[m.id]&&m.id!=="o2"?`<div class="nkbox"><b>Bekannte Handelsnamen (Beispiele)</b><div>${NK_BRAND[m.id].map(esc).join(" · ")}</div><div class="nkmute" style="font-size:12px;margin-top:3px">Auswahl, nicht vollständig – die Präparate vor Ort können abweichen.</div></div>`:""}
   ${m.gen?"":`<div class="nkbox"><b>Ampulle</b><div>${esc(m.amp)}</div>`}${m.btm?'<div class="nkmute">Betäubungsmittel – § 13 Abs. 1b BtMG beachten</div>':""}${m.gen?"":"</div>"}
   ${m.cave?`<div class="warnbox">${esc(m.cave)}</div>`:""}${m.hint?`<div class="warnbox">${esc(m.hint)}</div>`:""}
-  ${m.gen?`<div class="warnbox">Indikation und Dosierung stehen nicht in der ÄLRD-Liste, die hier hinterlegt ist. Es gilt eure SOP bzw. die Anweisung des Notarztes.</div><div class="warn">Quelle: ${esc(NK_BF_SRC)}. Die Einordnung oben ist eine allgemeine Kurzbeschreibung.</div>`:""}
-  ${m.gen?"":`<h3>Erwachsene</h3><div id="nkE">${nkDoseHTML(m,false)}</div>`}
+  ${m.gen?`<div class="warnbox">Für dieses Präparat ist hier keine geprüfte Dosierung hinterlegt. Es gilt eure SOP bzw. die Anweisung des Notarztes.</div><div class="warn">Präparat und Stärke: ${esc(NK_BF_SRC)}. Die Kurzbeschreibung oben ist allgemein gehalten.</div>`:""}
+  ${m.aufz?`<div class="nkbox"><b>Aufziehen / Anwenden</b><div>${esc(m.aufz)}</div></div>`:""}
+  ${m.gen?"":`<h3>Erwachsene</h3>${hasKgE?kgIn:""}<div id="nkE">${nkDoseHTML(m,false)}</div>`}
   ${m.gen?"":`<h3>Kinder${m.ref?` <span class="nkmute" style="font-weight:400;font-size:13px">(${esc(m.ref)})</span>`:""}</h3>
-  ${hasKg?`<div class="fld" style="margin:0 0 8px"><label>Gewicht des Kindes in kg</label><input class="inp" id="nkKg" inputmode="decimal" autocomplete="off" value="${esc(nkKg)}"></div>`:""}
+  ${hasKgK&&!hasKgE?kgIn:""}
   <div id="nkK">${nkDoseHTML(m,true)}</div>${dil}
-  <div class="warn">Quelle: ${esc(NK_MED_SRC)}. Mengen in ml sind aus der Ampullenstärke berechnet. Aktuelle Fassung und die Vorgaben der Leitstelle / des ÄLRD prüfen.</div>`}`;
+  <div class="warn">${m.fs?`Quelle der Dosierung: Rettungsdienst-Factsheets (rd-factsheets.de, CC BY-SA 4.0), Stand laut Seite ${esc(m.fs)}. Die Factsheets stützen sich auf Fachinformationen, Leitlinien und Fachbücher. Mengen in ml sind aus eurer Ampullenstärke berechnet. Dosierungen sind Vorschläge – eure SOP und der Notarzt gehen vor.`:`Quelle: ${esc(NK_MED_SRC)}. Mengen in ml sind aus der Ampullenstärke berechnet. Aktuelle Fassung und die Vorgaben der Leitstelle / des ÄLRD prüfen.`}</div>`}`;
 }
 function nkReaEHTML(){
   return `<div class="nkhead"><h2>Reanimation Erwachsene</h2>${nkStar()}</div>
@@ -2270,7 +2309,7 @@ $("nkCardView").addEventListener("input",e=>{
   if(e.target.id!=="nkKg")return;
   nkKg=e.target.value;
   if(nkCur==="rea_k"){const y=window.scrollY,hold=e.target.selectionStart;$("nkCardView").innerHTML=nkReaKHTML();const k=$("nkKg");k.focus();try{k.setSelectionRange(hold,hold)}catch(_){}window.scrollTo(0,y)}
-  else{const m=NK_MED.find(x=>x.id===nkCur);if(m&&$("nkK"))$("nkK").innerHTML=nkDoseHTML(m,true)}
+  else{const m=NK_MED.find(x=>x.id===nkCur);if(m){if($("nkK"))$("nkK").innerHTML=nkDoseHTML(m,true);if($("nkE"))$("nkE").innerHTML=nkDoseHTML(m,false)}}
 });
 $("nkCardView").addEventListener("click",e=>{
   const f=e.target.closest("[data-fav]");
