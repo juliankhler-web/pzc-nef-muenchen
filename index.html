@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PZC NEF">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -686,8 +686,10 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="6.9";
+const APP_VERSION="7.0";
 const CHANGELOG=[
+ {v:"7.0",d:"14.10.2026",items:[
+  "iPhone: die Statusleiste (Uhrzeit, WLAN, Akku) ist jetzt fest schwarz statt durchscheinend – kein Blur mehr. Wenn die App auf dem Home-Bildschirm liegt: einmal löschen und neu zum Home-Bildschirm hinzufügen, damit iOS die Einstellung übernimmt"]},
  {v:"6.9",d:"14.10.2026",items:[
   "iPhone: der Bereich oben unter der Uhr ist jetzt undurchsichtig – beim Scrollen scheint der Inhalt nicht mehr durch, das Verschwimmen oben ist weg"]},
  {v:"6.8",d:"14.10.2026",items:[
