@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f1216">
+<meta name="theme-color" content="#f3f4f6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="PZC NEF">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,11 +25,11 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 -apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
 body{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
-/* iPhone-App: der Bereich unter der Uhr/Statusleiste ist undurchsichtig, damit der Inhalt beim Scrollen nicht durchscheint */
-body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);background:#0f1216;z-index:300;pointer-events:none}
 .wrap{max-width:720px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
 body.hasnav .wrap{padding-top:calc(var(--nav) + env(safe-area-inset-top) + 12px)}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.wrap>.top{display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:40;margin:0 -16px 12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+body:not(.hasnav) .wrap{padding-top:0}
+body.hasnav .wrap>.top{padding-top:10px}
 .top h1{margin:0}
 .theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px}
 .nav{position:fixed;top:0;left:0;right:0;z-index:80;background:var(--card);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 12px 8px;display:flex;gap:8px}
@@ -686,8 +686,11 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="7.0";
+const APP_VERSION="7.1";
 const CHANGELOG=[
+ {v:"7.1",d:"15.10.2026",items:[
+  "Kopfleiste oben wie in der ImkerApp: bleibt beim Scrollen oben stehen, mit eigenem Hintergrund unter Uhr und Akku – der Inhalt läuft nicht mehr unter der Statusleiste durch und wird nicht mehr verschwommen ausgeblendet",
+  "Statusleiste wieder im Standard-Stil (wie ImkerApp); Farbe passt sich Hell/Dunkel an"]},
  {v:"7.0",d:"14.10.2026",items:[
   "iPhone: die Statusleiste (Uhrzeit, WLAN, Akku) ist jetzt fest schwarz statt durchscheinend – kein Blur mehr. Wenn die App auf dem Home-Bildschirm liegt: einmal löschen und neu zum Home-Bildschirm hinzufügen, damit iOS die Einstellung übernimmt"]},
  {v:"6.9",d:"14.10.2026",items:[
@@ -1478,7 +1481,10 @@ let themeI=0;
 try{const t=localStorage.getItem("pzc_theme");themeI=Math.max(0,THEMES.findIndex(x=>x[0]===t))}catch(_){}
 function applyTheme(){const [k,l]=THEMES[themeI];
   if(k==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.dataset.theme=k;
-  $("themeBtn").textContent=l;try{localStorage.setItem("pzc_theme",k)}catch(_){}}
+  $("themeBtn").textContent=l;try{localStorage.setItem("pzc_theme",k)}catch(_){}
+  const dark=k==="dark"||(k==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  const tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.content=dark?"#07090c":"#f3f4f6"}
+try{matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>applyTheme())}catch(_){}
 $("themeBtn").onclick=()=>{themeI=(themeI+1)%THEMES.length;applyTheme()};
 applyTheme();
 function render(){
