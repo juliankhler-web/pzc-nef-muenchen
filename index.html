@@ -109,7 +109,7 @@ h1{font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .result{position:fixed;left:0;right:0;bottom:0;z-index:70;min-height:var(--bar);border-top:1px solid var(--line);background:var(--barbg);color:var(--barfg);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px}
 .result .code{flex:1;max-width:720px}
 .result .code small{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
-.result .code span{font:900 34px ui-monospace,Menlo,monospace;letter-spacing:.02em}
+.result .code span{font:900 30px ui-monospace,Menlo,monospace;letter-spacing:0;white-space:nowrap}
 body[data-bd="1"]{--bdc:#d92d20;--bdt:#ff6b5e;--bdon:#fff}
 body[data-bd="2"]{--bdc:#f5b800;--bdt:#ffd21f;--bdon:#1a1a1a}
 body[data-bd="3"]{--bdc:#2e9e44;--bdt:#4ade6b;--bdon:#fff}
@@ -117,7 +117,7 @@ body[data-bd] .result .code span#rOut{color:var(--bdt)}
 body[data-bd] #sCode{display:inline-block;background:var(--bdc);color:var(--bdon);padding:4px 14px;border-radius:10px;font-size:26px;font-weight:900;margin:2px 0 8px}
 body[data-bd] #sTitle{font-size:26px;font-weight:900;border-left:8px solid var(--bdc);padding-left:10px}
 body[data-bd] #pPzc,body[data-bd] #sPzc{background:var(--bdc);color:var(--bdon);padding:3px 12px;border-radius:10px;display:inline-block;font-size:24px;font-weight:900;margin-top:3px}
-.result .code span i{font-style:normal;opacity:.35;padding:0 4px}
+.result .code span i{font-style:normal;opacity:.35;padding:0 2px}
 .copy{border:0;background:var(--accent);color:#fff;font-weight:800;font-size:16px;padding:14px 20px;border-radius:14px}
 .note{font-size:12px;color:var(--mute);margin:18px 4px}
 
@@ -194,6 +194,8 @@ textarea.inp{min-height:84px;resize:vertical}
 .nkfav{flex:none;width:54px;border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:12px;font-size:26px;line-height:1}
 .nkfav.on{color:#f5b800;border-color:#f5b800}
 .nkhead{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;margin:0 0 10px}.nkhead h2{margin:0;font-size:24px;line-height:1.2}.nkhead .nkfav{width:56px;height:56px;flex:none}
+#nkCardView .srres{top:calc(var(--nav) + env(safe-area-inset-top))}
+#nkCardView .vv{color:var(--mute);font-size:13px;margin-bottom:12px}
 #nkCardView h3{font-size:18px;margin:18px 0 8px}#nkCardView ul{padding-left:20px}#nkCardView li{margin:6px 0;font-size:17px}
 .nkrow b{display:block;font-weight:800}.nkrow small{display:block;color:var(--mute);font-size:13px;margin-top:2px}
 #nachView .tile b{font-size:18px}#nachView .tile small{font-size:13px;color:var(--mute);display:block;margin-top:3px}
@@ -687,8 +689,11 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="7.4";
+const APP_VERSION="7.5";
 const CHANGELOG=[
+ {v:"7.5",d:"15.10.2026",items:[
+  "Schockraum-Indikation und Eintrag bearbeiten (Archiv) öffnen jetzt ebenfalls als eigene Seite mit Zurück · Start · Neu statt als Fenster",
+  "Der Code in der schwarzen Leiste unten bricht auf schmalen Handys nicht mehr in zwei Zeilen um"]},
  {v:"7.4",d:"15.10.2026",items:[
   "Klare Struktur: Auf den Hauptseiten (PZC, Name + Nummer, Nachschlagen, Archiv) stehen oben nur Titel, Neu, Hell/Dunkel und die vier Reiter. Auf allen Unterseiten (Auswahl, Anmeldung, Zusammenfassung, Karten, Listen) steht oben nur die Leiste Zurück · Start · Neu – nichts doppelt",
   "Obere Leisten etwas tiefer gesetzt, damit sie nicht in den Bereich unter der Uhr geraten",
@@ -1648,27 +1653,27 @@ $("arcList").addEventListener("click",e=>{
 function openEdit(id){
   const x=load().find(x=>x.id===id);if(!x)return;
   const f=(lab,i,v)=>`<div class="fld"><label>${esc(lab)}</label><input class="inp" id="${i}" autocomplete="off" value="${esc(v||"")}"></div>`;
-  openModal(`<h2>Eintrag bearbeiten</h2><div class="vv">${esc(x.pzc)} · ${fmt(x.ts)}</div>
+  nkCur="edit";$("nkCardView").innerHTML=(`<h2 style="margin:0 0 4px">Eintrag bearbeiten</h2><div class="vv">${esc(x.pzc)} · ${fmt(x.ts)}</div>
     ${f("Name (Nachname, Vorname)","edName",x.name)}<div id="edSpell"></div>${f("Patientennummer","edPat",x.patNr)}${f("NEF-Nummer","edNef",x.nefNr)}${f("Weitere Fahrzeuge vor Ort","edFzg",x.fzg)}
     <div class="fld"><label>Notiz</label><textarea class="inp" id="edNote">${esc(x.note||"")}</textarea></div>
     ${(x.answers||[]).map(([k,v],i)=>f(k,"edA"+i,v)).join("")}
     <div class="chips" style="margin-top:12px"><button class="mini" id="edSave" data-id="${id}">✓ Speichern</button><button class="mini" id="edCancel">Abbrechen</button></div>`);
-  $("modal").classList.add("big");edSpellRender();
+  push({v:"nkc"});window.scrollTo(0,0);edSpellRender();
 }
 function edSpellRender(){
   const el=$("edSpell");if(!el||!$("edName"))return;
   const raw=$("edName").value,i=raw.indexOf(","),n=(i<0?raw:raw.slice(0,i)).trim(),v=(i<0?"":raw.slice(i+1)).trim();
   el.innerHTML=spellCols(n,v);
 }
-$("modal").addEventListener("input",e=>{if(e.target.id==="edName")edSpellRender()});
-$("modal").addEventListener("click",e=>{
-  if(e.target.id==="edCancel"){closeModal();return}
+$("nkCardView").addEventListener("input",e=>{if(e.target.id==="edName")edSpellRender()});
+$("nkCardView").addEventListener("click",e=>{
+  if(e.target.id==="edCancel"){goBack();return}
   if(e.target.id==="edSave"){
     const id=+e.target.dataset.id,a=load(),x=a.find(x=>x.id===id);if(!x)return;
     const g=i=>($(i)?$(i).value.trim():"");
     x.name=g("edName");x.patNr=g("edPat");x.nefNr=g("edNef");x.fzg=g("edFzg");x.note=g("edNote");
     x.answers=(x.answers||[]).map(([k,v],i)=>[k,$("edA"+i)?$("edA"+i).value.trim():v]).filter(([k,v])=>v);
-    store(a);closeModal();renderArc();
+    store(a);goBack();
   }
 });
 $("arcExport").onclick=()=>{navigator.clipboard?.writeText(load().map(entryText).join("\n\n———\n\n"));$("arcExport").textContent="✓ kopiert"};
@@ -1887,12 +1892,12 @@ function srHTML(){
   const res=srTab==="trauma"
     ?(nA?`<div class="srres a">Schockraumteam SOLL (GoR A) · ${nA} Kriterium${nA>1?"en":""}${nB?` + ${nB}× B`:""}</div>`:nB?`<div class="srres b">Schockraumteam SOLLTE (GoR B) · ${nB} Kriterium${nB>1?"en":""}</div>`:`<div class="srres">Noch kein Kriterium gewählt</div>`)
     :(n?`<div class="srres a">Schockraum-Indikation erfüllt · ${n} Kriterium${n>1?"en":""}</div>`:`<div class="srres">Noch kein Kriterium gewählt</div>`);
-  return `<div style="position:sticky;top:-8px;height:0;z-index:5;text-align:right"><button class="srx" id="srClose" aria-label="Schließen">✕</button></div><h2 style="padding-right:54px">🚨 Schockraum-Indikation</h2>
+  return `<h2 style="margin:0 0 6px">🚨 Schockraum-Indikation</h2>
   <div class="srtabs"><button class="${srTab==="trauma"?"on":""}" data-srt="trauma">Trauma</button><button class="${srTab==="non"?"on":""}" data-srt="non">Non-Trauma</button></div>
   ${res}${body}
   <div class="warn">Der Rettungsdienst kann das Schockraumteam auch aktivieren, wenn kein Kriterium erfüllt ist, der Patient aber als kritisch eingeschätzt wird.${srTab==="trauma"?" A = „soll“, B = „sollte“ (Grade of Recommendation, S3-Leitlinie Polytrauma / Schwerverletzten-Behandlung).":""}</div>
   <div class="warn">Quelle: Rettungsdienst-Factsheets „Schockraum-Indikation bei ${srTab==="trauma"?"Trauma":"Non-Trauma"}“, Stand 06/2025 (rd-factsheets.de). Eingabehilfe – regionale Vorgaben und die Leitstelle gehen vor.</div>
-  <div class="chips" style="margin-top:12px"><button class="mini" id="srClear">Auswahl löschen</button><button class="mini" id="srClose">Schließen</button></div>`;
+  <div class="chips" style="margin-top:12px"><button class="mini" id="srClear">Auswahl löschen</button></div>`;
 }
 function srSummary(){
   const parts=[];
@@ -1911,14 +1916,14 @@ function srStore(){
   if(t)sk.iv_srk={l:"Schockraum-Kriterien",v:t};else delete sk.iv_srk;
   const bx=$("srSelBox");if(bx)bx.textContent=t;
 }
-function openSR(tab){if(tab)srTab=tab;openModal(srHTML());$("modal").classList.add("big")}
-$("modal").addEventListener("click",e=>{
+function openSR(tab){if(tab)srTab=tab;nkCur="schock";$("nkCardView").innerHTML=srHTML();push({v:"nkc"});window.scrollTo(0,0)}
+$("nkCardView").addEventListener("click",e=>{
   const b=e.target.closest("[data-sr]");
-  if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);srStore();const y=$("modal").scrollTop;$("modal").innerHTML=srHTML();$("modal").scrollTop=y;return}
-  const t=e.target.closest("[data-srt]");if(t){srTab=t.dataset.srt;$("modal").innerHTML=srHTML();$("modal").scrollTop=0;return}
-  if(e.target.id==="srClear"){srSel.clear();srStore();$("modal").innerHTML=srHTML();return}
-  if(e.target.id==="srClose")closeModal();
+  if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);srStore();const y=window.scrollY;$("nkCardView").innerHTML=srHTML();window.scrollTo(0,y);return}
+  const t=e.target.closest("[data-srt]");if(t){srTab=t.dataset.srt;$("nkCardView").innerHTML=srHTML();window.scrollTo(0,0);return}
+  if(e.target.id==="srClear"){srSel.clear();srStore();$("nkCardView").innerHTML=srHTML();return}
 });
+
 
 /* ---- Nachschlagen: Reanimation + Notfallmedikamente ----
    Quellen stehen auf jeder Karte. Medikamente: ÄLRD Bayern „Medikamente nach § 2a NotSanG“ v1.4 (02.07.2024).
