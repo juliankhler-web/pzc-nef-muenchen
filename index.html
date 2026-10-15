@@ -296,6 +296,7 @@ textarea.inp{min-height:84px;resize:vertical}
 
   <div id="arcView" class="hidden">
     <div class="list" id="arcList"></div>
+    <div id="phBox"></div>
     <div class="chips"><button class="mini" id="arcExport">Alles kopieren</button><button class="mini del" id="arcClear">Archiv leeren</button></div>
     <div class="lbl" style="margin-top:22px"><span>Gemeldete Suchbegriffe <span id="repCount"></span></span></div>
     <div id="repList"></div>
@@ -689,8 +690,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="9.0";
+const APP_VERSION="9.1";
 const CHANGELOG=[
+ {v:"9.1",d:"15.10.2026",items:["Scan-Fotos werden nur in der App gespeichert (Archiv → Scan-Fotos): nicht in „Fotos“, kein Upload, automatisch nach 30 Tagen gelöscht, einzeln oder alle löschbar","Knopf „Foto auf dem Handy sichern“ entfernt"]},
  {v:"9.0",d:"15.10.2026",items:["Scan-Ergebnis: Knopf „Foto auf dem Handy sichern“ (freiwillig, über das Teilen-Menü in „Fotos“) – die App speichert nie von selbst"]},
  {v:"8.9",d:"15.10.2026",items:["Ausweis-Scan: Namensprüfung gegen eine erweiterte Vornamenliste – steht ein Vorname im Nachnamenfeld, wird getauscht bzw. gewarnt","Neuer Knopf „⇄ Nachname und Vorname tauschen“ im Scan-Ergebnis"]},
  {v:"8.8",d:"15.10.2026",items:["Karte „Adrenalin 1:10.000 Fertigspritze“ entfernt – gibt es im NEF nicht; Kinder-Adrenalin 1:10.000 wird aus der Ampulle verdünnt"]},
@@ -1650,8 +1652,33 @@ $("repShare").onclick=async()=>{
   try{await navigator.clipboard.writeText(txt);$("repShare").textContent="✓ kopiert"}catch(_){}
 };
 $("repClear").onclick=()=>{if(confirm("Alle Meldungen löschen?")){repStore([]);renderReports()}};
+/* Scan-Fotos: bleiben nur in der App (IndexedDB dieser App, nicht in „Fotos“, kein Upload); älter als 30 Tage oder mehr als 20 werden gelöscht */
+const PH_DAYS=30,PH_MAX=20;
+function phDB(){return new Promise((res,rej)=>{try{const r=indexedDB.open("pzc_photos",1);r.onupgradeneeded=()=>r.result.createObjectStore("p",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+const phTx=(db,mode)=>db.transaction("p",mode).objectStore("p");
+const phReq=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function phAll(){try{const db=await phDB();const a=await phReq(phTx(db,"readonly").getAll());return a.sort((x,y)=>y.ts-x.ts)}catch(_){return[]}}
+async function phPurge(){try{const db=await phDB(),a=await phAll(),lim=Date.now()-PH_DAYS*864e5;const del=a.filter((p,i)=>p.ts<lim||i>=PH_MAX);for(const p of del)await phReq(phTx(db,"readwrite").delete(p.id))}catch(_){}}
+async function phSave(blob,label){try{const db=await phDB();await phReq(phTx(db,"readwrite").put({id:Date.now(),ts:Date.now(),blob,label:label||""}));await phPurge();return true}catch(_){return false}}
+async function phDelete(id){try{const db=await phDB();await phReq(phTx(db,"readwrite").delete(id))}catch(_){}}
+async function phClear(){try{const db=await phDB();await phReq(phTx(db,"readwrite").clear())}catch(_){}}
+let phUrls=[];
+async function renderPhotos(){
+  const box=$("phBox");if(!box)return;
+  phUrls.forEach(u=>URL.revokeObjectURL(u));phUrls=[];
+  await phPurge();const a=await phAll();
+  if(!a.length){box.innerHTML="";return}
+  box.innerHTML=`<div class="arc" style="margin-top:12px"><div class="ti"><b>🔒 Scan-Fotos (${a.length})</b></div><div class="ti" style="color:var(--mute);font-size:13px">Nur in dieser App gespeichert – nicht in „Fotos“, nicht im Internet. Werden nach ${PH_DAYS} Tagen automatisch gelöscht (höchstens ${PH_MAX}).</div>
+    ${a.map(p=>{const u=URL.createObjectURL(p.blob);phUrls.push(u);return `<div style="margin-top:10px"><div class="dt" style="font-size:13px">${fmt(p.ts)}${p.label?" · "+esc(p.label):""}</div><img src="${u}" data-ph="${p.id}" alt="" style="width:100%;max-height:120px;object-fit:cover;border-radius:10px;margin-top:4px"><button class="mini del" data-phdel="${p.id}" style="margin-top:6px">Foto löschen</button></div>`}).join("")}
+    <div class="chips" style="margin-top:12px"><button class="mini del" id="phClear">Alle Scan-Fotos löschen</button></div></div>`;
+}
+document.addEventListener("click",async e=>{
+  const im=e.target.closest("[data-ph]");if(im){const full=im.style.maxHeight==="none";im.style.maxHeight=full?"120px":"none";im.style.objectFit=full?"cover":"contain";return}
+  const d=e.target.closest("[data-phdel]");if(d){if(confirm("Foto löschen?")){await phDelete(+d.dataset.phdel);renderPhotos()}return}
+  if(e.target.id==="phClear"){if(confirm("Alle Scan-Fotos löschen?")){await phClear();renderPhotos()}}
+});
 function renderArc(){
-  renderReports();
+  renderReports();renderPhotos();
   renderTiles();
   const a=load(); $("arcCount").textContent=a.length?`(${a.length})`:"";
   $("arcList").innerHTML=a.length?a.map(e=>`<div class="arc" data-id="${e.id}">
@@ -2984,6 +3011,7 @@ async function scanCard(file){
     lines=[...new Set([...best.slice(0,6),...lines])];
     scanProg=null;
     const thumb=scaled(rotCanvas(base,bestDeg),Math.min(1000,Math.max(base.width,base.height))).toDataURL("image/jpeg",.85);
+    try{const ps=scaled(base,1600);ps.toBlob(bl=>{if(bl)phSave(bl,[res.last,res.first].filter(Boolean).join(", "))},"image/jpeg",.85)}catch(_){}
     let msex=res.sex||state.sex||"",focus="scLast";
     const chips=lines.filter(l=>!/^[\W\d_]+$/.test(l)&&l.length<=44).slice(0,18).map(l=>`<button class="chip" data-line="${esc(l)}">${esc(l)}</button>`).join("");
     openModal(`<h2>Gelesen – bitte prüfen</h2>${res.src?`<div class="vv">Erkannt über: ${esc(res.src)}</div>`:""}${res.dobAlt?`<div class="warnbox">⚠ Geburtsdatum unsicher gelesen: bitte mit der Karte vergleichen.<div class="chips" style="margin-top:8px"><button class="chip" data-dob="${esc(res.dob)}">${esc(res.dob)}</button><button class="chip" data-dob="${esc(res.dobAlt)}">${esc(res.dobAlt)}</button></div></div>`:""}${/MRZ/.test(res.src||"")&&!/Prüfziffer ok/.test(res.src||"")?'<div class="warnbox">⚠ Prüfziffer nicht bestätigt – Geburtsdatum und Name bitte genau prüfen.</div>':""}
@@ -3000,8 +3028,7 @@ async function scanCard(file){
       <div class="warn">Bleibt auf diesem Gerät. Aus dem Geburtsdatum wird das Alter berechnet; der Name erscheint in der Zusammenfassung buchstabiert und wird mit dem Einsatz im Archiv gespeichert.</div>
       <div class="acts" style="grid-template-columns:1fr 1fr"><button class="btn sec" id="scNo">Abbrechen</button><button class="btn" id="scOk">Übernehmen</button></div>
       <button class="mini" id="scAgain" style="width:100%;margin-top:10px;padding:14px">📷 Nochmal fotografieren</button>
-      <button class="mini" id="scSave" style="width:100%;margin-top:10px;padding:14px">💾 Foto auf dem Handy sichern (freiwillig)</button>
-      <div class="warn" style="margin-top:6px">Die App speichert das Foto nie von selbst. Mit dem Knopf legst du es selbst in „Fotos“ ab – z. B. um einen falsch gelesenen Ausweis später zu zeigen. Es enthält persönliche Daten, danach bitte wieder löschen.</div>`);
+      <div class="warn" style="margin-top:10px">🔒 Das Foto wird nur in dieser App aufbewahrt (Archiv → Scan-Fotos), nicht in „Fotos“ und nicht im Internet, und nach ${PH_DAYS} Tagen automatisch gelöscht. Dort kannst du es jederzeit ansehen oder löschen.</div>`);
     ["scLast","scFirst","scDob"].forEach(id=>$(id).addEventListener("focus",()=>focus=id));
     // In der Maschinenlesezeile steht Ä/Ö/Ü als AE/OE/UE – als Vorschlag zum Antippen anbieten
     const umlaut=t=>t.replace(/ae/gi,m=>m[0]==="A"?"Ä":"ä").replace(/oe/gi,m=>m[0]==="O"?"Ö":"ö").replace(/ue/gi,m=>m[0]==="U"?"Ü":"ü");
@@ -3020,9 +3047,6 @@ async function scanCard(file){
     $("modal").querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>{msex=msex===b.dataset.ms?"":b.dataset.ms;$("modal").querySelectorAll("[data-ms]").forEach(x=>x.classList.toggle("on",x.dataset.ms===msex))});
     $("modal").querySelectorAll("[data-dob]").forEach(b=>b.onclick=()=>{$("scDob").value=b.dataset.dob;$("modal").querySelectorAll("[data-dob]").forEach(x=>x.classList.toggle("on",x===b))});
     $("scSwap").onclick=()=>{const a=$("scLast"),b=$("scFirst"),t=a.value;a.value=b.value;b.value=t};
-    $("scSave").onclick=()=>{base.toBlob(async bl=>{if(!bl)return;const f=new File([bl],"ausweis-scan.jpg",{type:"image/jpeg"});
-      try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e&&e.name==="AbortError")return}
-      const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download="ausweis-scan.jpg";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)},"image/jpeg",.92)};
     $("scNo").onclick=closeModal;
     $("scAgain").onclick=()=>{closeModal();openCam()};
     $("scOk").onclick=()=>{
