@@ -357,7 +357,7 @@ textarea.inp{min-height:84px;resize:vertical}
     <button class="reportbtn hidden" id="reportBtn">❗ Begriff fehlt oder falscher Treffer – melden</button>
   </div>
 
-  <p class="note">Codes und BD1/BD2/BD3 laut offizieller IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen am 03.10.2026. Eingabehilfe, kein Ersatz für IVENA – bei Abweichungen gilt die IVENA-App.</p>
+  <p class="note">Codes und BD1/BD2/BD3 laut offizieller IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen am 08.11.2026. Eingabehilfe, kein Ersatz für IVENA – bei Abweichungen gilt die IVENA-App.</p>
   </div>
 </div>
 
@@ -420,7 +420,7 @@ textarea.inp{min-height:84px;resize:vertical}
 </div>
 
 <script>
-/* [Code, Bezeichnung, mögliche Behandlungsdringlichkeiten BD] – Quelle: offizielle IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen 03.10.2026 */
+/* [Code, Bezeichnung, mögliche Behandlungsdringlichkeiten BD] – Quelle: offizielle IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen 08.11.2026 */
 const D = [
 [131,"Reanimation, laufend / intermittierend","1"],
 [132,"Reanimation ROSC","1"],
@@ -524,7 +524,7 @@ const D = [
 [370,"Kohlenmonoxid - Vergiftung","123"],
 [371,"Meningitis / Enzephalitis","123"],
 [372,"TBC","123"],
-[373,"Sepsis (Infekt NEWS-2 Score min 5)","12"],
+[373,"Sepsis (Infekt NEWS-2 Score min 5)","1"],
 [374,"Septischer Schock","1"],
 [375,"hochkontagiöse Erkrankung (Sonder-ISO)","1"],
 [376,"Covid-19-SARS - CoV 2 (bestätigt)","12"],
@@ -690,8 +690,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="9.1";
+const APP_VERSION="9.2";
 const CHANGELOG=[
+ {v:"9.2",d:"08.11.2026",items:["PZC-Liste mit der offiziellen IVENA-Bayern-Liste abgeglichen (190 Codes): neu oder weggefallen ist nichts; geändert hat sich nur 373 Sepsis – jetzt nur noch BD 1 (vorher BD 1 oder 2)"]},
  {v:"9.1",d:"15.10.2026",items:["Scan-Fotos werden nur in der App gespeichert (Archiv → Scan-Fotos): nicht in „Fotos“, kein Upload, automatisch nach 30 Tagen gelöscht, einzeln oder alle löschbar","Knopf „Foto auf dem Handy sichern“ entfernt"]},
  {v:"9.0",d:"15.10.2026",items:["Scan-Ergebnis: Knopf „Foto auf dem Handy sichern“ (freiwillig, über das Teilen-Menü in „Fotos“) – die App speichert nie von selbst"]},
  {v:"8.9",d:"15.10.2026",items:["Ausweis-Scan: Namensprüfung gegen eine erweiterte Vornamenliste – steht ein Vorname im Nachnamenfeld, wird getauscht bzw. gewarnt","Neuer Knopf „⇄ Nachname und Vorname tauschen“ im Scan-Ergebnis"]},
