@@ -357,7 +357,7 @@ textarea.inp{min-height:84px;resize:vertical}
     <button class="reportbtn hidden" id="reportBtn">❗ Begriff fehlt oder falscher Treffer – melden</button>
   </div>
 
-  <p class="note">Codes und BD1/BD2/BD3 laut offizieller IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen am 08.11.2026. Eingabehilfe, kein Ersatz für IVENA – bei Abweichungen gilt die IVENA-App.</p>
+  <p class="note">Codes und BD1/BD2/BD3 laut offizieller IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen am 25.11.2026. Eingabehilfe, kein Ersatz für IVENA – bei Abweichungen gilt die IVENA-App.</p>
   </div>
 </div>
 
@@ -420,7 +420,7 @@ textarea.inp{min-height:84px;resize:vertical}
 </div>
 
 <script>
-/* [Code, Bezeichnung, mögliche Behandlungsdringlichkeiten BD] – Quelle: offizielle IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen 08.11.2026 */
+/* [Code, Bezeichnung, mögliche Behandlungsdringlichkeiten BD] – Quelle: offizielle IVENA-Bayern-PZC-Liste (bayern.ivena-web.de/pzc.php), abgerufen 25.11.2026 */
 const D = [
 [131,"Reanimation, laufend / intermittierend","1"],
 [132,"Reanimation ROSC","1"],
@@ -690,8 +690,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="9.2";
+const APP_VERSION="9.3";
 const CHANGELOG=[
+ {v:"9.3",d:"25.11.2026",items:["iPhone: Code-Leiste unten und Zurück-Leiste oben verrutschen nach dem Eintippen (z. B. Alter) nicht mehr beim Scrollen","PZC-Liste erneut mit IVENA Bayern abgeglichen (25.11.2026): keine neuen oder geänderten Codes"]},
  {v:"9.2",d:"08.11.2026",items:["PZC-Liste mit der offiziellen IVENA-Bayern-Liste abgeglichen (190 Codes): neu oder weggefallen ist nichts; geändert hat sich nur 373 Sepsis – jetzt nur noch BD 1 (vorher BD 1 oder 2)"]},
  {v:"9.1",d:"15.10.2026",items:["Scan-Fotos werden nur in der App gespeichert (Archiv → Scan-Fotos): nicht in „Fotos“, kein Upload, automatisch nach 30 Tagen gelöscht, einzeln oder alle löschbar","Knopf „Foto auf dem Handy sichern“ entfernt"]},
  {v:"9.0",d:"15.10.2026",items:["Scan-Ergebnis: Knopf „Foto auf dem Handy sichern“ (freiwillig, über das Teilen-Menü in „Fotos“) – die App speichert nie von selbst"]},
@@ -3242,6 +3243,22 @@ $("verBtn").onclick=openVersion;
     if(news.length)showModal(`<h2>🆕 Update auf Version ${APP_VERSION}</h2><div class="vv">Vorher: Version ${seen}</div>`+verList(news.slice(0,1)));
   }
   try{localStorage.setItem("pzc_seen_version",APP_VERSION)}catch(_){}
+})();
+
+/* iPhone: Nach Tastatur-Eingabe (z. B. Alter) verrutschen fest angeheftete Leisten beim Scrollen.
+   Lösung: obere Leiste und Code-Leiste unten an den sichtbaren Bildausschnitt koppeln */
+(()=>{const vv=window.visualViewport;if(!vv)return;
+  const els=()=>({nav:$("nav"),res:document.querySelector(".result")});
+  let raf=0;
+  const fix=()=>{raf=0;const {nav,res}=els();
+    const top=Math.max(0,vv.offsetTop),bot=window.innerHeight-(vv.height+vv.offsetTop),kb=bot>120; // kb: Tastatur offen
+    const tb=!kb&&Math.abs(bot)>.5?`translateY(${-bot}px)`:"";
+    if(nav)nav.style.transform=top>.5?`translateY(${top}px)`:"";
+    if(res)res.style.transform=tb;
+  };
+  const q=()=>{if(!raf)raf=requestAnimationFrame(fix)};
+  vv.addEventListener("resize",q);vv.addEventListener("scroll",q);window.addEventListener("scroll",q,{passive:true});
+  document.addEventListener("focusout",()=>setTimeout(()=>{window.scrollTo(window.scrollX,window.scrollY);fix()},80));
 })();
 </script>
 </body>
