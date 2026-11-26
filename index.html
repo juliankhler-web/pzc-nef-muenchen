@@ -704,8 +704,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="9.4";
+const APP_VERSION="9.5";
 const CHANGELOG=[
+ {v:"9.5",d:"26.11.2026",items:["Karte „Nach ROSC“: Thiamin (Vitamin B1) ergänzt – bei Unterzucker und Verdacht auf Alkoholkrankheit vor der Glucose (wie ÄLRD-Liste); kein Medikament zum Hirnschutz empfohlen"]},
  {v:"9.4",d:"26.11.2026",items:["Neu: Karte „Nach ROSC (Erwachsene)“ – Weiterbehandlung nach erfolgreicher Reanimation: Zielwerte, Transport/Anmeldung, was man nicht routinemäßig gibt, und Medikamente zum Antippen (nach ERC-Leitlinien 2025); auch aus der Karte „Reanimation Erwachsene“ erreichbar","Neu unter „Nachschlagen“: Umschalter „📻 Funk“ mit allen Funkkanälen (Kurzwahl groß) – ILS München, Feuerwehr/Wasserrettung und Nachbar-Leitstellen (FFB, Erding, Ingolstadt, Landshut, Oberland, Rosenheim), mit Suche","Kanalnamen in der Anmeldung wie am Funkgerät: SK_I_Bett_M (2515) und RD_Betten_M (2512)"]},
  {v:"9.3",d:"25.11.2026",items:["iPhone: Code-Leiste unten und Zurück-Leiste oben verrutschen nach dem Eintippen (z. B. Alter) nicht mehr beim Scrollen","PZC-Liste erneut mit IVENA Bayern abgeglichen (25.11.2026): keine neuen oder geänderten Codes"]},
  {v:"9.2",d:"08.11.2026",items:["PZC-Liste mit der offiziellen IVENA-Bayern-Liste abgeglichen (190 Codes): neu oder weggefallen ist nichts; geändert hat sich nur 373 Sepsis – jetzt nur noch BD 1 (vorher BD 1 oder 2)"]},
@@ -2389,10 +2390,10 @@ function nkRoscHTML(){
   <h3>A · Atemweg</h3><ul><li>Bleibt der Patient bewusstlos: <b>Intubation</b> – nur durch erfahrene Anwender, Lage mit <b>Kapnographie</b> bestätigen</li><li>Ohne erfahrenen Anwender: <b>Larynxmaske belassen</b> oder einfache Maßnahmen, bis jemand für die Narkose-Intubation da ist</li><li>Wach und atmet normal: Sauerstoff über Maske, wenn SpO₂ unter 94 %</li></ul>
   <h3>B · Beatmung</h3><ul><li>Sofort nach ROSC <b>100 % Sauerstoff</b>, bis SpO₂ zuverlässig messbar ist</li><li>Dann Sauerstoff so einstellen, dass <b>SpO₂ 94–98 %</b> – zu wenig <b>und</b> zu viel Sauerstoff vermeiden</li><li><b>Normokapnie</b>: PaCO₂ 35–45 mmHg, etCO₂ laufend messen</li><li>Lungenschonend: <b>6–8 ml/kg</b> Atemzugvolumen (ideales Körpergewicht)</li></ul>
   <h3>C · Kreislauf</h3><ul><li><b>12-Kanal-EKG</b> so früh wie möglich</li><li>Ziel: <b>RR systolisch über 100 mmHg</b> bzw. <b>MAD über 60–65 mmHg</b> – Blutdruckabfall vermeiden</li><li>Dafür je nach Bedarf: Flüssigkeit, <b>Noradrenalin</b> und/oder Dobutamin</li><li>Kalium: zu niedrig und zu hoch vermeiden (Rhythmusstörungen)</li><li>Rhythmusstörung nach ROSC: Vorgehen wie bei Periarrest-Rhythmusstörungen, Ursache behandeln (Koronarverschluss, Elektrolyte)</li></ul>
-  <h3>D · Gehirn</h3><ul><li>Blutzucker messen und nach Standard behandeln</li><li>Krampfanfall: <b>Levetiracetam</b> (oder Valproat) zusätzlich zur Sedierung</li><li>Sedierung mit <b>kurz wirksamen</b> Mitteln</li></ul>
+  <h3>D · Gehirn</h3><ul><li>Blutzucker messen und nach Standard behandeln – bei Verdacht auf Alkoholkrankheit <b>Thiamin (Vitamin B1) vor der Glucose</b></li><li>Krampfanfall: <b>Levetiracetam</b> (oder Valproat) zusätzlich zur Sedierung</li><li>Sedierung mit <b>kurz wirksamen</b> Mitteln</li></ul>
   <h3>E · Temperatur</h3><ul><li>Bleibt der Patient bewusstlos: <b>Fieber verhindern</b> (höchstens 37,5 °C)</li><li>Ist er leicht unterkühlt (32–36 °C): <b>nicht aktiv aufwärmen</b></li><li><b>Keine</b> Kühlung mit großen Mengen kalter Infusion im Rettungsdienst</li></ul>
   <h3>Transport und Anmeldung</h3><ul><li><b>ST-Hebung</b> oder hoher Verdacht auf Koronarverschluss (z. B. Kreislauf oder Rhythmus instabil): <b>sofort Herzkatheter</b></li><li>Nicht-traumatischer Kreislaufstillstand: möglichst in ein <b>Cardiac Arrest Center</b> (nach örtlicher Regel)</li><li>Anmeldung als Sonderbett: <b>PZC 132</b> „Reanimation ROSC“ über <b>SK_I_Bett_M · 2515 · Status 0</b></li></ul>
-  <h3>Nicht routinemäßig</h3><ul><li>Keine vorbeugenden Antiarrhythmika, wenn keine Rhythmusstörung besteht</li><li>Keine Kortikosteroide, keine vorbeugenden Antibiotika</li><li>Keine vorbeugenden Mittel gegen Krampfanfälle</li><li>Muskelrelaxans nicht dauerhaft (nur zur Intubation)</li></ul>
+  <h3>Nicht routinemäßig</h3><ul><li>Keine vorbeugenden Antiarrhythmika, wenn keine Rhythmusstörung besteht</li><li>Keine Kortikosteroide, keine vorbeugenden Antibiotika</li><li>Keine vorbeugenden Mittel gegen Krampfanfälle</li><li>Kein bestimmtes Medikament zum „Schutz des Gehirns“ empfohlen (Leitlinie: zu wenig Belege)</li><li>Muskelrelaxans nicht dauerhaft (nur zur Intubation)</li></ul>
   <h3>Medikamente – antippen für Dosis</h3>
   <div class="nkmute" style="font-size:13px;margin:-2px 0 8px">Auswahl und Dosis nach Notarzt und SOP. Nach ROSC fällt der Blutdruck bei Narkose leicht ab – vorsichtig dosieren.</div>
   <div class="nklist">
@@ -2406,6 +2407,7 @@ function nkRoscHTML(){
   ${md("levetiracetam","Krampfanfall nach ROSC")}
   ${md("asa_iv","bei Herzinfarkt nach ACS-SOP")}
   ${md("heparin","bei Herzinfarkt nach ACS-SOP")}
+  ${md("thiamin","bei Unterzucker und Verdacht auf Alkoholkrankheit: VOR der Glucose")}
   ${md("glucose","bei Unterzucker")}
   </div>
   <div class="warn">Quelle: ${esc(NK_ROSC_SRC)}. Eingabehilfe – es gelten die Vorgaben des Notarztes, der Leitstelle und des ÄLRD.</div>`;
