@@ -187,6 +187,12 @@ textarea.inp{min-height:84px;resize:vertical}
 .nkd{border:1px solid var(--line);border-left:6px solid var(--accent);background:var(--card);border-radius:12px;padding:10px 12px;margin:0 0 8px;font-size:17px;font-weight:600}
 .nkr{margin-top:6px;font-size:17px;font-weight:600}.nkr b{font-size:20px;font-weight:900}
 .nkmute{color:var(--mute);font-weight:500}
+.nkseg{display:flex;gap:8px;margin:0 0 12px}.nkseg button{flex:1;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:12px 8px;font-size:16px;font-weight:800}.nkseg button.on{background:#378ADD;border-color:#378ADD;color:#fff}
+.fkrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px}.fkrow.hl{border:2px solid #378ADD}
+.fkkw{font:800 24px ui-monospace,Menlo,monospace;min-width:72px;font-variant-numeric:tabular-nums}.fknm{font-weight:800;font-size:16px;word-break:break-all}.fkds{color:var(--mute);font-size:13px;margin-top:2px}.fkq{color:#b26a00;font-size:12.5px;font-weight:700;margin-top:3px}
+.fkbd{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:2px}.fkb1{background:var(--d1);color:#fff}.fkb2{background:var(--d2);color:#111}
+.fkgrp{margin-bottom:6px}.fkgrp>summary{list-style:none;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 12px;font-weight:800;font-size:15px;display:flex;justify-content:space-between}.fkgrp>summary::-webkit-details-marker{display:none}.fkgrp>summary::after{content:"▾";color:var(--mute)}.fkgrp[open]>summary{margin-bottom:6px}.fkgrp[open]>summary::after{content:"▴"}
+.fkmerk{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:6px}
 .nksyr{margin:6px 0 2px;color:var(--ink)}.nkcap{font-size:13px;color:var(--mute);margin:0 0 8px}
 .nklist{display:flex;flex-direction:column;gap:6px}
 .nkrow{text-align:left;border:1px solid var(--line);border-left:6px solid #378ADD;background:var(--card);color:var(--ink);border-radius:12px;padding:12px 14px;min-height:56px;font-size:17px}
@@ -306,9 +312,17 @@ textarea.inp{min-height:84px;resize:vertical}
   </div>
 
   <div id="nachView" class="hidden">
+    <div class="nkseg" id="nkSeg"><button data-seg="med" class="on">💊 Medikamente</button><button data-seg="funk">📻 Funk</button></div>
+    <div id="fkBox" class="hidden">
+      <input class="search" id="fkQ" type="search" placeholder="Name, Kurzwahl oder Leitstelle …" autocomplete="off" autocapitalize="off" autocorrect="off">
+      <div id="fkRes" style="margin-top:12px"></div>
+      <p class="note">Quelle: einsatztaktik.de › Fahrerinfo › Funk (Abruf 26.11.2026), abgeglichen mit dem Fahrzeug-Funkgerät. Ohne Gewähr – maßgeblich sind Funkgerät und Leitstelle.</p>
+    </div>
+    <div id="nkBox">
     <input class="search" id="nkQ" type="search" placeholder="Suchen: Adrenalin, Krampf …" autocomplete="off" autocapitalize="off" autocorrect="off">
     <div id="nkRes" style="margin-top:12px"></div>
     <p class="note">Jede Karte nennt ihre Quelle mit Stand. Eingabehilfe – es gelten die Vorgaben der Leitstelle und des ÄLRD.</p>
+    </div>
   </div>
 
   <div id="nkCardView" class="hidden"></div>
@@ -690,8 +704,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="9.3";
+const APP_VERSION="9.4";
 const CHANGELOG=[
+ {v:"9.4",d:"26.11.2026",items:["Neu: Karte „Nach ROSC (Erwachsene)“ – Weiterbehandlung nach erfolgreicher Reanimation: Zielwerte, Transport/Anmeldung, was man nicht routinemäßig gibt, und Medikamente zum Antippen (nach ERC-Leitlinien 2025); auch aus der Karte „Reanimation Erwachsene“ erreichbar","Neu unter „Nachschlagen“: Umschalter „📻 Funk“ mit allen Funkkanälen (Kurzwahl groß) – ILS München, Feuerwehr/Wasserrettung und Nachbar-Leitstellen (FFB, Erding, Ingolstadt, Landshut, Oberland, Rosenheim), mit Suche","Kanalnamen in der Anmeldung wie am Funkgerät: SK_I_Bett_M (2515) und RD_Betten_M (2512)"]},
  {v:"9.3",d:"25.11.2026",items:["iPhone: Code-Leiste unten und Zurück-Leiste oben verrutschen nach dem Eintippen (z. B. Alter) nicht mehr beim Scrollen","PZC-Liste erneut mit IVENA Bayern abgeglichen (25.11.2026): keine neuen oder geänderten Codes"]},
  {v:"9.2",d:"08.11.2026",items:["PZC-Liste mit der offiziellen IVENA-Bayern-Liste abgeglichen (190 Codes): neu oder weggefallen ist nichts; geändert hat sich nur 373 Sepsis – jetzt nur noch BD 1 (vorher BD 1 oder 2)"]},
  {v:"9.1",d:"15.10.2026",items:["Scan-Fotos werden nur in der App gespeichert (Archiv → Scan-Fotos): nicht in „Fotos“, kein Upload, automatisch nach 30 Tagen gelöscht, einzeln oder alle löschbar","Knopf „Foto auf dem Handy sichern“ entfernt"]},
@@ -1476,6 +1491,7 @@ function apply(){
   $("nav").classList.toggle("hidden",top);document.body.classList.toggle("hasnav",!top);
   $("nFwd").classList.toggle("hidden",!fwd.length);
   if(arc)renderArc();
+  if(nkc&&cur.id&&cur.id!==nkCur){nkShow(cur.id);window.scrollTo(0,0)}
 }
 function setBase(){
   const base=searching?"list":[...stack,cur].reverse().find(x=>x.v==="list"||x.v==="home").v;
@@ -1484,7 +1500,7 @@ function setBase(){
 }
 function hpush(){if(!histOK)return;try{history.pushState({},"")}catch(_){histOK=false}}
 function push(s){
-  if(s.v===cur.v){cur=s;apply();return}
+  if(s.v===cur.v&&s.id===cur.id){cur=s;apply();return}
   stack.push(cur);fwd=[];cur=s;hpush();apply();
 }
 function back(){if(!stack.length)return;fwd.push(cur);cur=stack.pop();apply()}
@@ -1753,7 +1769,7 @@ function openPanel(){
   if(skBd>=2){
     $("flow").innerHTML=`
   <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
-    <div class="say">TMO: RD_BETTEN_M · Kurzwahl 2512 · Status 5</div>
+    <div class="say">TMO: RD_Betten_M · Kurzwahl 2512 · Status 5</div>
     <div class="warn" style="margin:0">Bei Funkausfall ausschließlich über Notruf „112".</div></div>
   <div class="blk"><h3><span class="step">2</span>PZC durchgeben</h3>
     <div class="say" style="font:800 28px ui-monospace,Menlo,monospace">${pzcStr(state.code,state.age,state.urg)}</div>
@@ -1765,7 +1781,7 @@ function openPanel(){
   }
   $("flow").innerHTML=`
   <div class="blk"><h3><span class="step">1</span>Anmelden</h3>
-    <div class="say">TMO: SK_1_Bett_M · Status „0"</div>
+    <div class="say">TMO: SK_I_Bett_M · Kurzwahl 2515 · Status „0"</div>
     <div class="warn" style="margin:0">Bei Funkausfall ausschließlich über Notruf „112".</div></div>
   <div class="blk"><h3><span class="step">2</span>Nennung Sonderbett</h3>
     <div class="opts" id="sbOpts">${sbOpts}</div>
@@ -1850,7 +1866,7 @@ function openSummary(){
   const iv=bd2?row("Geschlecht",sk.iv_7&&sk.iv_7.v):IV.map((f,i)=>row(f[0],sk["iv_"+i]&&sk["iv_"+i].v)+(i===0&&sk.iv_sr?row("Welcher Schockraum",sk.iv_sr.v):"")+(i===0&&sk.iv_srk?row("Schockraum-Kriterien",sk.iv_srk.v):"")).join("");
   $("sumFlow").innerHTML=`
   <div class="blk"><h3>Zusammenfassung</h3>
-    <div class="say">${bd2?"Kanal: RD_BETTEN_M · Kurzwahl 2512 · Status 5":"Kanal: SK_1_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
+    <div class="say">${bd2?"Kanal: RD_Betten_M · Kurzwahl 2512 · Status 5":"Kanal: SK_I_Bett_M · Kurzwahl 2515 · Status „0“"}</div>
     <div class="say" style="font:800 30px ui-monospace,Menlo,monospace">${esc(pzcStr(state.code,state.age,state.urg))}</div>
     <div class="warn" style="margin:0 0 6px">${esc(byCode[state.code][1])}</div>
     ${row("BD (Behandlungsdringlichkeit)","BD"+state.urg)}
@@ -1966,7 +1982,7 @@ function srStore(){
   if(t)sk.iv_srk={l:"Schockraum-Kriterien",v:t};else delete sk.iv_srk;
   const bx=$("srSelBox");if(bx)bx.textContent=t;
 }
-function openSR(tab){if(tab)srTab=tab;nkCur="schock";$("nkCardView").innerHTML=srHTML();push({v:"nkc"});window.scrollTo(0,0)}
+function openSR(tab){if(tab)srTab=tab;nkCur="schock";$("nkCardView").innerHTML=srHTML();push({v:"nkc",id:"schock"});window.scrollTo(0,0)}
 $("nkCardView").addEventListener("click",e=>{
   const b=e.target.closest("[data-sr]");
   if(b){const k=b.dataset.sr;srSel.has(k)?srSel.delete(k):srSel.add(k);srStore();const y=window.scrollY;$("nkCardView").innerHTML=srHTML();window.scrollTo(0,y);return}
@@ -1980,6 +1996,7 @@ $("nkCardView").addEventListener("click",e=>{
    Reanimation: Resuscitation Council UK / ERC-Leitlinien 2025 (Erwachsene) und RCUK-Algorithmus Paediatric ALS 2025 (Kinder). */
 const NK_MED_SRC="ÄLRD Bayern · „Medikamente zur Anwendung nach § 2a NotSanG“ · Version 1.4 · freigegeben 02.07.2024 · laut Dokument gültig bis 30.06.2025";
 const NK_REA_E_SRC="Resuscitation Council UK · Adult advanced life support guidelines (27.10.2025, basierend auf den ERC-Leitlinien 2025) · Rate und Tiefe: RCUK Adult basic life support guidelines 2025 · Medikamentendosen Bayern: ÄLRD-Liste v1.4";
+const NK_ROSC_SRC="Resuscitation Council UK · Post-resuscitation care guidelines (27.10.2025), beruhend auf den ERC-ESICM-Leitlinien 2025 Post-Resuscitation Care (Resuscitation 2025;215 Suppl 1:110809) · Dosierungen: die verlinkten Medikamentenkarten dieser App mit ihren Quellen";
 const NK_REA_K_SRC="Resuscitation Council UK · Paediatric advanced life support algorithm 2025 (Stand 11/2025, basierend auf den ERC-Leitlinien 2025) · Bayern: ÄLRD-Liste v1.4 verweist für Kinder auf die DIVI-Kindernotfallkarte";
 const nkF=n=>{if(!isFinite(n))return "–";const a=Math.abs(n);const v=a>=100?Math.round(n):a>=10?Math.round(n*10)/10:a>=1?Math.round(n*100)/100:Math.round(n*1000)/1000;return String(v).replace(".",",")};
 
@@ -2143,6 +2160,7 @@ const NK_KB={
 };
 const NK_CARDS=[
  {id:"rea_e",n:"Reanimation Erwachsene",sub:"ALS-Ablauf, Schock, Medikamente",hay:"reanimation erwachsene erwachsener cpr herzdruckmassage herzstillstand kreislaufstillstand als algorithmus defibrillation schock rea compressions"},
+ {id:"rosc",n:"Nach ROSC (Erwachsene)",sub:"Weiterbehandlung, Zielwerte, Medikamente",hay:"rosc nach reanimation post rea postreanimation kreislauf zurück wieder puls spontankreislauf weiterbehandlung zielwerte blutdruck beatmung sauerstoff noradrenalin sedierung transport herzkatheter"},
  {id:"rea_k",n:"Reanimation Kind",sub:"mit Gewichts-Rechner",hay:"reanimation kind kinder baby säugling pädiatrisch kinderreanimation pals cpr gewicht kg herzstillstand"},
  {id:"schock",n:"Schockraum-Indikation",sub:"Trauma · Non-Trauma",hay:"schockraum indikation trauma non trauma polytrauma kriterien"}
 ];
@@ -2361,7 +2379,36 @@ function nkReaEHTML(){
   <h3>Atemweg</h3><ul><li>Intubation nur durch Anwender mit hoher Erfolgsrate (über 95 % in zwei Versuchen) und mit Kapnographie; Unterbrechung der Kompression unter 5 s</li><li>Videolaryngoskopie bevorzugen, wenn verfügbar</li><li>Tubuslage nur sicher mit anhaltender Kapnographie-Kurve; Anstieg von ETCO₂ kann ROSC anzeigen</li></ul>
   <h3>Reversible Ursachen</h3><ul><li>Hypoxie</li><li>Hypovolämie</li><li>Metabolisch: Kalium, Calcium, Magnesium, Hypoglykämie</li><li>Hypo-/Hyperthermie</li><li>Thrombose (Herzinfarkt / Lungenembolie)</li><li>Spannungspneumothorax</li><li>Herzbeuteltamponade</li><li>Toxine</li></ul>
   <h3>Sonstiges</h3><ul><li>Flüssigkeit nur bei Hypovolämie als Ursache</li><li>Calcium, Natriumbicarbonat und Kortikosteroide nicht routinemäßig</li><li>Lungenembolie vermutet: Lyse erwägen</li></ul>
+  <button class="nkrow" data-nk="rosc" style="margin-top:12px;border:2px solid #378ADD;border-radius:12px"><b>Kreislauf zurück? → Nach ROSC ›</b><small>Zielwerte, Transport, Medikamente</small></button>
   <div class="warn">Quelle: ${esc(NK_REA_E_SRC)}. Eingabehilfe – es gelten die Vorgaben der Leitstelle / des ÄLRD.</div>`;
+}
+function nkRoscHTML(){
+  const md=(id,txt)=>{const m=NK_MED.find(x=>x.id===id);return m?`<button class="nkrow" data-nk="${id}" style="margin-bottom:6px"><b>${esc(m.n)} ›</b><small>${txt}</small></button>`:""};
+  return `<div class="nkhead"><h2>Nach ROSC (Erwachsene)</h2>${nkStar()}</div>
+  <div class="nkez"><b>Einfach gesagt</b><div>Der Kreislauf ist zurück. Jetzt Sauerstoff und Beatmung richtig einstellen, Blutdruck halten, Ursache suchen (vor allem Herzinfarkt) und zügig in die passende Klinik.</div></div>
+  <h3>A · Atemweg</h3><ul><li>Bleibt der Patient bewusstlos: <b>Intubation</b> – nur durch erfahrene Anwender, Lage mit <b>Kapnographie</b> bestätigen</li><li>Ohne erfahrenen Anwender: <b>Larynxmaske belassen</b> oder einfache Maßnahmen, bis jemand für die Narkose-Intubation da ist</li><li>Wach und atmet normal: Sauerstoff über Maske, wenn SpO₂ unter 94 %</li></ul>
+  <h3>B · Beatmung</h3><ul><li>Sofort nach ROSC <b>100 % Sauerstoff</b>, bis SpO₂ zuverlässig messbar ist</li><li>Dann Sauerstoff so einstellen, dass <b>SpO₂ 94–98 %</b> – zu wenig <b>und</b> zu viel Sauerstoff vermeiden</li><li><b>Normokapnie</b>: PaCO₂ 35–45 mmHg, etCO₂ laufend messen</li><li>Lungenschonend: <b>6–8 ml/kg</b> Atemzugvolumen (ideales Körpergewicht)</li></ul>
+  <h3>C · Kreislauf</h3><ul><li><b>12-Kanal-EKG</b> so früh wie möglich</li><li>Ziel: <b>RR systolisch über 100 mmHg</b> bzw. <b>MAD über 60–65 mmHg</b> – Blutdruckabfall vermeiden</li><li>Dafür je nach Bedarf: Flüssigkeit, <b>Noradrenalin</b> und/oder Dobutamin</li><li>Kalium: zu niedrig und zu hoch vermeiden (Rhythmusstörungen)</li><li>Rhythmusstörung nach ROSC: Vorgehen wie bei Periarrest-Rhythmusstörungen, Ursache behandeln (Koronarverschluss, Elektrolyte)</li></ul>
+  <h3>D · Gehirn</h3><ul><li>Blutzucker messen und nach Standard behandeln</li><li>Krampfanfall: <b>Levetiracetam</b> (oder Valproat) zusätzlich zur Sedierung</li><li>Sedierung mit <b>kurz wirksamen</b> Mitteln</li></ul>
+  <h3>E · Temperatur</h3><ul><li>Bleibt der Patient bewusstlos: <b>Fieber verhindern</b> (höchstens 37,5 °C)</li><li>Ist er leicht unterkühlt (32–36 °C): <b>nicht aktiv aufwärmen</b></li><li><b>Keine</b> Kühlung mit großen Mengen kalter Infusion im Rettungsdienst</li></ul>
+  <h3>Transport und Anmeldung</h3><ul><li><b>ST-Hebung</b> oder hoher Verdacht auf Koronarverschluss (z. B. Kreislauf oder Rhythmus instabil): <b>sofort Herzkatheter</b></li><li>Nicht-traumatischer Kreislaufstillstand: möglichst in ein <b>Cardiac Arrest Center</b> (nach örtlicher Regel)</li><li>Anmeldung als Sonderbett: <b>PZC 132</b> „Reanimation ROSC“ über <b>SK_I_Bett_M · 2515 · Status 0</b></li></ul>
+  <h3>Nicht routinemäßig</h3><ul><li>Keine vorbeugenden Antiarrhythmika, wenn keine Rhythmusstörung besteht</li><li>Keine Kortikosteroide, keine vorbeugenden Antibiotika</li><li>Keine vorbeugenden Mittel gegen Krampfanfälle</li><li>Muskelrelaxans nicht dauerhaft (nur zur Intubation)</li></ul>
+  <h3>Medikamente – antippen für Dosis</h3>
+  <div class="nkmute" style="font-size:13px;margin:-2px 0 8px">Auswahl und Dosis nach Notarzt und SOP. Nach ROSC fällt der Blutdruck bei Narkose leicht ab – vorsichtig dosieren.</div>
+  <div class="nklist">
+  ${md("norepi_5","Blutdruck halten · Perfusor 0,1 µg/kg/min, nach Wirkung")}
+  ${md("norepi_1","Push-Dose 10–20 µg (1 mg + 100 ml NaCl = 10 µg/ml)")}
+  ${md("dobutamin","Pumpschwäche des Herzens (Inotropie)")}
+  ${md("propofol","Narkose / Sedierung")}
+  ${md("midaz_iv","Sedierung, Krampfanfall")}
+  ${md("fentanyl","Schmerzmittel bei Narkose / Sedierung")}
+  ${md("rocuronium","Relaxans zur Intubation")}
+  ${md("levetiracetam","Krampfanfall nach ROSC")}
+  ${md("asa_iv","bei Herzinfarkt nach ACS-SOP")}
+  ${md("heparin","bei Herzinfarkt nach ACS-SOP")}
+  ${md("glucose","bei Unterzucker")}
+  </div>
+  <div class="warn">Quelle: ${esc(NK_ROSC_SRC)}. Eingabehilfe – es gelten die Vorgaben des Notarztes, der Leitstelle und des ÄLRD.</div>`;
 }
 function nkReaKHTML(){
   const kg=parseFloat(String(nkKg).replace(",","."));
@@ -2384,12 +2431,15 @@ function nkReaKHTML(){
   <div class="warn">Quelle: ${esc(NK_REA_K_SRC)}. Die Bayerische Liste nennt für Kinder die DIVI-Kindernotfallkarte. Eingabehilfe – Gewicht und Dosis immer gegenprüfen.</div>`;
 }
 const nkStar=()=>`<button class="nkfav ${nkIsFav(nkCur)?"on":""}" data-fav="${nkCur}" aria-label="Favorit">${nkIsFav(nkCur)?"★":"☆"}</button>`;
-function nkOpen(id){
+function nkShow(id){
   nkCur=id;
-  if(id==="schock"){openSR("trauma");return}
   const m=NK_MED.find(x=>x.id===id);
-  $("nkCardView").innerHTML=id==="rea_e"?nkReaEHTML():id==="rea_k"?nkReaKHTML():m?nkMedHTML(m):"";
-  window.scrollTo(0,0);push({v:"nkc"});window.scrollTo(0,0);
+  $("nkCardView").innerHTML=id==="schock"?srHTML():id==="rea_e"?nkReaEHTML():id==="rosc"?nkRoscHTML():id==="rea_k"?nkReaKHTML():m?nkMedHTML(m):"";
+}
+function nkOpen(id){
+  if(id==="schock"){nkCur=id;openSR("trauma");return}
+  nkShow(id);
+  window.scrollTo(0,0);push({v:"nkc",id});window.scrollTo(0,0);
 }
 $("nkCardView").addEventListener("input",e=>{
   if(e.target.id!=="nkKg")return;
@@ -2398,6 +2448,7 @@ $("nkCardView").addEventListener("input",e=>{
   else{const m=NK_MED.find(x=>x.id===nkCur);if(m){if($("nkK"))$("nkK").innerHTML=nkDoseHTML(m,true);if($("nkE"))$("nkE").innerHTML=nkDoseHTML(m,false)}}
 });
 $("nkCardView").addEventListener("click",e=>{
+  const o=e.target.closest("[data-nk]");if(o){nkOpen(o.dataset.nk);return}
   const f=e.target.closest("[data-fav]");
   if(f){const id=f.dataset.fav;nkToggleFav(id);f.classList.toggle("on",nkIsFav(id));f.textContent=nkIsFav(id)?"★":"☆"}
 });
@@ -2442,6 +2493,94 @@ $("nachView").addEventListener("click",e=>{
   const f=e.target.closest("[data-fav]");if(f){nkToggleFav(f.dataset.fav);return}
   const b=e.target.closest("[data-nk]");if(b)nkOpen(b.dataset.nk)});
 nkRender();
+
+/* ---- Funkkanäle (TMO-Gruppen) – Quelle: einsatztaktik.de/fahrerinfo/funk, Abruf 26.11.2026 ---- */
+const FK=[
+ {g:"Anmeldung Klinik",open:1,l:[
+  {k:"2515",n:"SK_I_Bett_M",d:"Sonderbetten (Schockraum, Stroke, Chest Pain, Sepsis, Kreißsaal, ICU/IMC, Verbrennung …) · Status 0",bd:1,hl:1},
+  {k:"2512",n:"RD_Betten_M",d:"Normalbetten SK 2 + 3 · Status 5",bd:2,hl:1}]},
+ {g:"ILS München",open:1,l:[
+  {k:"2513",n:"RD_1_M",d:"Funk München Nord (ca. westlich / links der Isar)"},
+  {k:"2514",n:"RD_2_M",d:"Funk München Süd (ca. östlich / rechts der Isar)"},
+  {k:"25",n:"ILS_M_AG",d:"Anruf ohne Einsatzauftrag"},
+  {k:"2530",n:"RD_Anruf_M",d:"Fremdfahrzeuge aus anderen Leitstellenbereichen"},
+  {k:"2563",n:"RD_KTP_M",d:"Zielvereinbarungen für Krankentransporte",q:"Quelle nennt an anderer Stelle 2539 – bitte am Funkgerät prüfen"}]},
+ {g:"Feuerwehr, Wasserrettung, BOS München",l:[
+  {k:"2531",n:"BF_1_M",d:"Berufsfeuerwehr Bereich Nord"},
+  {k:"2532",n:"BF_2_M",d:"Berufsfeuerwehr Bereich Süd"},
+  {k:"26",n:"FW_M#_AG",d:"Anrufgruppe Feuerwehreinsatzzentrale Landkreis München"},
+  {k:"2652",n:"FW_M#",d:"Feuerwehr Landkreis München"},
+  {k:"2555",n:"WR_1_M",d:"Wasserrettung 1"},
+  {k:"2529",n:"WR_2_M",d:"Wasserrettung 2"},
+  {k:"2655",n:"WR_M#",d:"Wasserrettung Landkreis München"},
+  {k:"5801",n:"M_BOS_ZA_1",d:"BOS-Zusammenarbeit"},
+  {k:"5802",n:"M_BOS_ZA_2",d:"BOS-Zusammenarbeit, Ausweichgruppe"}]},
+ {g:"ILS Fürstenfeldbruck",o:"Fürstenfeldbruck, Dachau, Starnberg, Landsberg FFB DAH STA LL",l:[
+  {k:"2013",n:"RD_ILS_FFB",d:"Regelgruppe Rettungsdienst",hl:1},
+  {k:"2012",n:"RD_Betten_FFB",d:"Bettenanmeldung",hl:1},
+  {k:"20",n:"LS_FFB_AG",d:"Anrufgruppe für Fremdfahrzeuge ohne Einsatzauftrag"},
+  {k:"2011",n:"RD_KTP_FFB",d:"Krankentransport"},
+  {k:"2065",n:"WR_FFB",d:"Wasserrettung, ganzer Leitstellenbereich"},
+  {k:"2085",n:"WR_STA",d:"Wasserrettung Starnberger See inkl. Hubschrauber"},
+  {k:"2075",n:"WR_LL",d:"Wasserrettung Ammersee inkl. Hubschrauber"},
+  {k:"2055",n:"WR_DAH",d:"Wasserrettung Reserve"}]},
+ {g:"ILS Erding",o:"Erding, Ebersberg, Freising ED EBE FS",l:[
+  {k:"1913",n:"RD_ILS_ED",d:"Alarmkanal Rettungsdienst",hl:1},
+  {k:"1912",n:"RD_Betten_ED",d:"Bettenkanal",hl:1},
+  {k:"19",n:"ILS_ED_AG",d:"Anrufgruppe ohne Auftrag"},
+  {k:"1964",n:"BR_ED",d:"Bergrettung"},
+  {k:"1965",n:"WR_ED",d:"Wasserrettung"}]},
+ {g:"ILS Ingolstadt",o:"Ingolstadt, Eichstätt, Pfaffenhofen, Neuburg, Schrobenhausen IN EI PAF ND",l:[
+  {k:"2213",n:"RD_ILS_IN",d:"Rettungsdienst",hl:1},
+  {k:"2212",n:"RD_Betten_IN",d:"Bettenkanal",hl:1},
+  {k:"22",n:"LS_IN_AG",d:"Anrufgruppe"},
+  {k:"2263",n:"Sonderlage",d:"Sonderlage"}]},
+ {g:"ILS Landshut",o:"Landshut, Dingolfing, Kelheim, Landau LA DGF KEH",l:[
+  {k:"2313",n:"RD_ILS_LA",d:"Rettungsdienst",hl:1},
+  {k:"2312",n:"RD_Betten_LA",d:"Bettenkanal",hl:1},
+  {k:"23",n:"ILS_LA_AG",d:"Anrufgruppe"},
+  {k:"2353",n:"Großschaden",d:"Großschaden Dingolfing"},
+  {k:"2363",n:"Großschaden",d:"Großschaden Kelheim"},
+  {k:"2373",n:"Großschaden",d:"Großschaden Landshut Stadt"},
+  {k:"2383",n:"Großschaden",d:"Großschaden Landshut Landkreis"},
+  {k:"2374",n:"Bergrettung",d:"Bergrettung"},
+  {k:"2375",n:"Wasserrettung",d:"Wasserrettung"}]},
+ {g:"ILS Oberland (Weilheim)",o:"Oberland Weilheim-Schongau, Bad Tölz, Garmisch, Murnau, Wolfratshausen WM TÖL GAP",l:[
+  {k:"3013",n:"RD_ILS_WM",d:"Rettungsdienst",hl:1},
+  {k:"3012",n:"RD_Betten_WM",d:"Bettenkanal",hl:1},
+  {k:"30",n:"ILS_WM_AG",d:"Anrufgruppe"}]},
+ {g:"ILS Rosenheim",o:"Rosenheim, Tegernsee, Agatharied, Miesbach RO MB",l:[
+  {k:"3313",n:"RD_ILS_RO",d:"Rettungsdienst",hl:1},
+  {k:"3312",n:"RD_Betten_RO",d:"Bettenkanal",hl:1},
+  {k:"33",n:"ILS_RO_AG",d:"Anrufgruppe"}]}
+];
+const fkRow=c=>`<div class="fkrow${c.hl?" hl":""}"><div class="fkkw">${esc(c.k)}</div><div style="min-width:0"><div class="fknm">${esc(c.n)}${c.bd===1?'<span class="fkbd fkb1">BD 1</span>':c.bd===2?'<span class="fkbd fkb2">BD 2/3</span>':""}</div><div class="fkds">${esc(c.d)}</div>${c.q?`<div class="fkq">⚠ ${esc(c.q)}</div>`:""}</div></div>`;
+const FK_MERK=`<div class="lbl" style="margin-top:16px">Merke</div><div class="fkmerk">In Bayern einheitlich: <b>…13</b> = Rettungsdienst, <b>…12</b> = Betten. Bei fremden Leitstellen kommt eine Sprechaufforderung – danach sofort sprechen. In München erst nach Ansprache durch die ILS sprechen.</div>`;
+function fkRender(){
+  const q=fold($("fkQ").value||"").trim(),qs=q.split(" ").filter(Boolean);
+  if(!qs.length){
+    $("fkRes").innerHTML=FK.map(G=>G.open?`<div class="lbl" style="margin-top:12px">${esc(G.g)}</div>${G.l.map(fkRow).join("")}`:"").join("")
+      +`<div class="lbl" style="margin-top:16px">Weitere</div>`
+      +FK.filter(G=>!G.open).map(G=>`<details class="fkgrp"><summary>${esc(G.g)} <span class="nkmute">(${G.l.length})</span></summary>${G.o?`<div class="fkds" style="margin:0 2px 6px">${esc(G.o.replace(/\s+[A-ZÖ]{1,3}(\s+[A-ZÖ]{1,3})*$/,""))}</div>`:""}${G.l.map(fkRow).join("")}</details>`).join("")
+      +FK_MERK;
+    return;
+  }
+  const out=[];
+  for(const G of FK){
+    const gh=fold(G.g+" "+(G.o||""));
+    const hits=G.l.filter(c=>{const h=fold(c.k+" "+c.n.replace(/_/g," ")+" "+c.n+" "+c.d)+" "+gh;return qs.every(t=>h.includes(t))});
+    if(hits.length)out.push(`<div class="lbl" style="margin-top:12px">${esc(G.g)}</div>${hits.map(fkRow).join("")}`);
+  }
+  $("fkRes").innerHTML=out.length?out.join(""):'<div class="warn">Nichts gefunden – Name (z. B. „Betten“), Kurzwahl (z. B. „2013“) oder Ort (z. B. „Dachau“) eingeben.</div>';
+}
+let nkSegV="med";try{nkSegV=localStorage.getItem("nkSeg")||"med"}catch(e){}
+function nkSetSeg(v){nkSegV=v;try{localStorage.setItem("nkSeg",v)}catch(e){}
+  $("nkSeg").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.seg===v));
+  $("nkBox").classList.toggle("hidden",v!=="med");$("fkBox").classList.toggle("hidden",v!=="funk");
+  if(v==="funk")fkRender();}
+$("nkSeg").addEventListener("click",e=>{const b=e.target.closest("[data-seg]");if(b)nkSetSeg(b.dataset.seg)});
+$("fkQ").addEventListener("input",fkRender);
+nkSetSeg(nkSegV==="funk"?"funk":"med");
 
 /* ---- Karte / Ausweis scannen: Texterkennung läuft komplett im Gerät, Foto wird nicht gespeichert ---- */
 const closeModal=()=>{$("mscrim").classList.remove("open");$("modal").classList.remove("big")};
