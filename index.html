@@ -316,7 +316,7 @@ textarea.inp{min-height:84px;resize:vertical}
     <div id="fkBox" class="hidden">
       <input class="search" id="fkQ" type="search" placeholder="Name, Kurzwahl oder Leitstelle …" autocomplete="off" autocapitalize="off" autocorrect="off">
       <div id="fkRes" style="margin-top:12px"></div>
-      <p class="note">Quelle: einsatztaktik.de › Fahrerinfo › Funk (Abruf 26.11.2026), abgeglichen mit dem Fahrzeug-Funkgerät. Ohne Gewähr – maßgeblich sind Funkgerät und Leitstelle.</p>
+      <p class="note">Quellen: Gruppenliste „RDB München“ (Stadt + Landkreis, ohne Datum) und einsatztaktik.de › Fahrerinfo › Funk (Abruf 26.11.2026, Nachbar-Leitstellen); 2512–2515 am Fahrzeug-Funkgerät bestätigt. Ohne Gewähr – maßgeblich sind Funkgerät und Leitstelle.</p>
     </div>
     <div id="nkBox">
     <input class="search" id="nkQ" type="search" placeholder="Suchen: Adrenalin, Krampf …" autocomplete="off" autocapitalize="off" autocorrect="off">
@@ -704,8 +704,9 @@ function srWhichRender(){
 const NOTE_CHIPS=["Antikoagulation","Intubiert","Rea läuft","Katecholamine","Pat. nüchtern","Angehörige dabei","Rücksprache ILS","Zielklinik wechselt"];
 
 /* ---- Version & Änderungen: neue Version oben eintragen, APP_VERSION anpassen, sw.js-Version erhöhen ---- */
-const APP_VERSION="9.5";
+const APP_VERSION="9.6";
 const CHANGELOG=[
+ {v:"9.6",d:"26.11.2026",items:["Funk: komplette Gruppenliste München (Stadt + Landkreis) aus der Liste „RDB München“ – u. a. RD_KTP_M jetzt 2511, RD_M, RD-Führung, Hilfsorganisationen, Feuerwehr, Berg-/Wasserrettung, Katastrophenschutz, Führungsstellen, Sondergruppen","Funk: neue Gruppe „Umschaltpunkte“ – wo man beim Verlassen von München auf welche Leitstelle umschaltet","Abweichungen zwischen den Quellen sind mit ⚠ markiert"]},
  {v:"9.5",d:"26.11.2026",items:["Karte „Nach ROSC“: Thiamin (Vitamin B1) ergänzt – bei Unterzucker und Verdacht auf Alkoholkrankheit vor der Glucose (wie ÄLRD-Liste); kein Medikament zum Hirnschutz empfohlen"]},
  {v:"9.4",d:"26.11.2026",items:["Neu: Karte „Nach ROSC (Erwachsene)“ – Weiterbehandlung nach erfolgreicher Reanimation: Zielwerte, Transport/Anmeldung, was man nicht routinemäßig gibt, und Medikamente zum Antippen (nach ERC-Leitlinien 2025); auch aus der Karte „Reanimation Erwachsene“ erreichbar","Neu unter „Nachschlagen“: Umschalter „📻 Funk“ mit allen Funkkanälen (Kurzwahl groß) – ILS München, Feuerwehr/Wasserrettung und Nachbar-Leitstellen (FFB, Erding, Ingolstadt, Landshut, Oberland, Rosenheim), mit Suche","Kanalnamen in der Anmeldung wie am Funkgerät: SK_I_Bett_M (2515) und RD_Betten_M (2512)"]},
  {v:"9.3",d:"25.11.2026",items:["iPhone: Code-Leiste unten und Zurück-Leiste oben verrutschen nach dem Eintippen (z. B. Alter) nicht mehr beim Scrollen","PZC-Liste erneut mit IVENA Bayern abgeglichen (25.11.2026): keine neuen oder geänderten Codes"]},
@@ -2501,22 +2502,118 @@ const FK=[
  {g:"Anmeldung Klinik",open:1,l:[
   {k:"2515",n:"SK_I_Bett_M",d:"Sonderbetten (Schockraum, Stroke, Chest Pain, Sepsis, Kreißsaal, ICU/IMC, Verbrennung …) · Status 0",bd:1,hl:1},
   {k:"2512",n:"RD_Betten_M",d:"Normalbetten SK 2 + 3 · Status 5",bd:2,hl:1}]},
- {g:"ILS München",open:1,l:[
+ {g:"ILS München · Rettungsdienst",open:1,l:[
   {k:"2513",n:"RD_1_M",d:"Funk München Nord (ca. westlich / links der Isar)"},
   {k:"2514",n:"RD_2_M",d:"Funk München Süd (ca. östlich / rechts der Isar)"},
-  {k:"25",n:"ILS_M_AG",d:"Anruf ohne Einsatzauftrag"},
-  {k:"2530",n:"RD_Anruf_M",d:"Fremdfahrzeuge aus anderen Leitstellenbereichen"},
-  {k:"2563",n:"RD_KTP_M",d:"Zielvereinbarungen für Krankentransporte",q:"Quelle nennt an anderer Stelle 2539 – bitte am Funkgerät prüfen"}]},
- {g:"Feuerwehr, Wasserrettung, BOS München",l:[
+  {k:"25",n:"ILS_M_AG",d:"Anrufgruppe ILS München – Anruf ohne Einsatzauftrag"},
+  {k:"2511",n:"RD_KTP_M",d:"Krankentransport (Zielvereinbarungen für Krankentransporte)"},
+  {k:"2516",n:"RD_Anruf_M",d:"Fremdfahrzeuge aus anderen Leitstellenbereichen",q:"einsatztaktik.de nennt 2530 – am Funkgerät prüfen"},
+  {k:"2563",n:"RD_M",d:"Rettungsdienst Stadt München"},
+  {k:"2653",n:"RD_M#",d:"Rettungsdienst Landkreis München"}]},
+ {g:"RD-Führung und Hilfsorganisationen",l:[
+  {k:"2517",n:"RD_Fü_1_M",d:"Rettungsdienst Führung"},
+  {k:"2518",n:"RD_Fü_2_M",d:"Rettungsdienst Führung"},
+  {k:"2519",n:"RD_Fü_3_M",d:"Rettungsdienst Führung"},
+  {k:"2520",n:"Hiorg_01_M",d:"Hilfsorganisationen"},
+  {k:"2521",n:"Hiorg_02_M",d:"Hilfsorganisationen"},
+  {k:"2522",n:"Hiorg_03_M",d:"Hilfsorganisationen"},
+  {k:"2523",n:"Hiorg_04_M",d:"Hilfsorganisationen"},
+  {k:"2524",n:"Hiorg_05_M",d:"Hilfsorganisationen"},
+  {k:"2525",n:"Hiorg_06_M",d:"Hilfsorganisationen"},
+  {k:"2526",n:"Hiorg_07_M",d:"Hilfsorganisationen"},
+  {k:"2527",n:"Hiorg_08_M",d:"Hilfsorganisationen"},
+  {k:"2528",n:"Hiorg_09_M",d:"Hilfsorganisationen"}]},
+ {g:"Umschaltpunkte beim Verlassen von München",o:"Autobahn Bundesstraße umschalten Grenze Leitstellenbereich",l:[
+  {k:"A",n:"BAB 8 München → Salzburg",d:"Umschalten bei AS Holzkirchen → ILS Rosenheim · RD_ILS_RO 3313"},
+  {k:"B",n:"BAB 95 München → Garmisch",d:"Umschalten bei Autobahndreieck Starnberg → ILS Fürstenfeldbruck · RD_ILS_FFB 2013"},
+  {k:"C",n:"BAB 96 München → Lindau",d:"Umschalten bei AS Germering → ILS Fürstenfeldbruck · RD_ILS_FFB 2013"},
+  {k:"D",n:"BAB 94 München → Passau",d:"Umschalten bei Autobahnkreuz München Ost → ILS Erding · RD_ILS_ED 1913"},
+  {k:"E",n:"BAB 9 München → Nürnberg",d:"Umschalten bei AS Garching Nord → ILS Erding · RD_ILS_ED 1913"},
+  {k:"F",n:"BAB 92 München → Deggendorf",d:"Umschalten bei AS Unterschleißheim → ILS Erding · RD_ILS_ED 1913"},
+  {k:"G",n:"BAB 8 München → Stuttgart",d:"Umschalten bei AS München-Langwied → ILS Fürstenfeldbruck · RD_ILS_FFB 2013"},
+  {k:"H",n:"B 11 München → Innsbruck",d:"Umschalten bei Ebenhausen Schäftlarn → ILS Oberland · RD_ILS_WM 3013"},
+  {k:"I",n:"B 13 München → Holzkirchen",d:"Umschalten bei vor Otterfing → ILS Rosenheim · RD_ILS_RO 3313"},
+  {k:"J",n:"B 304 München → Wasserburg",d:"Umschalten bei Höhe Vaterstetten → ILS Rosenheim · RD_ILS_RO 3313"},
+  {k:"K",n:"B 388 München → Moosinning",d:"Umschalten bei Golfclub München Eichenried → ILS Erding · RD_ILS_ED 1913"},
+  {k:"L",n:"B 13 München → Ingolstadt",d:"Umschalten bei AS Unterschleißheim → ILS Erding · RD_ILS_ED 1913"},
+  {k:"M",n:"B 11 München → Freising",d:"Umschalten bei St 2350 → ILS Erding · RD_ILS_ED 1913"},
+  {k:"N",n:"B 471 München → Fürstenfeldbruck",d:"Umschalten bei AS Oberschleißheim → ILS Fürstenfeldbruck · RD_ILS_FFB 2013"},
+  {k:"O",n:"B 2 München → Fürstenfeldbruck",d:"Umschalten bei AS Germering Nord → ILS Fürstenfeldbruck · RD_ILS_FFB 2013"},
+  {k:"P",n:"B 304 München → Dachau",d:"Umschalten bei AS München-Langwied → ILS Fürstenfeldbruck · RD_ILS_FFB 2013"}]},
+ {g:"Feuerwehr Stadt München",l:[
+  {k:"26",n:"FEZ_M#_AG",d:"Anrufgruppe FEZ München"},
   {k:"2531",n:"BF_1_M",d:"Berufsfeuerwehr Bereich Nord"},
   {k:"2532",n:"BF_2_M",d:"Berufsfeuerwehr Bereich Süd"},
-  {k:"26",n:"FW_M#_AG",d:"Anrufgruppe Feuerwehreinsatzzentrale Landkreis München"},
-  {k:"2652",n:"FW_M#",d:"Feuerwehr Landkreis München"},
-  {k:"2555",n:"WR_1_M",d:"Wasserrettung 1"},
+  {k:"2533",n:"BF_Fü_1_M",d:"Berufsfeuerwehr Führung"},
+  {k:"2534",n:"BF_Fü_2_M",d:"Berufsfeuerwehr Führung"},
+  {k:"2535",n:"BF_Fü_3_M",d:"Berufsfeuerwehr Führung"},
+  {k:"2536",n:"BF_Fü_4_M",d:"Berufsfeuerwehr Führung"},
+  {k:"2537",n:"BF_EGr01_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2538",n:"BF_EGr02_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2539",n:"BF_EGr03_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2540",n:"BF_EGr04_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2541",n:"BF_EGr05_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2542",n:"BF_EGr06_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2543",n:"BF_EGr07_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2544",n:"BF_EGr08_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2545",n:"BF_EGr09_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2546",n:"BF_EGr10_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2547",n:"BF_EGr11_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2548",n:"BF_EGr12_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2549",n:"BF_EGr13_M",d:"Berufsfeuerwehr Einsatzgruppe"},
+  {k:"2550",n:"FF_1_M",d:"Freiwillige Feuerwehr München"},
+  {k:"2551",n:"FF_2_M",d:"Freiwillige Feuerwehr München"},
+  {k:"2552",n:"BF_Sch_1_M",d:"Berufsfeuerwehr"},
+  {k:"2562",n:"FW_M",d:"Feuerwehr München"}]},
+ {g:"Feuerwehr Landkreis München",l:[
+  {k:"2601",n:"FW_1_M#",d:"Feuerwehr Landkreis"},
+  {k:"2602?",n:"FW_2_M#",d:"Feuerwehr Landkreis",q:"Im Foto der Liste verdeckt – folgt der Reihe, am Funkgerät prüfen"},
+  {k:"2603",n:"FW_3_M#",d:"Feuerwehr Landkreis"},
+  {k:"2604",n:"FW_4_M#",d:"Feuerwehr Landkreis"},
+  {k:"2605",n:"FW_5_M#",d:"Feuerwehr Landkreis"},
+  {k:"2606",n:"FW_6_M#",d:"Feuerwehr Landkreis"},
+  {k:"2607",n:"FW_7_M#",d:"Feuerwehr Landkreis"},
+  {k:"2608",n:"FW_8_M#",d:"Feuerwehr Landkreis"},
+  {k:"2609",n:"FW_9_M#",d:"Feuerwehr Landkreis"},
+  {k:"2610",n:"FW_Fü_M#",d:"Feuerwehr Landkreis Führung"},
+  {k:"2652",n:"FW_M#",d:"Feuerwehr Landkreis"},
+  {k:"2611",n:"WF_TUM_1_M#",d:"Werkfeuerwehr TUM"},
+  {k:"2612",n:"WF_TUM_1_M#",d:"Werkfeuerwehr TUM",q:"Name steht in der Liste zweimal (2611 und 2612)"},
+  {k:"2613",n:"WF_HZM_1_M#",d:"Werkfeuerwehr"}]},
+ {g:"Berg-, Wasserrettung, Katastrophenschutz",l:[
+  {k:"2564",n:"BR_M",d:"Bergrettung Stadt"},
+  {k:"2654",n:"BR_M#",d:"Bergrettung Landkreis"},
+  {k:"2565",n:"WR_1_M",d:"Wasserrettung 1",q:"einsatztaktik.de nennt 2555 – am Funkgerät prüfen"},
   {k:"2529",n:"WR_2_M",d:"Wasserrettung 2"},
-  {k:"2655",n:"WR_M#",d:"Wasserrettung Landkreis München"},
-  {k:"5801",n:"M_BOS_ZA_1",d:"BOS-Zusammenarbeit"},
-  {k:"5802",n:"M_BOS_ZA_2",d:"BOS-Zusammenarbeit, Ausweichgruppe"}]},
+  {k:"2530",n:"WR_3_M",d:"Wasserrettung 3"},
+  {k:"2655",n:"WR_M#",d:"Wasserrettung Landkreis"},
+  {k:"2566",n:"KATS_M",d:"Katastrophenschutz Stadt"},
+  {k:"2657",n:"KATS_M#",d:"Katastrophenschutz Landkreis",q:"Die Liste nennt 2657 auch für FüSt_1_M# – am Funkgerät prüfen"}]},
+ {g:"Führungsstellen und Zusammenarbeit",l:[
+  {k:"2567",n:"FüSt_1_M",d:"Führungsstelle Stadt"},
+  {k:"2568",n:"FüSt_2_M",d:"Führungsstelle Stadt"},
+  {k:"2657",n:"FüSt_1_M#",d:"Führungsstelle Landkreis",q:"Die Liste nennt 2657 auch für KATS_M# – am Funkgerät prüfen"},
+  {k:"2658",n:"FüSt_2_M#",d:"Führungsstelle Landkreis"},
+  {k:"2561",n:"ZA_M",d:"Zusammenarbeit Stadt"},
+  {k:"2651",n:"ZA_M#",d:"Zusammenarbeit Landkreis"},
+  {k:"5801",n:"M_BOS_ZA_1",d:"Zusammenarbeit Polizei ⇔ nichtpolizeiliche BOS"},
+  {k:"5802",n:"M_BOS_ZA_2",d:"Zusammenarbeit Polizei ⇔ nichtpolizeiliche BOS, Ausweichgruppe"}]},
+ {g:"Sondergruppen (Großeinsatz)",o:"MANV",l:[
+  {k:"2501",n:"SoG_1_M",d:"Sondergruppe München"},
+  {k:"2502",n:"SoG_2_M",d:"Sondergruppe München"},
+  {k:"2503",n:"SoG_3_M",d:"Sondergruppe München"},
+  {k:"2504",n:"SoG_4_M",d:"Sondergruppe München"},
+  {k:"2505",n:"SoG_5_M",d:"Sondergruppe München"},
+  {k:"2506",n:"SoG_6_M",d:"Sondergruppe München"},
+  {k:"2507",n:"SoG_7_M",d:"Sondergruppe München"},
+  {k:"2508?",n:"SoG_8_M",d:"Sondergruppe München",q:"Im Foto der Liste verdeckt – folgt der Reihe, am Funkgerät prüfen"},
+  {k:"2509",n:"SoG_9_M",d:"Sondergruppe München"},
+  {k:"2510",n:"SoG_10_M",d:"Sondergruppe München"},
+  {k:"2614",n:"FEZ_OV_M#",d:"Sondergruppe"},
+  {k:"2615",n:"FW_SoG_1_M#",d:"Feuerwehr Sondergruppe Landkreis"},
+  {k:"2616",n:"FW_SoG_2_M#",d:"Feuerwehr Sondergruppe Landkreis"},
+  {k:"2617",n:"FW_SoG_3_M#",d:"Feuerwehr Sondergruppe Landkreis"},
+  {k:"2618",n:"FW_SoG_4_M#",d:"Feuerwehr Sondergruppe Landkreis"}]},
  {g:"ILS Fürstenfeldbruck",o:"Fürstenfeldbruck, Dachau, Starnberg, Landsberg FFB DAH STA LL",l:[
   {k:"2013",n:"RD_ILS_FFB",d:"Regelgruppe Rettungsdienst",hl:1},
   {k:"2012",n:"RD_Betten_FFB",d:"Bettenanmeldung",hl:1},
@@ -2557,7 +2654,7 @@ const FK=[
   {k:"33",n:"ILS_RO_AG",d:"Anrufgruppe"}]}
 ];
 const fkRow=c=>`<div class="fkrow${c.hl?" hl":""}"><div class="fkkw">${esc(c.k)}</div><div style="min-width:0"><div class="fknm">${esc(c.n)}${c.bd===1?'<span class="fkbd fkb1">BD 1</span>':c.bd===2?'<span class="fkbd fkb2">BD 2/3</span>':""}</div><div class="fkds">${esc(c.d)}</div>${c.q?`<div class="fkq">⚠ ${esc(c.q)}</div>`:""}</div></div>`;
-const FK_MERK=`<div class="lbl" style="margin-top:16px">Merke</div><div class="fkmerk">In Bayern einheitlich: <b>…13</b> = Rettungsdienst, <b>…12</b> = Betten. Bei fremden Leitstellen kommt eine Sprechaufforderung – danach sofort sprechen. In München erst nach Ansprache durch die ILS sprechen.</div>`;
+const FK_MERK=`<div class="lbl" style="margin-top:16px">Merke</div><div class="fkmerk">In Bayern einheitlich: <b>…13</b> = Rettungsdienst, <b>…12</b> = Betten. Bei fremden Leitstellen kommt eine Sprechaufforderung – danach sofort sprechen. In München erst nach Ansprache durch die ILS sprechen. Beim Verlassen von München an den Umschaltpunkten auf die Gruppe der neuen Leitstelle wechseln.</div>`;
 function fkRender(){
   const q=fold($("fkQ").value||"").trim(),qs=q.split(" ").filter(Boolean);
   if(!qs.length){
